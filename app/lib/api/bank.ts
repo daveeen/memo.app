@@ -41,3 +41,20 @@ export async function listBriefs() {
   const { data } = await supabase.from("vibe_briefs").select("*").order("created_at", { ascending: false });
   return data ?? [];
 }
+
+export async function saveSong(s: any, midi: Uint8Array) {
+  const { data: { user } } = await supabase.auth.getUser();
+  const path = `${user!.id}/${crypto.randomUUID()}.mid`;
+  // `@types/node` (pulled in via tsconfig's `types: ["node"]`) redeclares the global
+  // `Uint8Array` as generic over `ArrayBufferLike`, which no longer satisfies DOM's
+  // `BlobPart` (wants `ArrayBufferView<ArrayBuffer>`) under TS 5.7+ — a tsconfig-level
+  // friction, not a real runtime mismatch, so it's cast rather than restructured.
+  const { error: uploadError } = await supabase.storage.from("midi").upload(path, new Blob([midi as BlobPart], { type: "audio/midi" }));
+  if (uploadError) throw uploadError;
+  const { data, error } = await supabase.from("songs").insert({
+    idea_id: s.sourceIdeaId, vibe_brief_id: s.sourceVibeBriefId, chordchart_json: s.chordChart,
+    structure_json: s.structure, instrumentation_json: s.instrumentation, midi_path: path,
+  }).select().single();
+  if (error) throw error;
+  return { song: data, midiPath: path };
+}
