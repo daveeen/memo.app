@@ -34,13 +34,13 @@ Phone-first, demo-safe. Designed as a genuine mobile app, with a legibility floo
 | `--paper-sunk` | `#D2CABA` | inputs, wells, scrubber track |
 | `--paper-raised` | `#E9E4D8` | cards, sheets |
 | `--ink` | `#1A1712` | primary text, rules, waveforms |
-| `--ink-muted` | `#6D6558` | metadata, secondary text |
-| `--ink-faint` | `#8A8172` | labels, disabled |
+| `--ink-muted` | `#655D51` | metadata, secondary text, **and all labels** |
+| `--ink-faint` | `#81796B` | **non-text only** — disabled states, hairlines, decorative marks |
 | `--accent` | `#C62D18` | live state, chorus, primary action |
 | `--accent-on` | `#FFFFFF` | text on accent fills |
 | `--alt` | `#3F6B5C` | bridge, secondary data |
 
-**Section ramp** — `--sec-intro` `#1A1712` · `--sec-verse` `#6D6558` · `--sec-chorus` `#C62D18` · `--sec-bridge` `#3F6B5C` · `--sec-outro` `#B9B1A0`
+**Section ramp** — `--sec-intro` `#1A1712` · `--sec-verse` `#6D6558` · `--sec-chorus` `#C62D18` · `--sec-bridge` `#3F6B5C` · `--sec-outro` `#847861`
 
 ### 2.2 Colour — Ink (dark theme)
 
@@ -58,7 +58,7 @@ Same token names, re-bound. No component knows which theme is active.
 | `--accent-on` | `#16130F` |
 | `--alt` | `#5C9C86` |
 
-**Section ramp (value-inverted)** — `--sec-intro` `#E8E1D3` · `--sec-verse` `#7E7566` · `--sec-chorus` `#FF4A2E` · `--sec-bridge` `#5C9C86` · `--sec-outro` `#3A342B`
+**Section ramp (value-inverted)** — `--sec-intro` `#E8E1D3` · `--sec-verse` `#7E7566` · `--sec-chorus` `#FF4A2E` · `--sec-bridge` `#5C9C86` · `--sec-outro` `#6B604F`
 
 Theme switches via `data-theme` on the root, defaulting to Newsprint. A manual toggle lives in settings; `prefers-color-scheme` is respected on first load only.
 
@@ -67,7 +67,10 @@ Theme switches via `data-theme` on the root, defaulting to Newsprint. A manual t
 ### 2.3 Contrast and legibility floor
 
 - Ink on paper ≈ 12.6:1.
-- Accent on paper ≈ **3.8:1** (measured, not estimated). This fails normal-text contrast. **Accent never sets text on paper**, at any size. It is permitted only for fills, rules ≥1.5px, and non-text graphical marks — where it clears the 3:1 UI floor. Text that must be red sits on an accent *fill* using `--accent-on`, never red-on-paper.
+- **`--ink-muted` carries all text, including labels** — measured 4.53:1 in Newsprint, clearing the 4.5 text floor.
+- **`--ink-faint` is non-text only** — disabled states, hairlines, decorative marks. It must clear the 3:1 UI floor and must never carry text of any size. *Original spec error: labels were assigned to `--ink-faint` at 10px, measuring **2.68:1** in Newsprint — roughly half the required contrast. 10px is small text, so the 4.5 floor applies; the pairing was never accessible. Labels moved to `--ink-muted`.*
+- The two greys must stay perceptibly distinct — enforced by a test asserting a ratio ≥1.3 between them, so a later edit cannot quietly re-merge the ramp.
+- Accent on paper ≈ **3.87:1** (measured, not estimated). This fails normal-text contrast. **Accent never sets text on paper**, at any size. It is permitted only for fills, rules ≥1.5px, and non-text graphical marks — where it clears the 3:1 UI floor. Text that must be red sits on an accent *fill* using `--accent-on`, never red-on-paper.
 - `--accent-on` (white) on accent ≈ 5.5:1 — passes normal text; ≥14px.
 - **Theme asymmetry:** in Ink, accent on paper ≈ 5.6:1 and *does* pass for text. Do not exploit this — accent-as-text must stay forbidden in both themes, or the same component renders legibly in dark and illegibly in light.
 - Text contrast floor 4.5:1; UI/graphical floor 3:1.
@@ -84,7 +87,7 @@ Self-hosted, subset, `font-display: swap`. Fraunces ships as one variable file. 
 | H1 | Fraunces 700 | 27 / 1.08 |
 | H2 | Fraunces 600 | 20 / 1.2 |
 | Body | Inter 400 | 15 / 1.5 |
-| Label | Inter 600 | 10 / `0.16em` / uppercase |
+| Label | Inter 600 | 10 / `0.16em` / uppercase — colour **`--ink-muted`**, never `--ink-faint` (see §2.3) |
 | Data (hero) | JetBrains Mono 700 | 19 / `-0.02em` |
 | Data (inline) | JetBrains Mono 500 | 12 |
 | Chord symbol | Fraunces 600 | 17 in chart · 28 in focused section |
