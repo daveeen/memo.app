@@ -9,6 +9,13 @@ export default defineConfig({
     reactRouter(),
     VitePWA({
       registerType: "autoUpdate",
+      workbox: {
+        // The composed dashboard route bundles Tone + essentia.js + every panel
+        // into one ~2.8 MB chunk, above workbox's 2 MiB default precache cap
+        // (vite-plugin-pwa errors the build on an oversized asset). Raise the cap
+        // so the app shell is still fully precached for offline use.
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+      },
       manifest: {
         name: "Memo",
         short_name: "Memo",
