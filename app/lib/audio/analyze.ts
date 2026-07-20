@@ -1,7 +1,9 @@
 import { getEssentia } from "./essentia";
 import { decodeAndClean } from "./decode";
 import { classifyInput } from "./classify";
-import type { CaptureAnalysis } from "~/lib/types";
+import { detectChords } from "./chords";
+import { segment } from "./segment";
+import type { CaptureAnalysis, VibeBrief } from "~/lib/types";
 
 // PitchYinProbabilistic emits one pitch frame every HOP_SIZE samples.
 const HOP_SIZE = 256;
@@ -33,6 +35,26 @@ export async function analyzeCapture(blob: Blob): Promise<Omit<CaptureAnalysis, 
 
   const moodTag = moodFrom(scale, bpm);
   return { durationSec, detectedKey: `${key} ${scale}`, bpm, inputType, moodTag, notes };
+}
+
+// Reference tracks (iTunes previews / uploads) are polyphonic songs, unlike a
+// hummed capture, so this skips analyzeCapture's monophonic pitch-tracking/notes
+// path entirely and uses harmony-aware chord detection + segmentation instead.
+export async function analyzeReference(
+  blob: Blob,
+  name: string,
+  source: "itunes" | "upload",
+): Promise<Omit<VibeBrief, "id">> {
+  const e = getEssentia();
+  const { pcm } = await decodeAndClean(blob);
+  const vec = e.arrayToVector(pcm);
+
+  const { key, scale } = e.KeyExtractor(vec);
+  const bpm = e.PercivalBpmEstimator(vec).bpm;
+  const chordProgression = detectChords(e, pcm);
+  const sections = segment(e, vec, pcm.length);
+
+  return { sourceTrackName: name, source, key: `${key} ${scale}`, bpm, chordProgression, sections };
 }
 
 function moodFrom(scale: string, bpm: number): string {
