@@ -5,6 +5,7 @@ import { RecordPanel } from "~/components/RecordPanel";
 import { BankList } from "~/components/BankList";
 import { VibeBriefPanel } from "~/components/VibeBriefPanel";
 import { SongBuilderPanel } from "~/components/SongBuilderPanel";
+import { ProducePanel } from "~/components/ProducePanel";
 import { Visualizer } from "~/components/Visualizer";
 import { Timer } from "~/components/Timer";
 import { listBriefs } from "~/lib/api/bank";
@@ -15,6 +16,7 @@ export default function Dashboard() {
   const [k, setK] = useState(0);
   const [idea, setIdea] = useState<any>();
   const [brief, setBrief] = useState<any>();
+  const [midiPath, setMidiPath] = useState<string>();
   const [briefs, setBriefs] = useState<any[]>([]);
   const [running, setRunning] = useState(false);
   const [ready, setReady] = useState(false);
@@ -58,7 +60,8 @@ export default function Dashboard() {
         <option value="">pick brief</option>
         {briefs.map(b => <option key={b.id} value={b.id}>{b.source_track_name}</option>)}
       </select>
-      <SongBuilderPanel idea={idea} brief={brief} analyser={analyser} />
+      <SongBuilderPanel idea={idea} brief={brief} analyser={analyser} onBuilt={setMidiPath} />
+      <ProducePanel midiPath={midiPath} />
     </main>
   );
 }

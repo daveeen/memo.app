@@ -4,7 +4,7 @@ import { buildMidi } from "~/lib/audio/midi";
 import { playSong } from "~/lib/audio/playback";
 import { saveSong } from "~/lib/api/bank";
 
-export function SongBuilderPanel({ idea, brief, analyser }: { idea: any; brief: any; analyser?: AnalyserNode }) {
+export function SongBuilderPanel({ idea, brief, analyser, onBuilt }: { idea: any; brief: any; analyser?: AnalyserNode; onBuilt?: (midiPath: string) => void }) {
   const [song, setSong] = useState<any>();
   const [busy, setBusy] = useState(false);
 
@@ -15,6 +15,7 @@ export function SongBuilderPanel({ idea, brief, analyser }: { idea: any; brief: 
       const midi = buildMidi(idea.notes_json ?? idea.notes, s.chordChart, idea.bpm);
       const { midiPath } = await saveSong(s, midi);
       setSong({ ...s, midiPath });
+      onBuilt?.(midiPath);
     } catch {
       setBusy(false);
       return;
