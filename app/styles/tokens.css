@@ -1,0 +1,54 @@
+:root,
+:root[data-theme="newsprint"] {
+  --paper: #DED7C8;
+  --paper-sunk: #D2CABA;
+  --paper-raised: #E9E4D8;
+  --ink: #1A1712;
+  --ink-muted: #655D51;
+  --ink-faint: #81796B;
+  --accent: #C62D18;
+  --accent-on: #FFFFFF;
+  --alt: #3F6B5C;
+
+  --sec-intro: #1A1712;
+  --sec-verse: #6D6558;
+  --sec-chorus: #C62D18;
+  --sec-bridge: #3F6B5C;
+  --sec-outro: #847861;
+}
+
+:root[data-theme="ink"] {
+  --paper: #16130F;
+  --paper-sunk: #100E0B;
+  --paper-raised: #201C16;
+  --ink: #F3EDE1;
+  --ink-muted: #A79D8C;
+  --ink-faint: #7E7566;
+  --accent: #FF4A2E;
+  --accent-on: #16130F;
+  --alt: #5C9C86;
+
+  --sec-intro: #E8E1D3;
+  --sec-verse: #7E7566;
+  --sec-chorus: #FF4A2E;
+  --sec-bridge: #5C9C86;
+  --sec-outro: #6B604F;
+}
+
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+
+  --radius-none: 0;
+  --radius-chip: 4px;
+
+  --dur-state: 120ms;
+  --dur-route: 200ms;
+  --dur-reveal: 350ms;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+}
