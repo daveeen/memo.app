@@ -10,6 +10,7 @@
     "check-midi": "node --experimental-strip-types scripts/check-midi.mjs"
   },
   "dependencies": {
+    "@opendaw/studio-sdk": "^0.0.160",
     "@react-router/node": "7.18.1",
     "@react-router/serve": "7.18.1",
     "@supabase/supabase-js": "^2.110.7",
