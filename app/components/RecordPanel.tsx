@@ -37,8 +37,13 @@ export function RecordPanel({ onSaved, analyser }: { onSaved: () => void; analys
       src.current = undefined;
       setStatus("analyzing");
       const blob = new Blob(chunks.current, { type: "audio/webm" });
-      const a = await analyzeCapture(blob);
-      await saveIdea(blob, a, "Untitled");
+      try {
+        const a = await analyzeCapture(blob);
+        await saveIdea(blob, a, "Untitled");
+      } catch {
+        setStatus("idle");
+        return;
+      }
       setStatus("idle");
       onSaved();
     };
