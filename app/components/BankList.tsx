@@ -20,6 +20,7 @@ type BankRow = {
 
 export function BankList({ refreshKey, onPick }: { refreshKey: number; onPick?: (i: BankRow) => void }) {
   const [items, setItems] = useState<BankRow[]>([]);
+  const [f, setF] = useState("");
   useEffect(() => {
     listIdeas().then(data => setItems(data as unknown as BankRow[]));
   }, [refreshKey]);
@@ -27,12 +28,24 @@ export function BankList({ refreshKey, onPick }: { refreshKey: number; onPick?: 
     const u = await ideaAudioUrl(p);
     if (u) new Audio(u).play();
   }
-  return <ul>{items.map(i => (
-    <li key={i.id}>
-      <input defaultValue={i.title} onBlur={e => renameIdea(i.id, e.target.value)} />
-      <span> · {i.key} · {i.bpm != null ? Math.round(i.bpm) : "—"} bpm · {i.input_type} · {i.mood}</span>
-      <button onClick={() => play(i.raw_path)}>▶</button>
-      {onPick && <button onClick={() => onPick(i)}>Use</button>}
-    </li>
-  ))}</ul>;
+  // Nullable fields (mood/key/bpm/input_type can all be null per BankRow) are
+  // coalesced to "" before templating — otherwise a null field stringifies to
+  // the literal text "null", making it falsely matchable (typing "null" would
+  // surface every idea with any null field).
+  const filtered = items.filter(i =>
+    `${i.mood ?? ""} ${i.key ?? ""} ${i.bpm ?? ""} ${i.input_type ?? ""}`
+      .toLowerCase()
+      .includes(f.toLowerCase())
+  );
+  return <>
+    <input placeholder="filter: mood/key/bpm" value={f} onChange={e => setF(e.target.value)} />
+    <ul>{filtered.map(i => (
+      <li key={i.id}>
+        <input defaultValue={i.title} onBlur={e => renameIdea(i.id, e.target.value)} />
+        <span> · {i.key} · {i.bpm != null ? Math.round(i.bpm) : "—"} bpm · {i.input_type} · {i.mood}</span>
+        <button onClick={() => play(i.raw_path)}>▶</button>
+        {onPick && <button onClick={() => onPick(i)}>Use</button>}
+      </li>
+    ))}</ul>
+  </>;
 }
