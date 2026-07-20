@@ -1,0 +1,158 @@
+﻿Memo — Final Plan
+Event: ICON UNSW × Lyra Hackathon · build Jul 20–22, pitch Jul 25.
+One-liner: Never lose a musical idea. Hum it → Memo turns it into a song skeleton in <10 min (from a saved idea) / <30 min (cold).
+What it is: a voice-memo app that understands music. It hears a hum and auto-extracts key/BPM/melody, reverse-engineers songs you like, and generates a chord + structure skeleton you can hear and take into a real DAW.
+Stack (one line): React Router 7 PWA on Cloudflare Pages · Essentia.js (browser DSP) · Supabase (auth + Postgres + Storage + 2 Edge Functions) · Claude for grounded arrangement · iTunes Search for reference audio · openDAW handoff.
+Judging fit: niche/personal + creative (40) = built on real songwriting habit, browser MIR not an LLM wrapper · time saved (30) = two timed numbers, on-screen timer · technical (20) = real DSP in WASM · demo (10) = live, audible, timed.
+________________
+
+
+1. Architecture
+[ RR7 PWA — Cloudflare Pages (SPA + service worker) ]
+   record (MediaRecorder) → decode (Web Audio decodeAudioData → PCM)
+   analyze (Essentia.js WASM: key/BPM/chords/melody)   ← real MIR, client-side
+   build MIDI (@tonejs/midi) · play (Tone.js) · visualize (AnalyserNode)
+        │  supabase-js (auth + DB + storage, RLS)
+        │  fetch → Edge Functions: /arrange (LLM), /track-search (iTunes)
+        ▼
+[ Supabase ]  Auth (magic-link) · Postgres (RLS) · Storage (raw-audio, midi) · Edge Functions (Deno)
+        │  Song/idea MIDI ─▶ [ openDAW ] produce (Tier-1 handoff)
+
+
+* All DSP runs in the browser (Essentia.js WASM). No server audio processing, no Python, no VPS.
+* Supabase is the only backend. DB + Storage reached directly via supabase-js under RLS. Two thin Edge Functions: /arrange (hides the Anthropic key), /track-search (iTunes CORS/preview proxy).
+* Deploy: frontend → wrangler pages deploy (SPA mode); Supabase → supabase CLI (migrations + functions).
+2. Features
+The features (one set)
+1. PWA shell — installable (manifest + service worker), mobile-first record UI, offline app-shell.
+2. Auth — Supabase magic-link; RLS isolates each user's data.
+3. Idea Bank — record → clean (silence-trim + normalize + light noise gate) → Essentia.js detects key, BPM, notes[] + input-type (spectral heuristic: narrowband→hum, transient→guitar, else vocal) + LLM mood tag → row in ideas (editable title), raw audio in Storage → searchable list → replay.
+4. Vibe Brief — search a song by name (iTunes → 30s preview) or upload 1–3 tracks → Essentia.js extracts shared key, BPM, chord progression + true section timeline (self-similarity on HPCP; fixed-length fallback if unreliable). Uploads → better structure than a 30s preview.
+5. Song Builder — pick idea + brief → map hum's key/notes onto the brief's template → grounded LLM (/arrange) returns ordered chordChart[] + structure[] + instrumentation (constrained to detected key/tempo) → MIDI skeleton (@tonejs/midi) → chord chart + structure map + Tone.js playback with sampled instruments (real samples, not bare synth).
+6. Time-saved timer — warm-start flow stamps stage timestamps → on-screen timer (bakes the 30% criterion into the product).
+7. Audio-reactive visualizer (decoupled) — oscilloscope waveform + particle/glow layer on amplitude peaks, off a shared AnalyserNode during record + playback. Own rAF loop, never blocks analysis, degrades to not-rendering if no audio.
+8. openDAW produce — @opendaw/studio-sdk embedded on a /produce route, auto-building tracks from notes[] + chordChart[] (via MIDI); also exports a plain .mid. Needs COOP/COEP headers; AGPL-3.0 (see §7).
+9. Mood / library search — filter the Idea Bank by mood, key, BPM, or input type.
+Core loop (build first): capture → bank → build. Everything else layers on top.
+Out of scope (say so on slide)
+Mixing & mastering (→ openDAW covers this). Multi-genre. Polyphonic ML transcription.
+3. Feature Guide — all features, plain language (for non-musicians)
+Tiny glossary
+* Key — the "home base" notes a song lives in ("C Major" = brighter, "A Minor" = sadder). Tells you which chords fit.
+* BPM / tempo — speed in beats per minute. 60 = slow ballad, 120 = pop, 160+ = fast.
+* Chord / chord progression — notes played together (the backing) / the order they move in — a song's harmonic backbone.
+* Melody — the tune you'd hum.
+* Structure — the section map: intro → verse → chorus → bridge → outro.
+* MIDI — digital "sheet music": editable instructions (which note, when, how long), not a recording.
+* DAW — the full studio software where you build/mix a finished track. openDAW is a free browser one.
+In one line: hum an idea → Memo figures out the musical details and turns it into the skeleton of a song.
+1. Idea Bank — "a voice memo with perfect pitch." Hum, sing, or play. Memo saves the take and auto-works-out its key, speed, whether you hummed/sang/played guitar, and a mood word, then files it under a name you can edit. No more 200 unlabelled voice memos — a tidy, searchable library.
+2. Vibe Brief — "reverse-engineer songs you love." Type a song's name → Memo finds it, grabs a short clip (or upload your own), and pulls out its recipe: key, speed, chords, section map. A pro song's blueprint without reading music.
+3. Song Builder — "the matchmaker." Combine your idea with a song's recipe → Memo suggests the chords under your tune, their order (structure), and instrument layers, then plays it back. "Tune in my head" → "starting song" in minutes.
+4. Live visualizer — "see your sound." A moving waveform while you record and play, so it feels alive.
+5. Time-saved timer — "proof it worked." Shows minutes saved vs doing it by hand, on screen.
+6. Your account — "your ideas stay yours." Private login; only you see your library.
+7. Install to phone — "acts like a real app." Add to home screen, opens fullscreen, no app store.
+8. Send to openDAW — "finish the song." One click drops your skeleton into a free browser studio to add real instruments and produce it — no re-entering anything.
+How the "magic" works, plainly: Memo measures patterns in the sound — pitch height (→ melody + key), beat regularity (→ tempo), which notes ring together (→ chords) — right in your browser with a proven music-analysis engine (Essentia). Then an AI arranges from those real measured facts, so it's grounded in your actual audio, not guessing.
+4. Data Model + Contracts
+Postgres tables (RLS: user_id = auth.uid() on all)
+* ideas: id, user_id, created_at, title, raw_path, duration, key, bpm, notes_json, input_type, mood
+* vibe_briefs: id, user_id, created_at, source, source_track_name, preview_url, shared_key, shared_bpm, progression_json, structure_json
+* songs: id, user_id, idea_id, vibe_brief_id, created_at, chordchart_json, structure_json, instrumentation_json, midi_path
+* users → auth.users (Supabase-managed).
+Shared TS shapes (analysis is client-side; persisted via supabase-js)
+interface CaptureAnalysis {
+  id: string; durationSec: number; detectedKey: string; bpm: number;
+  inputType: "hum" | "vocal" | "guitar" | "other"; moodTag: string;
+  notes: { pitch: string; startSec: number; durSec: number }[];
+  cleanedAudioPath: string;
+}
+interface VibeBrief {
+  id: string; sourceTrackName: string; source: "itunes" | "upload"; previewUrl?: string;
+  key: string; bpm: number;
+  chordProgression: { chord: string; startSec: number; durSec: number }[];
+  sections: { label: "intro"|"verse"|"chorus"|"bridge"|"outro"; startSec: number; endSec: number }[];
+}
+interface SongBuild {
+  id: string; sourceIdeaId: string; sourceVibeBriefId: string;
+  chordChart: { chord: string; section: string }[];
+  structure: { label: string; order: number }[];
+  instrumentation: string[]; backingMidiPath?: string;
+}
+interface BankEntry extends CaptureAnalysis { createdAt: string; title: string; }
+
+
+Data-access map
+* analyzeCapture(buf) → CaptureAnalysis · analyzeReference(buf) → VibeBrief — client (Essentia.js)
+* buildSong(idea, brief) → SongBuild — client; calls /arrange, builds MIDI locally
+* searchTracks(query) + preview → /track-search Edge Function
+* Bank/brief/song CRUD → supabase-js under RLS (not REST)
+* Server endpoints (Edge Functions only): POST /arrange, GET /track-search
+5. Backend (Supabase only)
+* Auth — magic-link (email OTP); session JWT auto-attached to DB/Storage/Edge calls.
+* Storage (private buckets) — raw-audio (uploads, signed URLs, path prefixed by user_id), midi (generated skeletons).
+* Edge Function /arrange (Deno) — in: { key, tempo, chords[], melody_contour, ref_progression }; out: { chorus_progression, instrumentation_layers }. Holds ANTHROPIC_API_KEY; prompt constrains to detected key/tempo/chords. CORS for the Pages origin.
+* Edge Function /track-search (Deno) — in: { query }; out: [{ trackName, artist, artworkUrl, previewUrl }] from iTunes Search API; also proxies the chosen preview MP3 (browser-CORS shim). Keyless.
+* Deps — front: react-router@7, @supabase/supabase-js, essentia.js, tone (+ instrument samples/soundfont for sampled playback), @tonejs/midi, vite-plugin-pwa, @opendaw/studio-sdk + CF Pages _headers COOP/COEP; edge: @anthropic-ai/sdk.
+* Secrets — SUPABASE_URL, SUPABASE_ANON_KEY (client); ANTHROPIC_API_KEY (Edge only).
+6. DSP Pipeline (Essentia.js, client-side)
+Stage
+	Algorithm
+	Output
+	Decode
+	Web Audio decodeAudioData → mono Float32
+	PCM @ target SR
+	Clean
+	energy-threshold silence trim + normalize + light gate
+	cleaned PCM
+	Input type
+	spectral-flatness / onset-density heuristic
+	hum / vocal / guitar / other
+	Key/scale
+	KeyExtractor
+	key + scale
+	Tempo
+	RhythmExtractor2013 / PercivalBpmEstimator
+	BPM
+	Chords
+	HPCP → ChordsDetection
+	chord sequence
+	Hum melody
+	PitchYinProbabilistic
+	pitch/time contour → notes[]
+	Reference melody (stretch)
+	PredominantPitchMelodia
+	predominant melody
+	Structure (stretch)
+	self-similarity matrix on HPCP
+	section timeline
+	MIDI: @tonejs/midi builds chord + melody tracks → Blob → midi bucket. Playback: Tone.js PolySynth (chords) + Synth (melody) from the blueprint JSON.
+7. openDAW Integration (produce stage)
+Memo stops at a skeleton; openDAW (free browser DAW, AGPL-3.0, TS + Rust→WASM, @opendaw/studio-sdk on npm) is the produce step. Seam = MIDI: Memo's idea-melody .mid + song chord .mid are exactly what openDAW imports.
+Embed the SDK on a /produce route and auto-build tracks from notes[] + chordChart[]; also expose a plain .mid export so the flow works even if the embed misbehaves. Spike day 0 — SDK is v0.0.x, undocumented.
+* Gotchas: AGPL-3.0 relicenses Memo (fine for hackathon — open the repo; flag for commercial) · needs COOP/COEP headers (SharedArrayBuffer) that can break Supabase cross-origin loads · heavy/desktop-leaning (mobile path = plain .mid).
+8. Vibe Brief source — iTunes, not Spotify
+Spotify is unusable: per its Nov 27 2024 API changes, audio-features/audio-analysis are deprecated for new apps (403) and preview_url is null for most tracks — no audio to pull, no analysis. (Ironically killed to stop exactly Memo's use.) → iTunes Search API: keyless search → reliable 30s preview → our own Essentia DSP. Upload path remains for full-track structure. (Good pitch line: "Spotify killed the endpoints, so we run our own MIR on previews.")
+9. Kill Risks
+* Essentia.js integration + mobile-CPU perf — top risk → decode→analyze spike day 1, short clips only.
+* Chord detection on a messy hum — inherent → keep demo hums clean, hand-check the seed.
+* LLM arrangement wrong — → constrain hard to detected key; verify seed by ear.
+* iTunes preview — some tracks lack one / miss the chorus → key/BPM/chords fine, structure weak (fallback); upload covers full tracks.
+* Asserted 3–4 hr baseline — → film one honest manual baseline for the 30%.
+* Live audio breaks on stage — → pre-record a clean backup take; pre-seed 2–3 ideas + 1 Vibe Brief.
+* Packed scope in 2.5 days — real overload → build the core loop (capture→bank→build) first every day; if short on time, drop the heaviest piece (openDAW embed) and export a plain .mid instead.
+10. Build Order (2.5 days)
+* Day 1 AM — RR7 SPA + PWA shell + Supabase auth + tables/RLS + Storage buckets. Deploy hello-world to CF Pages early.
+* Day 1 PM — Essentia.js spike: record → decode → key/BPM/chords/melody on screen. De-risks everything.
+* Day 2 AM — Idea Bank end-to-end (capture → store → list → replay) + mood-tag LLM.
+* Day 2 PM — Vibe Brief (iTunes search + upload) + /arrange Edge Function.
+* Day 3 AM — Song Builder: map → arrange → MIDI → Tone.js sampled playback + time-saved timer + true segmentation + mood/library search.
+* Day 3 PM — visualizer (waveform + glow), openDAW embed (plain .mid export as fallback), seed demo data, film warm-start <10:00, backup take.
+* Reality: Day 3 is packed. Build the core loop first each day; if the clock wins, drop the heaviest piece (openDAW embed) and keep a plain .mid export.
+11. Demo (the pitch)
+Warm-start, timed live: pick a banked idea + cached Vibe Brief → Song Builder generates chords/structure/instrumentation → sing a line over the Tone.js playback → optional "Open in openDAW" → land a rough song before 10:00. On-screen timer + a "before = 3–4 hr" slide.
+________________
+
+
+Deferred: visual design, theme, palette, component styling — supplied later.

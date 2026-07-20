@@ -1,0 +1,147 @@
+<style>
+.dirgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin:28px 0}
+@media(max-width:900px){.dirgrid{grid-template-columns:1fr}}
+.dircard{border:1px solid rgba(128,128,128,.28);border-radius:16px;overflow:hidden;cursor:pointer;transition:transform .18s,box-shadow .18s}
+.dircard:hover{transform:translateY(-4px);box-shadow:0 14px 40px rgba(0,0,0,.35)}
+.dircard .meta{padding:14px 16px 18px}
+.dircard .meta h3{margin:0 0 6px;font-size:16px}
+.dircard .meta p{margin:0;font-size:13px;opacity:.72;line-height:1.5}
+.dircard .meta .tag{display:inline-block;margin-top:10px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;opacity:.55}
+.stage{display:flex;justify-content:center;padding:22px 0 18px}
+.phone{width:238px;height:472px;border-radius:30px;overflow:hidden;position:relative;display:flex;flex-direction:column}
+
+/* ---------- A: STUDIO DARK ---------- */
+.a-stage{background:#0e0d0c}
+.a{background:#121110;color:#f2ede4;font-family:ui-monospace,"SF Mono",Menlo,monospace}
+.a .top{display:flex;justify-content:space-between;align-items:center;padding:16px 16px 0;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#7a736a}
+.a .rec{color:#ff6b1a}
+.a .hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px}
+.a .scope{width:186px;height:64px;display:flex;align-items:center;gap:2px}
+.a .scope i{flex:1;background:#ff6b1a;border-radius:1px;display:block}
+.a .readout{display:flex;gap:16px;font-size:10px;color:#8d857a}
+.a .readout b{display:block;font-size:19px;color:#f2ede4;font-weight:500;letter-spacing:-.02em}
+.a .btn{width:76px;height:76px;border-radius:50%;background:#ff6b1a;box-shadow:0 0 0 8px rgba(255,107,26,.13);display:flex;align-items:center;justify-content:center}
+.a .btn span{width:26px;height:26px;background:#121110;border-radius:5px}
+.a .bank{border-top:1px solid #241f1b;padding:12px 16px 18px}
+.a .row{display:flex;justify-content:space-between;font-size:10px;padding:6px 0;color:#a89e92}
+.a .row em{font-style:normal;color:#f2ede4}
+
+/* ---------- B: SOFT NOCTURNE ---------- */
+.b-stage{background:#0b0a1a}
+.b{background:radial-gradient(120% 78% at 50% 8%,#3b2a6d 0%,#191436 46%,#0d0a1e 100%);color:#efeaff;font-family:ui-sans-serif,system-ui,-apple-system,sans-serif}
+.b .top{display:flex;justify-content:space-between;align-items:center;padding:18px 18px 0;font-size:11px;color:#9d92d6}
+.b .hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px}
+.b .orb{width:150px;height:150px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#c2a3ff,#7b56e8 52%,#3d2a8f 100%);box-shadow:0 0 62px rgba(146,106,255,.55),0 0 120px rgba(120,80,255,.28);position:relative}
+.b .orb:after{content:"";position:absolute;inset:-16px;border-radius:50%;border:1px solid rgba(180,150,255,.28)}
+.b .cap{font-size:13px;color:#b6a9ee;letter-spacing:.01em}
+.b .readout{display:flex;gap:9px}
+.b .chip{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.13);border-radius:999px;padding:5px 12px;font-size:11px;color:#dcd3ff}
+.b .btn{width:70px;height:70px;border-radius:50%;background:linear-gradient(160deg,#a98bff,#6d45e0);box-shadow:0 10px 30px rgba(120,80,255,.5)}
+.b .bank{padding:12px 18px 20px}
+.b .row{background:rgba(255,255,255,.06);border-radius:12px;padding:9px 12px;margin-top:7px;font-size:11px;color:#cabfef;display:flex;justify-content:space-between}
+.b .row em{font-style:normal;color:#fff}
+
+/* ---------- C: PAPER & INK ---------- */
+.c-stage{background:#e8e4da}
+.c{background:#faf7f0;color:#14110d;font-family:ui-serif,Georgia,"Times New Roman",serif}
+.c .top{display:flex;justify-content:space-between;align-items:baseline;padding:18px 18px 0;font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-family:ui-sans-serif,system-ui,sans-serif;color:#8c8375}
+.c .hero{flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 18px;gap:16px}
+.c .hero h1{margin:0;font-size:31px;line-height:1.05;letter-spacing:-.025em;font-weight:600}
+.c .rule{height:2px;background:#14110d;width:46px}
+.c .scope{height:52px;display:flex;align-items:center;gap:3px}
+.c .scope i{flex:1;background:#14110d;border-radius:1px;display:block}
+.c .readout{display:flex;gap:20px;font-family:ui-sans-serif,system-ui,sans-serif}
+.c .readout small{display:block;font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:#8c8375;margin-bottom:3px}
+.c .readout b{font-size:17px;font-weight:600;letter-spacing:-.02em}
+.c .btnwrap{display:flex;justify-content:center;padding:6px 0 2px}
+.c .btn{width:70px;height:70px;border-radius:50%;background:#e0341f;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 0 #14110d}
+.c .btn span{width:22px;height:22px;background:#faf7f0;border-radius:3px}
+.c .bank{border-top:1.5px solid #14110d;margin:0 18px;padding:11px 0 18px}
+.c .row{display:flex;justify-content:space-between;font-size:12px;padding:5px 0;color:#5c554a}
+.c .row em{font-style:normal;color:#14110d;font-weight:600}
+</style>
+
+<h2>Which aesthetic direction should Memo commit to?</h2>
+<p class="subtitle">Same screen — the record view — rendered three ways. Judge it on: does this look like something a songwriter would actually keep on their home screen, and does it survive a projector? Click one.</p>
+
+<div class="dirgrid options" data-multiselect="false">
+
+  <div class="dircard option" data-choice="studio-dark" onclick="toggleSelect(this)">
+    <div class="stage a-stage">
+      <div class="phone a">
+        <div class="top"><span>MEMO</span><span class="rec">● REC 00:07</span></div>
+        <div class="hero">
+          <div class="scope"><i style="height:12%"></i><i style="height:38%"></i><i style="height:64%"></i><i style="height:92%"></i><i style="height:54%"></i><i style="height:78%"></i><i style="height:30%"></i><i style="height:66%"></i><i style="height:100%"></i><i style="height:44%"></i><i style="height:70%"></i><i style="height:22%"></i><i style="height:58%"></i><i style="height:86%"></i><i style="height:34%"></i><i style="height:62%"></i><i style="height:18%"></i><i style="height:48%"></i></div>
+          <div class="readout">
+            <div>KEY<b>A min</b></div>
+            <div>BPM<b>96</b></div>
+            <div>IN<b>hum</b></div>
+          </div>
+          <div class="btn"><span></span></div>
+        </div>
+        <div class="bank">
+          <div class="row"><em>bridge idea</em><span>C maj · 112</span></div>
+          <div class="row"><em>drive hook</em><span>E min · 84</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="meta">
+      <h3>A · Studio Dark</h3>
+      <p>Tape-machine / hardware. Near-black, one hot amber, monospace readouts. Reads as a precision instrument — "this measured your audio."</p>
+      <span class="tag">Technical · credible · projector-strong</span>
+    </div>
+  </div>
+
+  <div class="dircard option" data-choice="soft-nocturne" onclick="toggleSelect(this)">
+    <div class="stage b-stage">
+      <div class="phone b">
+        <div class="top"><span>Memo</span><span>0:07</span></div>
+        <div class="hero">
+          <div class="orb"></div>
+          <div class="cap">Listening…</div>
+          <div class="readout"><span class="chip">A minor</span><span class="chip">96 BPM</span><span class="chip">hum</span></div>
+          <div class="btn"></div>
+        </div>
+        <div class="bank">
+          <div class="row"><em>bridge idea</em><span>C maj</span></div>
+          <div class="row"><em>drive hook</em><span>E min</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="meta">
+      <h3>B · Soft Nocturne</h3>
+      <p>Deep indigo, glowing orb, rounded and humane. The 1am-idea feeling. Warm and inviting — but closest to the current AI-app default look.</p>
+      <span class="tag">Emotional · familiar · risks generic</span>
+    </div>
+  </div>
+
+  <div class="dircard option" data-choice="paper-ink" onclick="toggleSelect(this)">
+    <div class="stage c-stage">
+      <div class="phone c">
+        <div class="top"><span>MEMO</span><span>REC 0:07</span></div>
+        <div class="hero">
+          <h1>Never lose<br>an idea.</h1>
+          <div class="rule"></div>
+          <div class="scope"><i style="height:16%"></i><i style="height:44%"></i><i style="height:70%"></i><i style="height:96%"></i><i style="height:52%"></i><i style="height:80%"></i><i style="height:28%"></i><i style="height:64%"></i><i style="height:100%"></i><i style="height:40%"></i><i style="height:74%"></i><i style="height:24%"></i><i style="height:56%"></i><i style="height:88%"></i></div>
+          <div class="readout">
+            <div><small>Key</small><b>A minor</b></div>
+            <div><small>Tempo</small><b>96</b></div>
+          </div>
+          <div class="btnwrap"><div class="btn"><span></span></div></div>
+        </div>
+        <div class="bank">
+          <div class="row"><em>bridge idea</em><span>C maj · 112</span></div>
+          <div class="row"><em>drive hook</em><span>E min · 84</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="meta">
+      <h3>C · Paper &amp; Ink</h3>
+      <p>Songbook / editorial. Warm off-white, heavy serif headlines, one vivid red. Anti-app, anti-AI-slop — looks like a printed songwriting notebook.</p>
+      <span class="tag">Distinctive · bold · light-mode risk on stage</span>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle">These aren't final palettes — they're <em>directions</em>. Whichever you pick, we'll refine its colour, type and spacing next. Hybrids are fair game (e.g. A's readouts inside C's editorial layout) — say so if that's what you want.</p>
