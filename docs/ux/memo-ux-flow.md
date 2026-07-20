@@ -23,7 +23,9 @@ Memo's **behaviour**: what screens exist, what happens on them, what order thing
 | What the user is told, and how honest it is | Wording tone, typography, colour |
 | Data shapes flowing in and out (Part 6) | Component structure and naming |
 
-If something here forces a visual decision, that's a bug in this document — tell me and I'll rewrite it. If you want to change a *flow*, that's a conversation, because several of these choices are load-bearing for how the product is judged (see Part 5.5).
+**One exception, clearly fenced.** Part 7 is a UI direction annex holding the product owner's visual intent. It is explicitly *not* contract — adopt it, adapt it, or argue with it. It's there so you know what was in their head, not to constrain you. Everything in Parts 1–6 remains binding.
+
+If something in Parts 1–6 forces a visual decision, that's a bug in this document — tell me and I'll rewrite it. If you want to change a *flow*, that's a conversation, because several of these choices are load-bearing for how the product is judged (see Part 5.5).
 
 A prior visual system exists at `docs/superpowers/specs/2026-07-20-memo-frontend-design.md`. **It is reference material, not a requirement.** Ignore its aesthetics freely. One thing from it is worth stealing regardless of your visual direction: it records a real accessibility failure where 10px labels were set in a light grey measuring 2.68:1 against the background, against a required 4.5:1. Small text needs 4.5:1 contrast. Don't put labels in your lightest grey.
 
@@ -229,6 +231,8 @@ For each screen: purpose, required content, what the user is deciding, entries a
 
 **Must not contain:** settings, options, format choices, quality pickers, or anything that delays the first tap.
 
+**Recording begins on touch-down.** If the record control has an entry animation, capture starts when the finger lands, not when the animation settles. Decoration runs over an already-live recorder, never in front of one. A user with a melody in their head has a few seconds before it's gone; an animation that costs them the first bar has broken the product's core promise. This is testable — assert that the recorder is running before the animation completes.
+
 **States:**
 
 | State | Behaviour |
@@ -299,6 +303,17 @@ Two reasons this ordering is fixed. It matches the order the analysis actually s
 
 That last one matters more than it looks. Without it every row is interchangeable text and the user must play each one to find anything — which defeats the screen's purpose. The identity should be *derived from the actual waveform* so it's genuinely unique per recording. Its form is yours; the prior spec used an angular amplitude profile specifically to avoid looking like the generic rounded-bar waveform every audio app ships, but any distinctive derived form satisfies this.
 
+**Density floor: at least eight entries visible on a phone.** This screen's entire argument is "200 recordings, tidy and findable." Any treatment that shows three or four at a time argues the opposite, however good it looks. If a richer presentation can't hit eight, it becomes an optional view alongside a dense default — never the default itself.
+
+**Tap semantics — two distinct targets.** Playing and opening are different intents and must not share a target:
+
+- **Play** is its own control on the entry. Playback is inline; it never navigates away.
+- **Press anywhere else** expands the entry in place, revealing its full contents (below). Expansion is an accordion, not a navigation — the list stays on screen, and more than one entry may be open at once so takes can be compared.
+
+**Expanded entry must contain:** the full waveform, every detected value, **notes and lyrics (editable)**, any Songs derived from this Idea, and a build action.
+
+Notes and lyrics are free text the user writes. They are the only user-authored content in an Idea besides its title, and they're often what turns a hummed fragment into a song — the words, or a reminder like "try this in 6/8." Treat them as first-class: editable inline, saved like any other write, queued when offline.
+
 **Filtering:** by mood, key, tempo, input type. Filters apply in place — no modal, no separate results screen, no navigation. Clearing filters must be one action.
 
 **States:**
@@ -310,6 +325,9 @@ That last one matters more than it looks. Without it every row is interchangeabl
 | Empty (filtered) | Distinct from first-run empty — say which filter is excluding things and offer to clear |
 | Loading | Skeleton preserving final layout; no reflow on arrival |
 | Playing | The playing row is indicated; playback is inline, never navigates away |
+| Expanded | Full contents shown in place; other entries stay visible; collapsing is one action |
+| Editing notes/lyrics | Inline text entry; saves without an explicit save button; never blocks playback |
+| Notes/lyrics unsaved | Edit not yet persisted (offline or in flight) — say so, keep the text, retry |
 | Failed to load | Cached entries shown if available, staleness stated |
 | Offline | Cached entries playable; actions requiring network disabled **with a stated reason** |
 
@@ -587,6 +605,7 @@ Every error needs a **cause**, a **consequence**, and a **next action**. "Someth
 | Confidence | Weak segmentation | Sections are estimated | Accept or upload full track |
 | Network | Save failed | Not saved yet — **held locally** | Auto-retry, manual retry |
 | Auth | Link expired | Link is no longer valid | Request another |
+| Write | Notes/lyrics not saved | Edit is held locally, not lost | Auto-retry; text stays on screen |
 | Upstream | No preview for track | This track has no playable clip | Upload, or pick another |
 | Generation | Arrangement failed | Couldn't build this time | Retry, inputs preserved |
 
@@ -647,7 +666,7 @@ Restated because it's the one rule with no acceptable exception. Analysis, netwo
 - Colour never the sole carrier of meaning — sections always labelled.
 - Touch targets ≥44px.
 - All controls keyboard reachable with a visible focus indicator.
-- Honour `prefers-reduced-motion`; the staged reveal becomes instant rather than animating.
+- Honour `prefers-reduced-motion`: the staged reveal becomes instant, and **all continuous motion stops** — anything spinning, looping or perpetually animating renders static. This covers decorative mechanism as well as transitions.
 - Announce state changes (recording started/stopped, analysis complete) to assistive technology.
 
 ---
@@ -674,9 +693,15 @@ export interface Idea {
   bpm: number;                    // MEASURED
   inputType: "hum" | "vocal" | "guitar" | "other";  // MEASURED
   moodTag: string;                // INFERRED (LLM)
-  notes: Note[];
+  detectedNotes: Note[];          // MEASURED — pitch contour, not user text
   peaks: number[];                // normalised 0..1, for visual identity
   audioPath: string;
+
+  // USER-AUTHORED free text. Both default to "".
+  // Requires a schema migration — flag to whoever owns the database.
+  notes: string;                  // scratchpad: "try this in 6/8"
+  lyrics: string;                 // words for the melody
+
   analysisFailed?: boolean;       // audio saved, analysis unavailable
   confidence?: {                  // absent means confident
     key?: "low" | "high";
@@ -730,7 +755,7 @@ export interface Song {
 |---|---|---|
 | `/` | Record | Primary action is the landing screen |
 | `/ideas` | Library | Filters in the URL so views are shareable and restorable |
-| `/ideas/:id` | Idea detail | Replay, re-title, build from here |
+| `/ideas/:id` | Idea detail | Deep-link target. The common case is inline expansion in the list (§3.3); this route serves shared links and a full-screen single-idea view |
 | `/songs` | Songs list | |
 | `/songs/new` | Chooser | Needs an Idea and a Brief |
 | `/songs/:id` | Song Builder | |
@@ -759,6 +784,9 @@ Fixtures must include the **awkward** cases, not just the pretty ones. If they o
 
 - An Idea with `analysisFailed: true`
 - An Idea with low confidence on key
+- An Idea with empty `notes` and `lyrics` (the common case)
+- An Idea with a full verse of `lyrics` and several lines of `notes` (tests the expanded entry at its largest)
+- An Idea with lyrics but no notes, and vice versa
 - A Brief with `sectionsEstimated: true`
 - A Brief from upload (no `previewUrl`, no artwork)
 - An empty library
@@ -773,6 +801,94 @@ Fixtures must include the **awkward** cases, not just the pretty ones. If they o
 2. **Idea deletion.** Not specified anywhere. Needed for real use; deliberately absent from the demo path. Worth adding if time allows — with an undo, given rule 5.5.4.
 3. **Multiple songs from one Idea.** The model permits it. Does the Idea detail screen list its derived songs? Cheap to add, easy to forget.
 4. **Brief reuse across users.** Two users analysing the same track duplicates work. A caching question with UX consequences for perceived speed.
+
+---
+
+## Part 7 — UI direction: the Deck
+
+> **Status: strong suggestions, not contract.** This part holds the product owner's visual intent so you can see what's in their head. Adopt it, adapt it, or make a case against it. Parts 1–6 are binding; this part is not.
+
+### 7.0 Concept
+
+**Memo is a cassette deck that understands music.**
+
+The deck is the app's chassis; screens are what's happening inside it. Committed, tactile, mechanical — a machine you operate rather than a surface you tap.
+
+Cassette specifically, not vinyl or CD, and the reason is worth keeping in mind if you rework this: **a tape is something you record onto.** Records and CDs are playback-only media, so those metaphors would quietly misrepresent what the product does. Cassette is also the humblest of the three, which suits "voice memo that understands music" better than vinyl's romance would.
+
+### 7.1 Record — the deck proper
+
+Tape at rest in the tray. On press it seats, reels begin turning, the take runs. On stop, reels **decelerate with inertia** rather than halting — roughly 400ms. Once tempo is known, reel rotation speed tracks it.
+
+The spin-down is the cheapest high-payoff detail here. Motion with weight reads as mechanism; motion that stops dead reads as a GIF.
+
+**Bound by contract (§3.1):** capture starts on touch-down. The tape seating is decoration over an already-running recorder.
+
+### 7.2 Waveform — sharp and snappy
+
+Mirrored about a centre line, per the reference: hard triangular peaks, tall in the middle, falling off toward the edges.
+
+- **Hard mitre joins. No smoothing. No rounded caps. No gradients.**
+- Peak density varies along the length rather than being evenly spaced.
+- Mirroring is fine — the generic-audio-app cliché is *rounded bars*, not mirroring itself. Rounding is what would make this ordinary.
+
+One geometry serves three jobs: the live meter while recording, the per-idea fingerprint, and the transport scrubber. Same shape language throughout.
+
+### 7.3 Idea Bank — the rack
+
+**Spines out, like a real cassette rack.** Each spine carries title, key, tempo, mood, and its fingerprint as the label strip.
+
+This is the version that reconciles the metaphor with the screen's job. Tapes shown face-on give you three or four per screen with nowhere to put metadata — which contradicts §3.3's whole purpose. A rack viewed spine-on is *already a list*: same geometry, same density, metaphor intact.
+
+**Responsive behaviour:** one column on phones, a multi-column rack on wide screens. This is the one place in Memo where the wide layout is genuinely *better* rather than merely wider — a rack wants to be seen as a rack.
+
+**Bound by contract (§3.3):** eight spines minimum on a phone.
+
+### 7.4 The expanded spine
+
+Pressing a spine expands it in place, like pulling a tape out and reading its insert: full waveform, all detected values, editable notes and lyrics, derived songs, build action.
+
+Accordion, not navigation — the rack stays on screen, and more than one tape can be open at once so takes can be compared.
+
+**Bound by contract (§3.3):** play is a separate control; expanding never starts audio.
+
+### 7.5 Song Builder — the transport
+
+Sections as positions along the tape, playhead travelling its length. The two parents named as **side A** (your Idea) and **side B** (the reference Brief) — which makes the product model visible in the interface without explaining it. See §1.
+
+### 7.6 Time-saved — the tape counter
+
+The stage breakdown on a mechanical four-digit counter. It reads as instrumentation, which is exactly the credibility job §3.8 needs that stamp to do.
+
+### 7.7 Motion, performance, accessibility
+
+- Reels are **decorative and must never own the frame budget.** The live waveform wins every contention — it's the feedback that tells a user they're being heard.
+- **No animation gates interaction.** Every tap registers immediately regardless of what's mid-flight.
+- All continuous rotation renders static under `prefers-reduced-motion` (§5.6).
+- Haptic tick on record start and as each analysis value lands.
+- Spine text must clear the 4.5:1 contrast floor. Rotated or vertical text is fine visually but must stay selectable and readable by assistive technology.
+
+### 7.8 Degradation order
+
+The metaphor is the first thing to sacrifice when the clock runs out. Drop in this order:
+
+1. Scratch-to-seek
+2. Tape counter
+3. Transport flourish
+4. Rack columns (fall back to one)
+5. Reel inertia
+
+**The deck on Record is last to go.** If one piece of this ships, it's that — it's the screen that carries the product's identity, and everything else is reinforcement.
+
+### 7.9 Ideas not taken
+
+Recorded so they aren't re-proposed, with why:
+
+| Idea | Why not |
+|---|---|
+| Vinyl and tonearm | Richer metaphor, but records are playback-only — it misrepresents recording |
+| Face-on tape grid in the Bank | Photographs beautifully, performs worst; kills density. Use a face-on tape on the *detail* screen for the hero shot instead |
+| Mixed vinyl + cassette | Two eras at once reads as muddled and doubles the assets |
 
 ---
 
