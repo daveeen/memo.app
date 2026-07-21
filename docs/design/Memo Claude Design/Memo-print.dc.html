@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="./doc-page.js"></script>
+<style>
+  doc-page:not(:defined){visibility:hidden}
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  * { animation-delay: -99s !important; animation-duration: .001s !important;
+      animation-iteration-count: 1 !important; animation-fill-mode: both !important;
+      animation-play-state: running !important; transition-duration: 0s !important; }
+</style>
+</helmet>
+<doc-page size="letter">
+  <sc-for list="{{ pages }}" as="p" hint-placeholder-count="8">
+    <section class="page" style="display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:0.55in 0.5in;background:#E7E4DC;">
+      <div style="text-align:center;margin-bottom:20px;">
+        <div style="font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#8a8791;">{{ p.kicker }}</div>
+        <div style="font-size:24px;font-weight:800;letter-spacing:-.03em;color:#17161B;margin-top:4px;">{{ p.title }}</div>
+        <div style="font-size:13px;line-height:1.45;color:#57565E;margin-top:6px;max-width:460px;">{{ p.desc }}</div>
+      </div>
+      <div style="transform:scale(0.84);transform-origin:top center;">
+        <dc-import name="Memo" embed="{{ true }}" initial-route="{{ p.route }}" rec-phase="{{ p.recPhase }}" reveal-step="{{ p.revealStep }}" brief-phase="{{ p.briefPhase }}" picked-id="{{ p.pickedId }}" builder-phase="{{ p.builderPhase }}" auth-stage="{{ p.authStage }}" query="{{ p.query }}" hint-size="404px,864px"></dc-import>
+      </div>
+    </section>
+  </sc-for>
+</doc-page>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals(){
+    return { pages: [
+      { kicker:'Onboarding', title:'Sign in', desc:'Passwordless magic-link auth — the whole app is one tap from here.', route:'auth', authStage:'form' },
+      { kicker:'Home', title:'Ideas — the tape shelf', desc:'Every rescued hum as a coloured cassette, grouped into crates, with search and filter across the library.', route:'ideas' },
+      { kicker:'Home', title:'Idea detail', desc:'Full waveform, measured key / tempo / input vs. inferred mood, editable notes and lyrics.', route:'detail' },
+      { kicker:'Capture', title:'Record', desc:'A half-vinyl spins up from the bottom while a live waveform reacts to the mic.', route:'record', recPhase:'idle' },
+      { kicker:'Capture', title:'Analysis reveal', desc:'After recording, Memo reveals what it measured and what it inferred, one line at a time.', route:'record', recPhase:'reveal', revealStep:4 },
+      { kicker:'Reference', title:'Vibe Brief', desc:'Reverse-engineer a track you love into a key, tempo, chords and an estimated structure.', route:'brief', briefPhase:'recipe', pickedId:0 },
+      { kicker:'Output', title:'Songs', desc:'An idea (side A) plus a brief (side B) becomes a song you can open and build on.', route:'songs' },
+      { kicker:'Output', title:'Song builder', desc:'Full structure with chords per section, inferred instrumentation, a time-saved breakdown and .mid export.', route:'builder', builderPhase:'complete' },
+    ] };
+  }
+}
+</script>
+</body>
+</html>
