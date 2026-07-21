@@ -14,6 +14,7 @@ export default function Dashboard() {
   const [analyser, setAnalyser] = useState<AnalyserNode>();
   const analyserRef = useRef<AnalyserNode>(undefined);
   const [k, setK] = useState(0);
+  const [justCreatedId, setJustCreatedId] = useState<string>();
   const [idea, setIdea] = useState<any>();
   const [brief, setBrief] = useState<any>();
   const [midiPath, setMidiPath] = useState<string>();
@@ -53,8 +54,13 @@ export default function Dashboard() {
     <main onPointerDownCapture={ensureAudio}>
       <Timer running={running} />
       <Visualizer analyser={analyser} />
-      <RecordPanel analyser={analyser} onSaved={() => setK(k => k + 1)} />
-      <BankList refreshKey={k} onPick={i => { setIdea(i); setRunning(true); }} />
+      <RecordPanel analyser={analyser} onSaved={(id) => { setK(k => k + 1); if (id) setJustCreatedId(id); }} />
+      <BankList
+        refreshKey={k}
+        justCreatedId={justCreatedId}
+        onFocusedJustCreated={() => setJustCreatedId(undefined)}
+        onPick={i => { setIdea(i); setRunning(true); }}
+      />
       <VibeBriefPanel onSaved={() => setK(k => k + 1)} />
       <select value={brief?.id ?? ""} onChange={e => setBrief(briefs.find(b => b.id === e.target.value))}>
         <option value="">pick brief</option>
