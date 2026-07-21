@@ -2,6 +2,7 @@
 .env
 .env.local
 /node_modules/
+/graphify-out/
 
 # React Router
 /.react-router/
@@ -11,3 +12,6 @@
 # by scripts/copy-opendaw-wasm.mjs (predev/prebuild hook), not hand-authored. Regenerated on
 # every install/build rather than committed.
 /public/opendaw-wasm/
+
+# Decoded Memo.html mockup screens (scripts/extract-memo-screens.mjs) — regenerable, never committed
+.memo-design/
