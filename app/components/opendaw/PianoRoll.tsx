@@ -69,8 +69,16 @@
 // (`top: (127 - r.pitch) * 4`) — one row per note, not one row per clip.
 import { useRef } from "react";
 
-const ROW_PX = 4; // vertical px per semitone, matches the original top:(127-pitch)*4 formula
-const VELOCITY_HANDLE_PX = 16; // height of the draggable velocity bar under each note
+const ROW_PX = 10; // vertical px per semitone — was 4, too cramped to see or grab a note
+const VELOCITY_HANDLE_PX = 20; // height of the draggable velocity bar under each note
+// 960 is PPQN.Quarter project-wide (see engine.ts/exportMidi.ts) — kept as a plain
+// number, not an SDK import, to preserve this file's deliberate no-@opendaw-import
+// boundary (see file header). Only used here for the beat gridline spacing.
+const PPQN_QUARTER = 960;
+// Accent colors per track, matching produce.tsx's TRACK_ACCENT_COLORS (kept as its
+// own small constant here rather than threaded through as a prop — same values,
+// one extra line, avoids coupling this SDK-free component to produce.tsx's palette).
+const TRACK_COLORS = ["#C97B3C", "#D08A44"];
 
 export type Region = {
   id: string;
@@ -164,19 +172,38 @@ export function PianoRoll({
   // time from X, snapped to the ppqn grid the same way drags are.
   function onGridClick(e: React.MouseEvent<HTMLDivElement>) {
     if (e.target !== e.currentTarget) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const el = e.currentTarget;
+    const rect = el.getBoundingClientRect();
+    // Note positions are absolute over the full scrollable content, so a click's
+    // on-screen offset needs the container's own scroll added back in — without
+    // this, clicking after scrolling placed the note at the wrong position.
+    const x = e.clientX - rect.left + el.scrollLeft;
+    const y = e.clientY - rect.top + el.scrollTop;
     const position = Math.max(0, Math.round(x / pxPerPpqn));
     const pitch = Math.min(127, Math.max(0, 127 - Math.round(y / ROW_PX)));
     onAddNote(activeTrackId, pitch, position);
   }
 
+  const trackColor = (trackId: string) => {
+    const i = Math.max(0, tracks.findIndex((t) => t.trackId === trackId));
+    return TRACK_COLORS[i % TRACK_COLORS.length];
+  };
+
   return (
     <div>
-      <label>
-        Adding to:{" "}
-        <select value={activeTrackId} onChange={(e) => onActiveTrackChange(e.target.value)}>
+      <label style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+        <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: ".08em", textTransform: "uppercase", color: "#a68a63" }}>
+          Adding to
+        </span>
+        <select
+          value={activeTrackId}
+          onChange={(e) => onActiveTrackChange(e.target.value)}
+          style={{
+            fontFamily: "inherit", fontSize: 12, fontWeight: 700, color: "#e9dcc4",
+            background: "#1c140c", border: "1px solid rgba(255,255,255,.12)", borderRadius: 8,
+            padding: "5px 9px", cursor: "pointer",
+          }}
+        >
           {tracks.map((t) => (
             <option key={t.trackId} value={t.trackId}>
               {t.label}
@@ -188,49 +215,67 @@ export function PianoRoll({
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onClick={onGridClick}
-        style={{ position: "relative", height: 300, overflowX: "auto", cursor: "copy" }}
+        style={{
+          position: "relative", height: 340, overflow: "auto", cursor: "copy",
+          background: "#0c0704", borderRadius: 10, border: "1px solid rgba(255,255,255,.06)",
+          backgroundImage:
+            `repeating-linear-gradient(90deg, rgba(255,255,255,.07) 0, rgba(255,255,255,.07) 1px, transparent 1px, transparent ${Math.max(4, pxPerPpqn * PPQN_QUARTER)}px),` +
+            `repeating-linear-gradient(0deg, rgba(255,255,255,.05) 0, rgba(255,255,255,.05) 1px, transparent 1px, transparent ${ROW_PX * 12}px)`,
+        }}
       >
-        {regions.map((r) => (
-          <div
-            key={r.id}
-            onPointerDown={(e) => onPointerDown(e, r, "move")}
-            style={{
-              position: "absolute",
-              left: r.position * pxPerPpqn,
-              width: r.duration * pxPerPpqn,
-              top: (127 - r.pitch) * ROW_PX,
-              height: ROW_PX,
-              background: "#6cf",
-            }}
-          >
+        {regions.length === 0 && (
+          <div style={{ position: "absolute", top: 14, left: 14, fontSize: 12, color: "#8a7458", pointerEvents: "none" }}>
+            Click the grid to add a note.
+          </div>
+        )}
+        {regions.map((r) => {
+          const color = trackColor(r.trackId);
+          return (
             <div
-              onPointerDown={(e) => onPointerDown(e, r, "resize")}
-              style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: 4, cursor: "ew-resize" }}
-            />
-            <div
-              onPointerDown={(e) => onPointerDown(e, r, "velocity")}
-              title={`velocity ${r.velocity.toFixed(2)}`}
+              key={r.id}
+              onPointerDown={(e) => onPointerDown(e, r, "move")}
               style={{
                 position: "absolute",
-                left: 0,
-                top: ROW_PX,
-                width: 6,
-                height: VELOCITY_HANDLE_PX * r.velocity,
-                background: "#39c",
-                cursor: "ns-resize",
+                left: r.position * pxPerPpqn,
+                width: Math.max(3, r.duration * pxPerPpqn),
+                top: (127 - r.pitch) * ROW_PX,
+                height: ROW_PX,
+                background: color,
+                borderRadius: 3,
+                boxShadow: "0 1px 3px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.3)",
+                cursor: "grab",
               }}
-            />
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete(r.id);
-              }}
-              style={{ position: "absolute", right: -16, fontSize: 10 }}
             >
-              ×
-            </button>
-          </div>
-        ))}
+              <div
+                onPointerDown={(e) => onPointerDown(e, r, "resize")}
+                style={{
+                  position: "absolute", right: 0, top: 0, bottom: 0, width: 4,
+                  background: "rgba(255,255,255,.35)", borderRadius: "0 3px 3px 0", cursor: "ew-resize",
+                }}
+              />
+              <div
+                onPointerDown={(e) => onPointerDown(e, r, "velocity")}
+                title={`velocity ${r.velocity.toFixed(2)}`}
+                style={{
+                  position: "absolute", left: 0, top: ROW_PX + 2, width: 6,
+                  height: VELOCITY_HANDLE_PX * r.velocity,
+                  background: "#F4EDDB", opacity: 0.7, borderRadius: 2, cursor: "ns-resize",
+                }}
+              />
+              <button
+                onClick={(e) => { e.stopPropagation(); onDelete(r.id); }}
+                title="Delete note"
+                style={{
+                  position: "absolute", right: -18, top: -3, width: 14, height: 14, lineHeight: "12px",
+                  fontSize: 10, padding: 0, borderRadius: "50%", border: "none",
+                  background: "rgba(0,0,0,.55)", color: "#e9dcc4", cursor: "pointer",
+                }}
+              >
+                ×
+              </button>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

@@ -40,10 +40,28 @@ export function TransportControls({ engine }: { engine: EngineFacade }) {
   const { bars, beats } = PPQN.toParts(position);
 
   return (
-    <div>
-      <button onClick={() => engine.play()}>▶ Play</button>
-      <button onClick={() => engine.stop()}>■ Stop</button>
-      <span>
+    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      <button
+        onClick={() => engine.play()}
+        style={{
+          display: "flex", alignItems: "center", gap: 6, border: "none", borderRadius: 20,
+          padding: "8px 16px", fontSize: 12, fontWeight: 700, color: "#fff", cursor: "pointer",
+          background: "linear-gradient(145deg,#C97B3C,#A8432F)", boxShadow: "0 4px 12px rgba(160,86,58,.4)",
+        }}
+      >
+        ▶ Play
+      </button>
+      <button
+        onClick={() => engine.stop()}
+        style={{
+          display: "flex", alignItems: "center", gap: 6, borderRadius: 20, padding: "8px 16px",
+          fontSize: 12, fontWeight: 700, color: "#c9b79a", cursor: "pointer",
+          background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.1)",
+        }}
+      >
+        ■ Stop
+      </button>
+      <span style={{ marginLeft: "auto", fontFamily: "'Space Mono',monospace", fontSize: 13, color: "#e9dcc4" }}>
         {bars + 1}:{beats + 1}
       </span>
     </div>

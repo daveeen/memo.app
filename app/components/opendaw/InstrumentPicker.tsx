@@ -31,7 +31,15 @@ export function InstrumentPicker({
   onChange: (trackId: string, instrument: InstrumentName) => void;
 }) {
   return (
-    <select value={current} onChange={(e) => onChange(trackId, e.target.value as InstrumentName)}>
+    <select
+      value={current}
+      onChange={(e) => onChange(trackId, e.target.value as InstrumentName)}
+      style={{
+        fontFamily: "inherit", fontSize: 12, fontWeight: 700, color: "#e9dcc4",
+        background: "#1c140c", border: "1px solid rgba(255,255,255,.12)", borderRadius: 8,
+        padding: "6px 10px", cursor: "pointer",
+      }}
+    >
       {INSTRUMENT_OPTIONS.map((opt) => (
         <option key={opt} value={opt}>
           {opt}
