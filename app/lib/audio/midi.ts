@@ -38,11 +38,13 @@ function nameToMidi(name: string): number {
   return NOTE_TO_SEMITONE[pitchClass] + (parseInt(octave, 10) + 1) * 12;
 }
 
-// Plain major triad rooted around MIDI 48-66 (octave 3-ish) — clear of the
+// Major or minor triad rooted around MIDI 48-67 (octave 3-ish) — clear of the
 // melody track's typical vocal range and well inside the valid 0-127 range.
-function triadNotes(root: string): number[] {
+// Mirrors chords.ts's triad(root, minor): [0, minor ? 3 : 4, 7].
+function triadNotes(root: string, isMinor: boolean): number[] {
   const base = NOTE_TO_SEMITONE[root] ?? 0;
-  return [0, 4, 7].map((interval) => 48 + base + interval);
+  const third = isMinor ? 3 : 4;
+  return [0, third, 7].map((interval) => 48 + base + interval);
 }
 
 export function buildMidi(
@@ -69,11 +71,13 @@ export function buildMidi(
   const beatSec = (60 / bpm) * 2;
   for (const c of chordChart) {
     // chords.ts's nearestChord only ever emits a bare pitch class ("C") or
-    // pitch class + "m" ("C#m") — never "maj"/"dim"/"7" — so only the "m"
-    // alternative ever actually fires here. Stripping it leaves the root
-    // untouched (no note letter contains "m"), e.g. "C#m" -> "C#".
+    // pitch class + "m" ("C#m") — never "maj"/"dim"/"7" — so a trailing "m"
+    // unambiguously means minor (no pitch-class letter ends in "m").
+    // Read the quality BEFORE stripping, then strip to isolate the root
+    // (stripping leaves the root untouched, e.g. "C#m" -> "C#").
+    const isMinor = c.chord.endsWith("m");
     const root = c.chord.replace(/m|maj|dim|7/g, "");
-    for (const noteMidi of triadNotes(root)) {
+    for (const noteMidi of triadNotes(root, isMinor)) {
       chords.addNote({ midi: noteMidi, time: t, duration: beatSec });
     }
     t += beatSec;
