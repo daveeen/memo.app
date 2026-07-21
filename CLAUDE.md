@@ -38,32 +38,50 @@ app/
       exportMidi.ts                # exportProjectToMidi: walk project's note events -> PlayableNote[] ->
                                     # buildMidi's addNotesToTrack (inverse of importMidi.ts)
     api/
-      bank.ts                      # supabase CRUD: ideas, vibe_briefs, songs (saveIdea/saveBrief/saveSong etc)
+      bank.ts                      # supabase CRUD: ideas, vibe_briefs, songs — saveIdea/listIdeas/renameIdea/
+                                    # saveBrief/listBriefs/saveSong/updateIdeaNote, plus getIdea/getBrief/getSong/
+                                    # listSongs/listSongsForIdea/updateIdeaLyrics (added in the Phase A port)
       tracks.ts                    # client for /track-search edge fn
       arrange.ts                   # client for /arrange edge fn (sends user's session JWT, not anon key)
+    cssText.ts                     # parses the Memo.html mockup's inline CSS-declaration strings into React
+                                    # style objects (kebab->camel, first-colon split so gradients/urls survive)
+    memoVisuals.ts                 # deterministic presentation helpers ported verbatim from the mockup's
+                                    # renderVals(): PAL/SEC_COLORS palettes, wavePoints/seedFromId (synthetic
+                                    # per-idea waveform), decoIdea (raw ideas row -> cassette display props)
   components/
-    RecordPanel.tsx                # mic capture -> analyze -> save; routes mic into shared analyser
-    BankList.tsx                   # list/search/replay/rename ideas
-    VibeBriefPanel.tsx             # iTunes search + upload -> analyze -> save brief
-    SongBuilderPanel.tsx           # pick idea+brief -> build -> render chart -> play; onBuilt exposes songId+midiPath
-    Visualizer.tsx                 # AnalyserNode waveform + glow canvas
-    ProducePanel.tsx               # signed-URL .mid download (fallback) + "Open in openDAW" link (real editor)
-    Timer.tsx                      # time-saved stopwatch
+    memo/
+      Cassette.tsx                 # the mockup's cassette-tape visual, ported 1:1; takes one decoIdea()-shaped prop
     opendaw/
       TransportControls.tsx        # play/stop + bars:beats readout, subscribes to project.engine.position
       PianoRoll.tsx                # DOM/pointer-event note grid: move/resize/delete; ppqn-native, SDK-free
       InstrumentPicker.tsx         # fixed Vaporisateur/Apparat select; SDK-free, produce.tsx maps name -> factory
   routes/
-    _index.tsx                     # dashboard — composes everything, owns the one shared Tone AudioContext analyser
-    login.tsx                      # magic-link auth
+    _shell.tsx                     # layout route: session guard (redirects to /auth unless on splash/auth),
+                                    # bottom tab bar (Ideas/Record/Songs) shown on /ideas*, /songs*, /brief
+    splash.tsx                     # / — logo beat, then routes to /ideas (session) or /auth
+    auth.tsx                       # /auth — magic-link form + "check your email" state (signInWithOtp)
+    ideas.tsx                      # /ideas — cassette-rack library, live filter chips + search
+    ideas.$id.tsx                  # /ideas/:id — cassette, measured grid, notes+lyrics, derived songs
+    record.tsx                     # /record — real MediaRecorder capture + staged reveal (real analyzeCapture
+                                    # results, not the mockup's hardcoded fixture) + save/edit/discard
+    brief.tsx                      # /brief — track search/upload -> analyzeReference -> chord/section recipe
+    songs.tsx                      # /songs — built-songs list with parent idea/brief pills
+    songs.new.tsx                  # /songs/new — Chooser: pick idea+brief, runs buildSong+buildMidi+saveSong
+                                    # itself, then navigates to the new song's Builder (Builder never builds)
+    songs.$id.tsx                  # /songs/:id — Builder: structure map, instrumentation, playback, stage
+                                    # breakdown, export .mid, "Open in openDAW" handoff
     produce.tsx                    # /produce/:songId — real headless openDAW editor: loads signed .mid,
                                     # imports into a Project, renders transport/piano-roll/instrument picker,
-                                    # exports back over the same storage path (upsert)
+                                    # exports back over the same storage path (upsert); restyled onto the
+                                    # mockup's PRODUCE chrome in the Phase A port, engine/SDK logic untouched
 supabase/
   migrations/0001_init.sql         # tables (ideas, vibe_briefs, songs) + RLS + storage buckets (raw-audio, midi)
+  migrations/0003_add_idea_lyrics.sql # adds ideas.lyrics text column (Idea Detail's lyrics textarea)
   functions/arrange/index.ts       # Deno edge fn, Gemini Interactions API, JWT-verified
   functions/track-search/index.ts  # Deno edge fn, public/no-verify-jwt, SSRF-guarded preview proxy
 scripts/
+  extract-memo-screens.mjs         # decodes docs/design/Memo.html (Artifact bundle) into per-screen HTML
+                                    # under .memo-design/ (gitignored, regenerable) for screen-port transcription
   check-midi.mjs                   # node --experimental-strip-types — real runnable MIDI validity check
   copy-opendaw-wasm.mjs            # predev/prebuild hook (package.json): mirrors @opendaw/studio-core-wasm's
                                     # dist/ (wasm-processor.js, wasm-offline-worker.js, wasm/**) into
@@ -105,6 +123,11 @@ Runnable checks: `npm run typecheck`, `npm run build`, `npm run check-midi`.
 - **The AudioWorklet processor asset is the single biggest unconfirmed boot-time risk.** `AudioWorklets.install(url)` resolves to `context.audioWorklet.addModule(url)`, and the package that's supposed to build that processor bundle — `@opendaw/studio-core-processors` — is a dev-only dependency of `studio-core-wasm` and is **not installed** in this project. `wasm-processor.js` (copied into `public/opendaw-wasm/`) is the best on-disk candidate — it contains a `registerProcessor(...)` call — but whether `addModule` actually succeeds against it, and whether the registered processor is usable by `EngineWorklet`, has not been confirmed without a live cross-origin-isolated browser page. If engine boot fails, check this first.
 
 ## Decisions
+
+- **2026-07-21 — Frontend port (Phase A): all 11 screens of the approved `docs/design/Memo.html` mockup ported onto real RR7 route components, wired to the existing Supabase/Essentia/Gemini/openDAW backend.** Markup/CSS/copy/animation ported verbatim (pixel-faithful, not a redesign) via a small `cssText()` inline-style parser; fixture data replaced with real API calls; the mockup's fake `setTimeout`/`setInterval` state simulations (most notably Record's hardcoded analysis result) replaced with real async flows (`analyzeCapture`, `analyzeReference`, `buildSong`). The old unstyled dashboard (`_index.tsx`, `login.tsx`, and the panel components under `components/`) is retired — the same backend calls now live behind the ported routes. Full plan: `docs/superpowers/plans/2026-07-21-frontend-port-backend-wiring.md`; design rationale: `docs/superpowers/specs/2026-07-21-frontend-port-backend-wiring-design.md`.
+  - Deferred to Phase B (deliberately out of scope, not oversights): the Ideas screen's "crate"/folders feature (no backend); Record's "similar vibes" reference list (static fixture, no similarity backend); analysis-failure/too-short/mic-permission-denied visual states (mockup has none); real decoded waveform peaks (current waveform is a deterministic synthetic fingerprint keyed off each idea's id, see `memoVisuals.ts`); the Builder's playhead-follows-real-position tracking (mockup's simplified "always highlight section 2 while playing" kept as-is); PWA install/offline/delete flows.
+  - The Chooser (`songs.new.tsx`), not the Builder, performs the actual arrangement build (`buildSong`+`buildMidi`+`saveSong`) — the Builder is a pure viewer of an already-existing song. This wasn't literally spelled out by the mockup (which has no real backend) and was a Phase A implementation decision.
+  - `ideas.lyrics` is a new column (`migrations/0003_add_idea_lyrics.sql`) backing Idea Detail's lyrics textarea — needs `npx supabase db push` before that field persists live.
 
 - **2026-07 — Gemini over Anthropic for `/arrange`.** Swapped from `claude-haiku-4-5-20251001` to `gemini-3.1-flash-lite` via Gemini's **Interactions API** (`POST /v1beta/interactions`, `x-goog-api-key` header) — confirmed live against `ai.google.dev` docs, not assumed from training data; the older `generateContent` API is now labeled legacy. Uses `response_format: {type:"text", mime_type:"application/json", schema:...}` for real schema-enforced JSON output, which replaced the old return-ONLY-JSON-prompt + manual `indexOf("{")`/`lastIndexOf("}")` brace-slicing hack. Env var is `GEMINI_API_KEY`.
 - **2026-07-21 — openDAW: real headless-SDK integration shipped, superseding the Task 8.2 stub.** `@opendaw/studio-sdk` still has no top-level `mount()`/`Studio` UI in the published packages (confirmed again during this build, not just the original stub research) — there is no mounted openDAW editor here. Instead, `/produce/:songId` (`app/routes/produce.tsx`) drives the SDK headlessly: `@opendaw/studio-core`'s `Project`/`ProjectApi`/`EngineFacade`, `@opendaw/studio-core-wasm`'s prebuilt WASM engine, and `@opendaw/lib-midi`'s decoder, behind a custom lightweight React editor (transport controls, a DOM/pointer-event piano roll, an instrument picker). MIDI stays the interchange format — no native `.dawproject` work. Full plan + Task 1's API spike findings: `docs/superpowers/plans/2026-07-21-opendaw-integration.md`; design rationale: `docs/superpowers/specs/2026-07-21-opendaw-integration-design.md`.
