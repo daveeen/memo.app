@@ -8,6 +8,7 @@ import { TransportControls } from "~/components/opendaw/TransportControls";
 import { PianoRoll, type Region } from "~/components/opendaw/PianoRoll";
 import { InstrumentPicker, type InstrumentName } from "~/components/opendaw/InstrumentPicker";
 import { UUID } from "@opendaw/lib-std";
+import { PPQN } from "@opendaw/lib-dsp";
 import {
   InstrumentFactories,
   type AudioUnitBoxAdapter,
@@ -16,6 +17,13 @@ import {
 } from "@opendaw/studio-adapters";
 import type { Project } from "@opendaw/studio-core";
 import type { NoteEventBox, NoteRegionBox } from "@opendaw/studio-boxes";
+
+// Default length/loudness for a note placed via click-to-add — an eighth note
+// at a comfortably audible velocity. Not user-configurable; matches this
+// project's hackathon-pace "pick one sane default" convention elsewhere
+// (e.g. midi.ts's fixed triad voicing).
+const NEW_NOTE_DURATION_PPQN = PPQN.Quarter / 2;
+const NEW_NOTE_VELOCITY = 0.8;
 
 // One AudioContext for the whole page lifetime, reused across mounts/route re-entries.
 //
@@ -61,6 +69,13 @@ type RegionModel = {
   // keyed by TrackInfo.trackId so the instrument picker can reach the audio unit's current
   // instrument box (via inputAdapter) at swap time.
   audioUnits: Map<string, AudioUnitBoxAdapter>;
+  // keyed by TrackInfo.trackId — importMidiIntoProject creates exactly one NoteRegionBox per
+  // track, so "the track's region" is unambiguous. Click-to-add-note needs this to find where
+  // to attach a new NoteEventBox; extending a region's own duration is safe (doesn't touch any
+  // existing note's region-LOCAL position), but shifting a region's start backward would — so
+  // add-note clamps new notes to not precede the region's current start rather than doing that
+  // shift-and-renumber-every-sibling-note dance. See handleAddNote.
+  defaultRegions: Map<string, NoteRegionBox>;
 };
 
 // Walks the project's adapters (the exact chain exportMidi.ts's collectNoteTracks established:
@@ -78,6 +93,7 @@ function buildRegionModel(project: Project): RegionModel {
   const eventHandles = new Map<string, EventHandles>();
   const tracks: TrackInfo[] = [];
   const audioUnits = new Map<string, AudioUnitBoxAdapter>();
+  const defaultRegions = new Map<string, NoteRegionBox>();
 
   let audioUnitIndex = 0;
   for (const audioUnit of project.rootBoxAdapter.audioUnits.adapters()) {
@@ -101,10 +117,15 @@ function buildRegionModel(project: Project): RegionModel {
             pitch: event.pitch,
             position: region.position + event.position, // region-local -> absolute
             duration: event.duration,
+            velocity: event.velocity,
           });
           eventHandles.set(id, { eventBox: event.box, regionBox: region.box });
           trackHasNotes = true;
         }
+        // First (only, per importMidiIntoProject) note region on this track — recorded
+        // regardless of trackHasNotes below, since a region can be genuinely empty after
+        // every note in it gets deleted and should still accept a new click-to-add note.
+        if (!defaultRegions.has(trackId)) defaultRegions.set(trackId, region.box);
       }
     }
 
@@ -127,7 +148,7 @@ function buildRegionModel(project: Project): RegionModel {
     audioUnitIndex++;
   }
 
-  return { regions, eventHandles, tracks, audioUnits };
+  return { regions, eventHandles, tracks, audioUnits, defaultRegions };
 }
 
 export default function Produce() {
@@ -145,11 +166,16 @@ export default function Produce() {
   const [regions, setRegions] = useState<Region[]>([]);
   const [tracks, setTracks] = useState<TrackInfo[]>([]);
   const [instruments, setInstruments] = useState<Record<string, InstrumentName>>({});
+  // Which track click-to-add-note attaches new notes to. Defaults to the first track once
+  // tracks load; the effect below keeps it valid if the currently-selected track disappears
+  // (e.g. its last note got deleted — see buildRegionModel's trackHasNotes comment).
+  const [activeTrackId, setActiveTrackId] = useState<string>("");
 
   // SDK-side handles held in refs (not render state): rebuilt in lockstep with `regions` but not
   // themselves rendered.
   const eventHandlesRef = useRef<Map<string, EventHandles>>(new Map());
   const audioUnitsRef = useRef<Map<string, AudioUnitBoxAdapter>>(new Map());
+  const defaultRegionsRef = useRef<Map<string, NoteRegionBox>>(new Map());
 
   // Export feedback — surfaced VISIBLY (spec's deliberate deviation from this app's usual
   // silent-fail convention: losing edit work silently would be a real regression).
@@ -163,8 +189,12 @@ export default function Produce() {
     const model = buildRegionModel(p);
     eventHandlesRef.current = model.eventHandles;
     audioUnitsRef.current = model.audioUnits;
+    defaultRegionsRef.current = model.defaultRegions;
     setRegions(model.regions);
     setTracks(model.tracks);
+    setActiveTrackId((current) =>
+      model.tracks.some((t) => t.trackId === current) ? current : (model.tracks[0]?.trackId ?? ""),
+    );
   }
 
   useEffect(() => {
@@ -248,14 +278,17 @@ export default function Produce() {
   // ---- Piano-roll edit callbacks: box-graph field setters / box deletion inside editing.modify
   // (Task 1: there is NO ProjectApi.deleteRegion / mutate-region method). ----
 
-  function handleMove(id: string, newPosition: number) {
+  function handleMove(id: string, newPosition: number, newPitch: number) {
     if (!project) return;
     const handles = eventHandlesRef.current.get(id);
     if (!handles) return;
     // PianoRoll hands back an ABSOLUTE ppqn position; NoteEventBox stores position LOCAL to its
     // parent region (importMidi set it as noteStart - regionStart). Convert back before writing.
     const local = Math.max(0, newPosition - handles.regionBox.position.getValue());
-    project.editing.modify(() => handles.eventBox.position.setValue(local));
+    project.editing.modify(() => {
+      handles.eventBox.position.setValue(local);
+      handles.eventBox.pitch.setValue(newPitch);
+    });
     refreshRegions(project);
   }
 
@@ -267,11 +300,56 @@ export default function Produce() {
     refreshRegions(project);
   }
 
+  function handleVelocityChange(id: string, newVelocity: number) {
+    if (!project) return;
+    const handles = eventHandlesRef.current.get(id);
+    if (!handles) return;
+    project.editing.modify(() => handles.eventBox.velocity.setValue(Math.min(1, Math.max(0, newVelocity))));
+    refreshRegions(project);
+  }
+
   function handleDelete(id: string) {
     if (!project) return;
     const handles = eventHandlesRef.current.get(id);
     if (!handles) return;
     project.editing.modify(() => handles.eventBox.delete());
+    refreshRegions(project);
+  }
+
+  function handleAddNote(trackId: string, pitch: number, position: number) {
+    if (!project) return;
+    const regionBox = defaultRegionsRef.current.get(trackId);
+    if (!regionBox) return;
+    // Notes can't currently be added before a track's earliest existing note — see
+    // RegionModel.defaultRegions' comment for why (shifting a region's start would require
+    // renumbering every sibling note's region-local position, out of scope here). Clamp instead
+    // of silently placing the note somewhere the user didn't click.
+    const regionStart = regionBox.position.getValue();
+    const clampedAbsolute = Math.max(position, regionStart);
+    const local = clampedAbsolute - regionStart;
+    const regionEnd = local + NEW_NOTE_DURATION_PPQN;
+    project.editing.modify(() => {
+      if (regionEnd > regionBox.duration.getValue()) regionBox.duration.setValue(regionEnd);
+      project.api.createNoteEvent({
+        owner: { events: regionBox.events },
+        position: local,
+        duration: NEW_NOTE_DURATION_PPQN,
+        pitch,
+        velocity: NEW_NOTE_VELOCITY,
+      });
+    });
+    refreshRegions(project);
+  }
+
+  function handleUndo() {
+    if (!project) return;
+    project.editing.undo();
+    refreshRegions(project);
+  }
+
+  function handleRedo() {
+    if (!project) return;
+    project.editing.redo();
     refreshRegions(project);
   }
 
@@ -342,6 +420,15 @@ export default function Produce() {
         <TransportControls engine={project.engine} />
 
         <div>
+          <button onClick={handleUndo} disabled={!project.editing.canUndo()}>
+            ↶ Undo
+          </button>
+          <button onClick={handleRedo} disabled={!project.editing.canRedo()}>
+            ↷ Redo
+          </button>
+        </div>
+
+        <div>
           {tracks.map((t) => (
             <label key={t.trackId} style={{ marginRight: 12 }}>
               <strong>{t.label}</strong> instrument:{" "}
@@ -357,9 +444,14 @@ export default function Produce() {
         <PianoRoll
           regions={regions}
           pxPerPpqn={PX_PER_PPQN}
+          tracks={tracks}
+          activeTrackId={activeTrackId}
+          onActiveTrackChange={setActiveTrackId}
           onMove={handleMove}
           onResize={handleResize}
+          onVelocityChange={handleVelocityChange}
           onDelete={handleDelete}
+          onAddNote={handleAddNote}
         />
 
         <div>
