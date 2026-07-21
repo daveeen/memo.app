@@ -26,10 +26,19 @@ export async function ideaAudioUrl(raw_path: string) {
 }
 
 export async function renameIdea(id: string, title: string) {
-  await supabase.from("ideas").update({ title }).eq("id", id);
+  const { error } = await supabase.from("ideas").update({ title }).eq("id", id);
+  if (error) throw error;
 }
 
 export async function saveBrief(b: Omit<VibeBrief, "id">) {
+  // Re-picking the same reference track re-analyzed a fresh row every time with
+  // no dedup, which piled up duplicate vibe_briefs rows for the same track. RLS
+  // already scopes this lookup to the caller, so reuse an existing row instead
+  // of inserting another — analysis isn't served from any client-side cache,
+  // this only avoids duplicate persisted rows for the identical source track.
+  const { data: existing } = await supabase.from("vibe_briefs")
+    .select("*").eq("source_track_name", b.sourceTrackName).eq("source", b.source).limit(1).maybeSingle();
+  if (existing) return existing;
   const { data, error } = await supabase.from("vibe_briefs").insert({
     source: b.source, source_track_name: b.sourceTrackName, preview_url: b.previewUrl,
     shared_key: b.key, shared_bpm: b.bpm, progression_json: b.chordProgression, structure_json: b.sections,
@@ -73,6 +82,14 @@ export async function getIdea(id: string) {
 
 export async function updateIdeaLyrics(id: string, lyrics: string) {
   await supabase.from("ideas").update({ lyrics }).eq("id", id);
+}
+
+export async function deleteIdea(id: string, rawPath?: string | null) {
+  const { error } = await supabase.from("ideas").delete().eq("id", id);
+  if (error) throw error;
+  // Best-effort: the row is already gone even if the storage object can't be
+  // removed (e.g. already missing), so this doesn't throw on failure.
+  if (rawPath) await supabase.storage.from("raw-audio").remove([rawPath]);
 }
 
 export async function getBrief(id: string) {

@@ -59,7 +59,6 @@ export default function Chooser() {
       <div style={cssText("display:flex;flex-direction:column;gap:9px;margin-top:10px;")}>
         {briefs.map((b, idx) => {
           const art = PAL[idx % PAL.length].shell;
-          const cached = b.source === "itunes";
           return (
             <button
               key={b.id}
@@ -71,7 +70,7 @@ export default function Chooser() {
                 <div style={cssText("font-size:14px;font-weight:700;color:#17161B;")}>{b.source_track_name}</div>
                 <div style={cssText("font-size:12px;color:#8a8791;")}>{b.shared_key || "—"} · {b.shared_bpm != null ? `${Math.round(b.shared_bpm)} BPM` : "—"}</div>
               </div>
-              <span style={cssText(cached ? "font-size:9.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#0b8a3d;background:rgba(11,138,61,.1);border-radius:7px;padding:3px 8px;" : "font-size:11px;color:#c9c8cf;")}>{cached ? "cached" : "›"}</span>
+              <span style={cssText("font-size:11px;color:#c9c8cf;")}>›</span>
             </button>
           );
         })}
