@@ -1,4 +1,88 @@
-// Placeholder — filled in by Task 7 (frontend-port plan).
+import { useEffect, useState, Fragment } from "react";
+import { useNavigate, useParams } from "react-router";
+import { getIdea, ideaAudioUrl, renameIdea, updateIdeaNote, updateIdeaLyrics, listSongsForIdea } from "~/lib/api/bank";
+import { decoIdea } from "~/lib/memoVisuals";
+import { Cassette } from "~/components/memo/Cassette";
+import { cssText } from "~/lib/cssText";
+
 export default function IdeaDetail() {
-  return null;
+  const { id } = useParams();
+  const nav = useNavigate();
+  const [row, setRow] = useState<any>();
+  const [songs, setSongs] = useState<any[]>([]);
+  const [playing, setPlaying] = useState(false);
+  useEffect(() => {
+    if (!id) return;
+    getIdea(id).then(setRow);
+    listSongsForIdea(id).then(setSongs);
+  }, [id]);
+  if (!row || !id) return null;
+  const d = decoIdea(row, 0);
+  async function play() {
+    const u = await ideaAudioUrl(row.raw_path);
+    if (u) { new Audio(u).play(); setPlaying(true); }
+  }
+  return (
+    <div className="m-scroll" style={cssText("flex:1;padding:24px 22px 120px;")}>
+      <button onClick={() => nav('/ideas')} style={cssText("display:flex;align-items:center;gap:7px;border:none;background:none;cursor:pointer;color:#57565E;font-size:14px;font-weight:600;padding:0;")}>← Ideas</button>
+      <div style={cssText("margin-top:16px;display:flex;gap:16px;align-items:flex-start;")}>
+        <div style={cssText("width:150px;flex:none;")}><Cassette idea={d} /></div>
+        <div style={cssText("flex:1;padding-top:4px;")}>
+          <input defaultValue={d.name} onBlur={e => renameIdea(id, e.target.value)} style={cssText("width:100%;border:none;background:none;outline:none;font-size:22px;font-weight:800;letter-spacing:-.03em;color:#17161B;padding:0;")} />
+          <div style={cssText("font-size:12.5px;color:#8a8791;margin-top:2px;")}>edit title · {d.duration}</div>
+          <button onClick={play} style={cssText("margin-top:12px;display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:22px;border:none;background:#17161B;color:#fff;font-weight:600;font-size:13px;cursor:pointer;")}>{playing ? '❚❚' : '▶'} {playing ? 'Playing' : 'Play take'}</button>
+        </div>
+      </div>
+
+      {/* full angular waveform */}
+      <div style={cssText("margin-top:20px;background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:16px;padding:16px;box-shadow:0 4px 14px rgba(0,0,0,.04);")}>
+        <svg viewBox="0 0 100 26" preserveAspectRatio="none" style={cssText("width:100%;height:70px;display:block;")}><polygon points={d.wavePoints} fill={d.stripe}></polygon></svg>
+      </div>
+
+      <div style={cssText("margin-top:18px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#57565E;")}>Detected · measured</div>
+      <div style={cssText("display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:10px;")}>
+        <div style={cssText("background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:13px;padding:12px;")}>
+          <div style={cssText("font-size:10.5px;color:#8a8791;font-weight:600;")}>Key</div>
+          <div style={cssText("font-size:15px;font-weight:800;color:#17161B;margin-top:3px;")}>{d.key}</div>
+          {d.keyLow && (
+            <div style={cssText("font-size:9px;font-weight:700;color:#B45309;margin-top:2px;")}>low confidence</div>
+          )}
+        </div>
+        <div style={cssText("background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:13px;padding:12px;")}>
+          <div style={cssText("font-size:10.5px;color:#8a8791;font-weight:600;")}>Tempo</div>
+          <div style={cssText("font-size:15px;font-weight:800;color:#17161B;margin-top:3px;")}>{d.bpm}</div>
+        </div>
+        <div style={cssText("background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:13px;padding:12px;")}>
+          <div style={cssText("font-size:10.5px;color:#8a8791;font-weight:600;")}>Input</div>
+          <div style={cssText("font-size:15px;font-weight:800;color:#17161B;margin-top:3px;text-transform:capitalize;")}>{d.type}</div>
+        </div>
+      </div>
+      <div style={cssText("margin-top:10px;display:flex;align-items:center;gap:8px;background:#F1E7D3;border:1px dashed rgba(154,90,60,.4);border-radius:13px;padding:11px 13px;")}>
+        <span style={cssText("font-size:10.5px;color:#8a8791;font-weight:600;")}>Mood</span>
+        <span style={cssText("font-size:14px;font-weight:700;font-style:italic;color:#9A5A3C;text-transform:capitalize;")}>~ {d.mood}</span>
+        <span style={cssText("margin-left:auto;font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a8791;")}>inferred</span>
+      </div>
+
+      <div style={cssText("margin-top:20px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#57565E;")}>Notes</div>
+      <textarea defaultValue={row.note ?? ''} onBlur={e => updateIdeaNote(id, e.target.value)} placeholder="try this in 6/8…" style={cssText("margin-top:8px;width:100%;height:64px;border:1px solid rgba(0,0,0,.08);border-radius:13px;padding:11px 13px;font-size:14px;color:#17161B;background:#fff;outline:none;")}></textarea>
+      <div style={cssText("margin-top:14px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#57565E;")}>Lyrics</div>
+      <textarea defaultValue={row.lyrics ?? ''} onBlur={e => updateIdeaLyrics(id, e.target.value)} placeholder="words for the melody…" style={cssText("margin-top:8px;width:100%;height:88px;border:1px solid rgba(0,0,0,.08);border-radius:13px;padding:11px 13px;font-size:14px;line-height:1.5;color:#17161B;background:#fff;outline:none;")}></textarea>
+      <div style={cssText("font-size:11px;color:#8a8791;margin-top:6px;")}>Saved automatically.</div>
+
+      {songs.length > 0 && (
+        <>
+          <div style={cssText("margin-top:20px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#57565E;")}>Songs from this idea</div>
+          <div style={cssText("display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;")}>
+            {songs.map((s, i) => (
+              <Fragment key={i}>
+                <span style={cssText("font-size:12.5px;font-weight:600;color:#17161B;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:20px;padding:7px 13px;")}>♪ {s.vibe_briefs?.source_track_name}</span>
+              </Fragment>
+            ))}
+          </div>
+        </>
+      )}
+
+      <button onClick={() => nav(`/songs/new?idea=${id}`)} style={cssText("margin-top:24px;width:100%;padding:16px;border-radius:16px;border:none;background:#17161B;color:#fff;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 10px 24px rgba(20,15,40,.2);")}>Build a song with this idea →</button>
+    </div>
+  );
 }
