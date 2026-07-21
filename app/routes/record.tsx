@@ -68,7 +68,21 @@ export default function Record() {
     }, 100);
   }
   const stop = () => rec.current?.stop();
-  const discard = () => { blobRef.current = undefined; setPhase("idle"); setRecTime("00:00.0"); };
+  const discard = () => {
+    // Cancel can fire mid-recording. Detach onstop first so the real analysis
+    // pipeline doesn't run, then release the mic + timer ourselves — routing
+    // through rec.current.stop() with onstop still attached would otherwise
+    // send the user into "analysing" instead of back to idle.
+    if (rec.current && rec.current.state !== "inactive") {
+      rec.current.onstop = null;
+      rec.current.stop();
+    }
+    stream.current?.getTracks().forEach((t) => t.stop());
+    clearInterval(timer.current);
+    blobRef.current = undefined;
+    setPhase("idle");
+    setRecTime("00:00.0");
+  };
   async function save(edit: boolean) {
     if (!blobRef.current || !analysis) return;
     const saved = await saveIdea(blobRef.current, analysis, pendingTitle);
