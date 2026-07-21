@@ -8,7 +8,7 @@ Full spec: `../memo-plan.md`. Original task-by-task build plan: `../memo-impleme
 
 React Router 7 SPA (`ssr:false`) on Cloudflare Pages. All DSP runs client-side in WASM (Essentia.js). Supabase is the only backend — Postgres + Storage under RLS, reached directly via `supabase-js`, plus two Deno Edge Functions: `/arrange` (hides the Gemini key, grounded LLM arrangement, JWT-verified) and `/track-search` (public, keyless iTunes search + preview CORS proxy). Output MIDI via `@tonejs/midi`, playback via Tone.js.
 
-**Tech stack:** React Router 7.18.1, TypeScript, Vite 8, `vite-plugin-pwa`, `essentia.js` 0.1.3, `tone` 15, `@tonejs/midi`, `@supabase/supabase-js`, Supabase (Postgres/Auth/Storage/Edge Functions/Deno), **Gemini `gemini-3.1-flash-lite`** via the Interactions API, Cloudflare Pages (`wrangler`).
+**Tech stack:** React Router 7.18.1, TypeScript, Vite 8, `vite-plugin-pwa`, `essentia.js` 0.1.3, `tone` 15, `@tonejs/midi`, `@supabase/supabase-js`, Supabase (Postgres/Auth/Storage/Edge Functions/Deno), **Gemini `gemini-3.1-flash-lite`** via the Interactions API, `@opendaw/studio-sdk` 0.0.160 (headless — pulls in `studio-core` 0.1.1, `studio-core-wasm` 0.0.5, `lib-midi` 0.0.70, `lib-dsp` 0.0.88, `lib-std`, `lib-box` 0.0.90, `studio-adapters` 0.1.1, `studio-boxes`), Cloudflare Pages (`wrangler`).
 
 ## File map
 
@@ -25,8 +25,18 @@ app/
       analyze.ts                   # analyzeCapture (monophonic hum) + analyzeReference (polyphonic song)
       chords.ts                    # detectChords: per-frame HPCP + JS triad match (see gotchas — HPCP rotation)
       segment.ts                   # segment: even-quarters placeholder w/ real labels (ponytail-marked ceiling)
-      midi.ts                      # buildMidi: notes+chordChart -> .mid bytes (@tonejs/midi)
+      midi.ts                      # buildMidi: notes+chordChart -> .mid bytes (@tonejs/midi); also exports
+                                    # addNotesToTrack/PlayableNote (raw-MIDI-pitch helper, reused by
+                                    # opendaw/exportMidi.ts so the write-loop isn't duplicated)
       playback.ts                  # playSong: Tone.Sampler playback of a chord chart
+    opendaw/
+      engine.ts                    # ensureOpenDawEngine: WASM engine singleton (AudioWorklets + WasmEngine
+                                    # install/ensureReady); createOpenDawProject: hand-assembles ProjectEnv,
+                                    # returns a fresh Project (see gotchas)
+      importMidi.ts                # importMidiIntoProject: decode .mid (ByteArrayInput) -> pair NOTE_ON/OFF
+                                    # -> Vaporisateur note tracks/regions/events, inside editing.modify
+      exportMidi.ts                # exportProjectToMidi: walk project's note events -> PlayableNote[] ->
+                                    # buildMidi's addNotesToTrack (inverse of importMidi.ts)
     api/
       bank.ts                      # supabase CRUD: ideas, vibe_briefs, songs (saveIdea/saveBrief/saveSong etc)
       tracks.ts                    # client for /track-search edge fn
@@ -35,19 +45,30 @@ app/
     RecordPanel.tsx                # mic capture -> analyze -> save; routes mic into shared analyser
     BankList.tsx                   # list/search/replay/rename ideas
     VibeBriefPanel.tsx             # iTunes search + upload -> analyze -> save brief
-    SongBuilderPanel.tsx           # pick idea+brief -> build -> render chart -> play; onBuilt exposes midiPath
+    SongBuilderPanel.tsx           # pick idea+brief -> build -> render chart -> play; onBuilt exposes songId+midiPath
     Visualizer.tsx                 # AnalyserNode waveform + glow canvas
-    ProducePanel.tsx               # signed-URL .mid download (the always-works fallback)
+    ProducePanel.tsx               # signed-URL .mid download (fallback) + "Open in openDAW" link (real editor)
     Timer.tsx                      # time-saved stopwatch
+    opendaw/
+      TransportControls.tsx        # play/stop + bars:beats readout, subscribes to project.engine.position
+      PianoRoll.tsx                # DOM/pointer-event note grid: move/resize/delete; ppqn-native, SDK-free
+      InstrumentPicker.tsx         # fixed Vaporisateur/Apparat select; SDK-free, produce.tsx maps name -> factory
   routes/
     _index.tsx                     # dashboard — composes everything, owns the one shared Tone AudioContext analyser
     login.tsx                      # magic-link auth
-    produce.tsx                    # openDAW route — currently a STUB, see openDAW section below
+    produce.tsx                    # /produce/:songId — real headless openDAW editor: loads signed .mid,
+                                    # imports into a Project, renders transport/piano-roll/instrument picker,
+                                    # exports back over the same storage path (upsert)
 supabase/
   migrations/0001_init.sql         # tables (ideas, vibe_briefs, songs) + RLS + storage buckets (raw-audio, midi)
   functions/arrange/index.ts       # Deno edge fn, Gemini Interactions API, JWT-verified
   functions/track-search/index.ts  # Deno edge fn, public/no-verify-jwt, SSRF-guarded preview proxy
-scripts/check-midi.mjs             # node --experimental-strip-types — real runnable MIDI validity check
+scripts/
+  check-midi.mjs                   # node --experimental-strip-types — real runnable MIDI validity check
+  copy-opendaw-wasm.mjs            # predev/prebuild hook (package.json): mirrors @opendaw/studio-core-wasm's
+                                    # dist/ (wasm-processor.js, wasm-offline-worker.js, wasm/**) into
+                                    # public/opendaw-wasm/ for same-origin COEP-safe serving; gitignored,
+                                    # mechanically regenerated, never committed
 ```
 
 ## Setup (manual — no credentials live in this repo)
@@ -73,11 +94,23 @@ Runnable checks: `npm run typecheck`, `npm run build`, `npm run check-midi`.
 - **`supabase/functions/**` must stay excluded from `tsconfig.json`** (`"exclude": ["supabase/functions/**"]`) — Deno globals (`Deno.serve`, `Deno.env`) aren't real to the app's `tsc` pass, and Deno has its own type-checking at deploy time.
 - **`user!.id` non-null assertions were replaced with explicit `if (!user) throw` in `bank.ts`** — an unauthenticated call now fails with a clear "not authenticated" error instead of a confusing runtime TypeError.
 - **All outbound `fetch` calls (both edge functions + `arrange.ts`/`tracks.ts` clients) check `r.ok` before parsing.** Without this, a non-200 upstream response (bad API key, rate limit, etc.) parses as valid-but-empty JSON and silently produces a "successful" empty result instead of a visible error — found by CodeRabbit review, not obvious from reading the code casually.
+- **No `@opendaw/*` package can be `import`-ed under plain Node (v22)** — same class of issue as essentia.js above, but the cause is packaging, not a browser dependency: the compiled `dist/*.js` use extensionless relative imports (`export * from "./Channel"`) that only a bundler resolves, and `--experimental-specifier-resolution=node` was removed in Node 22. To test the pure data-model packages (`lib-midi`, `lib-dsp`, `lib-std`) headlessly, bundle a throwaway entry file first: `npx esbuild entry.mjs --bundle --format=esm --platform=node`. `studio-core`/`studio-core-wasm` additionally need a real `AudioContext`/`AudioWorklet`/`SharedArrayBuffer` and cannot run in Node at all, bundled or not.
+- **There is no turnkey `createProjectEnv()` / `Project.create()`.** A `ProjectEnv` (`studio-core/dist/project/ProjectEnv.d.ts`) must be hand-assembled from six required fields (`audioContext`, `audioWorklets` via `AudioWorklets.get(ctx)` after `AudioWorklets.createFor(ctx)`, `sampleManager`/`soundfontManager` via `GlobalSampleLoaderManager`/`GlobalSoundfontLoaderManager`, `sampleService`/`soundfontService`) before calling `Project.new(env)`. `app/lib/opendaw/engine.ts`'s `createOpenDawProject()` does this once; don't reinvent it elsewhere. This app has no real sample/soundfont backend, so it passes rejecting stub providers — safe only because `importMidiIntoProject` exclusively creates `Vaporisateur` instruments, which never call `provider.fetch`.
+- **Every project mutation must be wrapped in `project.editing.modify(() => {...})`, and there is no `ProjectApi.deleteRegion` / mutate-region method.** Region and note-event edits (move/resize/delete in `PianoRoll`) go straight through box-graph field setters (`eventBox.position.setValue(...)`, `.duration.setValue(...)`) or box deletion (`eventBox.delete()`) — not a named `ProjectApi` call. `ProjectApi.duplicateNotes`'s own doc comment is what confirms the `editing.modify` wrapping requirement.
+- **`NoteEventBox.position`/`.duration` are ppqn integers LOCAL to their parent `NoteRegionBox`, not absolute timeline position.** Absolute position is `region.position + event.position` (inferred from `NoteRegionBox` also exposing `loopOffset`/`loopDuration`/`eventOffset`, which only makes sense as a clip-content-vs-placement split). Getting this backwards — treating `event.position` as already absolute — silently shifts every note by its region's start offset; `produce.tsx`'s `handleMove` and `exportMidi.ts`'s `collectNoteTracks` both convert explicitly.
+- **`MidiFileDecoder` wants a `ByteArrayInput` (from `@opendaw/lib-std`), not a raw `ArrayBuffer`/`Uint8Array`, and `decode()` returns raw per-channel `ControlEvent`s (`NOTE_ON`/`NOTE_OFF`), not pre-paired notes.** `importMidi.ts`'s `pairNotes()` matches `NOTE_ON` to the next `NOTE_OFF` (or a `NOTE_ON` with velocity 0) per channel/pitch. Decoded `ticks` are in the source file's own `timeDivision`, **not** openDAW's `PPQN.Quarter` (960) — every position/duration must be rescaled by `PPQN.Quarter / format.timeDivision` before it reaches `ProjectApi`. `ProjectApi.createNoteEvent`'s `velocity` is a `0..1` float — MIDI's raw `0..127` must be divided by 127.
+- **Instrument choices are a fixed SDK enum, not free-form.** `InstrumentFactories.Named` = `{ Apparat, MIDIOutput, Nano, Playfield, Soundfont, Tape, Vaporisateur }`; only `Vaporisateur` and `Apparat` play with no sample/soundfont attachment, so those are the only two `InstrumentPicker` offers (an attachment-backed choice would silently fail against this app's rejecting stub providers).
+- **The openDAW WASM engine singleton is bound to whichever `AudioContext` it first sees** (`AudioWorklets.createFor(ctx)` records its result in a per-context `WeakMap`). `produce.tsx` keeps one module-level `sharedAudioContext`, created lazily on first mount, instead of `new AudioContext()` per navigation — a fresh context on a second visit would hit the already-resolved engine singleton and `AudioWorklets.get(newCtx)` would throw "Worklets not installed."
+- **WASM/worklet assets must be served same-origin** because of this project's COEP `require-corp` header (`public/_headers`) — a cross-origin fetch (e.g. straight from a CDN) would be blocked. `scripts/copy-opendaw-wasm.mjs` mirrors `node_modules/@opendaw/studio-core-wasm/dist/` into `public/opendaw-wasm/` via `predev`/`prebuild` npm hooks; the output is gitignored and never committed, same treatment as any other mechanically-regenerated build artifact.
+- **The AudioWorklet processor asset is the single biggest unconfirmed boot-time risk.** `AudioWorklets.install(url)` resolves to `context.audioWorklet.addModule(url)`, and the package that's supposed to build that processor bundle — `@opendaw/studio-core-processors` — is a dev-only dependency of `studio-core-wasm` and is **not installed** in this project. `wasm-processor.js` (copied into `public/opendaw-wasm/`) is the best on-disk candidate — it contains a `registerProcessor(...)` call — but whether `addModule` actually succeeds against it, and whether the registered processor is usable by `EngineWorklet`, has not been confirmed without a live cross-origin-isolated browser page. If engine boot fails, check this first.
 
 ## Decisions
 
 - **2026-07 — Gemini over Anthropic for `/arrange`.** Swapped from `claude-haiku-4-5-20251001` to `gemini-3.1-flash-lite` via Gemini's **Interactions API** (`POST /v1beta/interactions`, `x-goog-api-key` header) — confirmed live against `ai.google.dev` docs, not assumed from training data; the older `generateContent` API is now labeled legacy. Uses `response_format: {type:"text", mime_type:"application/json", schema:...}` for real schema-enforced JSON output, which replaced the old return-ONLY-JSON-prompt + manual `indexOf("{")`/`lastIndexOf("}")` brace-slicing hack. Env var is `GEMINI_API_KEY`.
-- **openDAW (Task 8.2) shipped as an honest stub, not a real mount.** `@opendaw/studio-sdk` installs as a version-string-only meta-package; real functionality lives in ~15 sibling packages with no top-level `mount()`/`Studio` API, built on openDAW's own JSX runtime (not React). AGPL v3 licensing was a blocker — **user has since resolved the licensing question** and asked for a real "full potential" integration; this is being researched/redesigned (see brainstorm spec once written, expect a `docs/superpowers/specs/` entry). `app/routes/produce.tsx` and `ProducePanel.tsx`'s `.mid` download remain the working fallback in the meantime.
+- **2026-07-21 — openDAW: real headless-SDK integration shipped, superseding the Task 8.2 stub.** `@opendaw/studio-sdk` still has no top-level `mount()`/`Studio` UI in the published packages (confirmed again during this build, not just the original stub research) — there is no mounted openDAW editor here. Instead, `/produce/:songId` (`app/routes/produce.tsx`) drives the SDK headlessly: `@opendaw/studio-core`'s `Project`/`ProjectApi`/`EngineFacade`, `@opendaw/studio-core-wasm`'s prebuilt WASM engine, and `@opendaw/lib-midi`'s decoder, behind a custom lightweight React editor (transport controls, a DOM/pointer-event piano roll, an instrument picker). MIDI stays the interchange format — no native `.dawproject` work. Full plan + Task 1's API spike findings: `docs/superpowers/plans/2026-07-21-opendaw-integration.md`; design rationale: `docs/superpowers/specs/2026-07-21-opendaw-integration-design.md`.
+  - **License correction: `LGPL-3.0-or-later`, not AGPL v3.** The old stub entry recorded AGPL v3 as a blocker the user had "resolved" without a stated basis; Task 1's spike re-checked `studio-sdk`'s and `studio-core-wasm`'s installed `package.json` directly and both say `LGPL-3.0-or-later`. Worth flagging since it corrects a specific factual claim this file previously made, not just a status update.
+  - Everything requiring a live browser (engine/worklet boot, real playback, drag/resize/delete interaction, the Storage/COEP fetch actually succeeding, a full import→edit→export→re-import round-trip) was **not** verified in this build environment — see the Gotchas entries above (AudioWorklet processor asset, WASM singleton/AudioContext binding) for the specific open risks, and re-run a live-browser pass before trusting this in production.
+  - `ProducePanel.tsx`'s signed-URL `.mid` download remains as the always-works fallback link alongside the new "Open in openDAW →" link (only rendered once a real `songId` exists).
 - **Segmentation ships as labeled even-quarters, not real self-similarity DSP** (`segment.ts`, `ponytail:`-marked). Upgrade path: true self-similarity boundary detection, if it ever matters more than the current placeholder.
 - **`track-search` is public/no-verify-jwt with an SSRF allowlist** (`*.mzstatic.com` only on the `?preview=` param); `/arrange` requires Supabase JWT verification instead of its own auth code, since it spends a paid API budget per call.
 
