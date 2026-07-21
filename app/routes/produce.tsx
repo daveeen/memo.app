@@ -112,7 +112,17 @@ function buildRegionModel(project: Project): RegionModel {
     // unit) — same "filter by content, not identity" rule import/exportMidi use.
     if (trackHasNotes) {
       audioUnits.set(trackId, audioUnit);
-      tracks.push({ trackId, label: audioUnit.label || trackId });
+      // A semantic label based on import order, NOT audioUnit.label: importMidiIntoProject
+      // creates every track as a Vaporisateur instrument (Task 1: fixed attachment-free
+      // synths only), so openDAW auto-disambiguates same-name audio units as "Vaporisateur",
+      // "Vaporisateur 2", etc. Showing that raw SDK label next to an <InstrumentPicker> whose
+      // options are literally "Vaporisateur"/"Apparat" is indistinguishable text soup with no
+      // styling to separate them (a real user hit this: reported seeing "Vaporisateur /
+      // Apparat / Vaporisateur 2 / Apparat" with no way to tell label from option). Track order
+      // is stable and matches buildMidi()'s fixed two-track output (app/lib/audio/midi.ts:
+      // melody added first, chords second) — labeling by that known order is unambiguous.
+      const label = audioUnitIndex === 0 ? "Melody" : audioUnitIndex === 1 ? "Chords" : `Track ${audioUnitIndex + 1}`;
+      tracks.push({ trackId, label });
     }
     audioUnitIndex++;
   }
@@ -334,7 +344,7 @@ export default function Produce() {
         <div>
           {tracks.map((t) => (
             <label key={t.trackId} style={{ marginRight: 12 }}>
-              {t.label}{" "}
+              <strong>{t.label}</strong> instrument:{" "}
               <InstrumentPicker
                 trackId={t.trackId}
                 current={instruments[t.trackId] ?? "Vaporisateur"}
