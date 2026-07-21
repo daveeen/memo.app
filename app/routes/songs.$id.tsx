@@ -44,7 +44,9 @@ export default function Builder() {
   const transportSec = (playing ? structure[playIndex] : structure[0]) ?? structure[0];
 
   return (
-    <div className="m-scroll" style={cssText("flex:1;padding:24px 22px 120px;")}>
+    <div className="m-scroll" style={cssText("flex:1;padding:24px 22px 190px;")}>
+      {/* bottom padding clears the fixed transport bar (~74px) stacked above the
+          fixed tab bar (80px) below it — 120px used to let the last card hide behind them. */}
       {/* Transcribed from .memo-design/screen-07-builder.html's builderComplete branch
           (builderBuilding branch skipped — this route always loads an already-built song). */}
       <button onClick={() => nav("/songs")} style={cssText("display:flex;align-items:center;gap:7px;border:none;background:none;cursor:pointer;color:#57565E;font-size:14px;font-weight:600;padding:0;")}>← Songs</button>
@@ -100,7 +102,7 @@ export default function Builder() {
       </div>
 
       <div style={cssText("margin-top:20px;display:flex;flex-direction:column;gap:10px;")}>
-        <button onClick={exportMidi} style={cssText("width:100%;padding:15px;border-radius:15px;border:none;background:linear-gradient(135deg,#C97B3C,#A8432F);color:#fff;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 10px 24px rgba(120,90,240,.3);")}>Export .mid</button>
+        <button onClick={exportMidi} style={cssText("width:100%;padding:15px;border-radius:15px;border:none;background:linear-gradient(135deg,#C97B3C,#A8432F);color:#fff;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 10px 24px rgba(160,86,58,.35);")}>Export .mid</button>
         <button onClick={() => nav(`/produce/${id}`)} style={cssText("width:100%;padding:15px;border-radius:15px;border:1px solid rgba(0,0,0,.1);background:#fff;color:#17161B;font-size:14px;font-weight:700;cursor:pointer;")}>Open in openDAW</button>
         {exported && (
           <div style={cssText("text-align:center;font-size:13px;font-weight:600;color:#0b8a3d;")}>✓ song.mid saved to Downloads — ready to open anywhere.</div>

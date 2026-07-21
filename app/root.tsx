@@ -24,7 +24,7 @@ export const links: Route.LinksFunction = () => [
   },
   {
     rel: "stylesheet",
-    href: "https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap",
+    href: "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap",
   },
 ];
 
@@ -46,8 +46,45 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
+// Shown while the initial JS bundle loads/hydrates (ssr:false means there's no
+// server-rendered HTML to show in that gap) — just the brand mark on the app's
+// own background instead of a blank white flash.
+export function HydrateFallback() {
+  return (
+    <div
+      style={{
+        maxWidth: 480, margin: "0 auto", minHeight: "100vh", display: "flex",
+        alignItems: "center", justifyContent: "center",
+        background: "radial-gradient(120% 70% at 50% 36%,#F0E7D6 0%,#E4D8C2 60%,#DCCFB6 100%)",
+      }}
+    >
+      <div
+        style={{
+          width: 72, height: 72, borderRadius: 22,
+          background: "linear-gradient(150deg,#2C2A31,#141319)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          boxShadow: "0 16px 34px rgba(20,18,26,.35)",
+        }}
+      >
+        <svg width="40" height="28" viewBox="0 0 40 28" fill="none">
+          <path d="M2 20 L8 8 L14 20 L20 4 L26 20 L32 8 L38 20" stroke="#F4EDDB" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
-  return <Outlet />;
+  // Memo has no per-route responsive layout of its own (every screen is a fixed
+  // mobile-width column). Without this wrapper the app stretches edge-to-edge on
+  // any desktop browser window, which is also what made it hard to test locally.
+  // translateZ(0) gives fixed-position descendants (tab bar, transport bar) a
+  // containing block scoped to this column instead of the full viewport.
+  return (
+    <div style={{ maxWidth: 480, margin: "0 auto", minHeight: "100vh", position: "relative", transform: "translateZ(0)", boxShadow: "0 0 60px rgba(0,0,0,.08)" }}>
+      <Outlet />
+    </div>
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {

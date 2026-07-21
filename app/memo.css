@@ -1,6 +1,6 @@
 * { box-sizing: border-box; }
 .m-spine { transition: transform .42s cubic-bezier(.22,1,.36,1), box-shadow .42s ease, filter .42s ease; }
-body { margin: 0; font-family: 'Caveat', 'Plus Jakarta Sans', system-ui, sans-serif; font-weight: 700; -webkit-font-smoothing: antialiased; background: #E4D8C2; }
+body { margin: 0; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-weight: 500; -webkit-font-smoothing: antialiased; background: #E4D8C2; }
 a { color: #B5503C; text-decoration: none; }
 a:hover { color: #8f3d2c; }
 input, textarea, button { font-family: inherit; }

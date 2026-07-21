@@ -5,11 +5,12 @@
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
+/* Memo has no dark theme — every screen is a fixed light/cream palette (the two
+   intentionally-dark screens, Record-while-active and Produce, are hardcoded
+   regardless of OS theme). Letting `dark:` / prefers-color-scheme flip native
+   form-control chrome to dark here would mismatch the app's own colors, so this
+   stays light-only; the block below is template boilerplate this app never uses. */
 html,
 body {
-  @apply bg-white dark:bg-gray-950;
-
-  @media (prefers-color-scheme: dark) {
-    color-scheme: dark;
-  }
+  @apply bg-white;
 }
