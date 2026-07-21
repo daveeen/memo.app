@@ -1,0 +1,17 @@
+* { box-sizing: border-box; }
+.m-spine { transition: transform .42s cubic-bezier(.22,1,.36,1), box-shadow .42s ease, filter .42s ease; }
+body { margin: 0; font-family: 'Caveat', 'Plus Jakarta Sans', system-ui, sans-serif; font-weight: 700; -webkit-font-smoothing: antialiased; background: #E4D8C2; }
+a { color: #B5503C; text-decoration: none; }
+a:hover { color: #8f3d2c; }
+input, textarea, button { font-family: inherit; }
+textarea { resize: none; }
+@keyframes mSpin { to { transform: rotate(360deg); } }
+@keyframes mSpinHalf { from { transform: translate(-50%,48%) rotate(0); } to { transform: translate(-50%,48%) rotate(360deg); } }
+@keyframes mWave { 0%,100% { transform: scaleY(0.5); } 50% { transform: scaleY(1); } }
+@keyframes mGlow { 0%,100% { opacity:.55; transform: scale(1); } 50% { opacity:.95; transform: scale(1.08); } }
+@keyframes mFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes mUp { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+@keyframes mReel { to { transform: rotate(360deg); } }
+@keyframes casReel { to { transform: rotate(360deg); } }
+::-webkit-scrollbar { width: 0; }
+.m-scroll { overflow-y: auto; }
