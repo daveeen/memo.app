@@ -30,12 +30,25 @@ Deno.serve(async (req) => {
       });
     }
     const r = await fetch(preview);
+    if (!r.ok) {
+      return new Response(JSON.stringify({ error: `preview fetch failed: ${r.status}` }), {
+        status: 502,
+        headers: { ...cors, "Content-Type": "application/json" },
+      });
+    }
     return new Response(r.body, { headers: { ...cors, "Content-Type": "audio/mpeg" } });
   }
   const q = url.searchParams.get("query") ?? "";
   const r = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(q)}&entity=song&limit=8`);
+  if (!r.ok) {
+    return new Response(JSON.stringify({ error: `itunes search failed: ${r.status}` }), {
+      status: 502,
+      headers: { ...cors, "Content-Type": "application/json" },
+    });
+  }
   const j = await r.json();
-  const out = j.results.filter((t: any)=>t.previewUrl).map((t: any) => ({
+  const results = Array.isArray(j?.results) ? j.results : [];
+  const out = results.filter((t: any)=>t.previewUrl).map((t: any) => ({
     trackName: t.trackName, artist: t.artistName, artworkUrl: t.artworkUrl100, previewUrl: t.previewUrl,
   }));
   return new Response(JSON.stringify(out), { headers: { ...cors, "Content-Type": "application/json" } });

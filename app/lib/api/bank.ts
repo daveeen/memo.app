@@ -3,7 +3,8 @@ import type { CaptureAnalysis, BankEntry, VibeBrief } from "~/lib/types";
 
 export async function saveIdea(blob: Blob, a: Omit<CaptureAnalysis, "id" | "cleanedAudioPath">, title: string) {
   const { data: { user } } = await supabase.auth.getUser();
-  const path = `${user!.id}/${crypto.randomUUID()}.webm`;
+  if (!user) throw new Error("not authenticated");
+  const path = `${user.id}/${crypto.randomUUID()}.webm`;
   const { error: uploadError } = await supabase.storage.from("raw-audio").upload(path, blob);
   if (uploadError) throw uploadError;
   const { data, error } = await supabase.from("ideas").insert({
@@ -44,7 +45,8 @@ export async function listBriefs() {
 
 export async function saveSong(s: any, midi: Uint8Array) {
   const { data: { user } } = await supabase.auth.getUser();
-  const path = `${user!.id}/${crypto.randomUUID()}.mid`;
+  if (!user) throw new Error("not authenticated");
+  const path = `${user.id}/${crypto.randomUUID()}.mid`;
   // `@types/node` (pulled in via tsconfig's `types: ["node"]`) redeclares the global
   // `Uint8Array` as generic over `ArrayBufferLike`, which no longer satisfies DOM's
   // `BlobPart` (wants `ArrayBufferView<ArrayBuffer>`) under TS 5.7+ — a tsconfig-level

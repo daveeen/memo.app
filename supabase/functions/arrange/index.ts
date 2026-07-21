@@ -36,18 +36,31 @@ Deno.serve(async (req) => {
 
   let parsed: any;
   try {
-    const r = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001", max_tokens: 1024,
-        system: sys, messages: [{ role: "user", content: user }],
-      }),
-    });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    let r: Response;
+    try {
+      r = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "claude-haiku-4-5-20251001", max_tokens: 1024,
+          system: sys, messages: [{ role: "user", content: user }],
+        }),
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeout);
+    }
+    // Anthropic returns error bodies (401/429/5xx) as normal JSON, not a fetch
+    // rejection — without this check a bad key or rate limit would parse as
+    // `j.content` undefined -> "{}" -> an empty-but-"successful" arrangement,
+    // silently masking a real API failure as a valid empty song.
+    if (!r.ok) throw new Error(`anthropic ${r.status}: ${await r.text()}`);
     const j = await r.json();
     const text = j.content?.[0]?.text ?? "{}";
     const start = text.indexOf("{");

@@ -21,6 +21,10 @@ export async function buildSong(idea: any, brief: any): Promise<Omit<SongBuild, 
       structure: (brief.structure_json ?? brief.sections).map((s: any, i: number) => ({ label: s.label, order: i + 1 })),
     }),
   });
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({}));
+    throw new Error(err.error ?? `arrange failed: ${r.status}`);
+  }
   const { chordChart, instrumentation } = await r.json();
   const structure = (brief.structure_json ?? brief.sections).map((s: any, i: number) => ({ label: s.label, order: i + 1 }));
   return { sourceIdeaId: idea.id, sourceVibeBriefId: brief.id, chordChart, structure, instrumentation };
