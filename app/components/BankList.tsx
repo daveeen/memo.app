@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { listIdeas, ideaAudioUrl, renameIdea } from "~/lib/api/bank";
+import { useEffect, useRef, useState } from "react";
+import { listIdeas, ideaAudioUrl, renameIdea, updateIdeaNote } from "~/lib/api/bank";
 
 // `listIdeas()` is declared as Promise<BankEntry[]> (see app/lib/api/bank.ts),
 // but it does `select("*")` on the "ideas" table and casts the result `as any`
@@ -16,14 +16,35 @@ type BankRow = {
   key: string | null;
   input_type: string | null;
   mood: string | null;
+  note: string | null;
 };
 
-export function BankList({ refreshKey, onPick }: { refreshKey: number; onPick?: (i: BankRow) => void }) {
+export function BankList({
+  refreshKey,
+  onPick,
+  justCreatedId,
+  onFocusedJustCreated,
+}: {
+  refreshKey: number;
+  onPick?: (i: BankRow) => void;
+  justCreatedId?: string;
+  onFocusedJustCreated?: () => void;
+}) {
   const [items, setItems] = useState<BankRow[]>([]);
   const [f, setF] = useState("");
+  const noteRefs = useRef<Record<string, HTMLTextAreaElement | null>>({});
   useEffect(() => {
     listIdeas().then(data => setItems(data as unknown as BankRow[]));
   }, [refreshKey]);
+  useEffect(() => {
+    if (!justCreatedId) return;
+    const el = noteRefs.current[justCreatedId];
+    if (el) {
+      el.focus();
+      el.select();
+      onFocusedJustCreated?.();
+    }
+  }, [items, justCreatedId, onFocusedJustCreated]);
   async function play(p: string) {
     const u = await ideaAudioUrl(p);
     if (u) new Audio(u).play();
@@ -43,6 +64,12 @@ export function BankList({ refreshKey, onPick }: { refreshKey: number; onPick?: 
       <li key={i.id}>
         <input defaultValue={i.title} onBlur={e => renameIdea(i.id, e.target.value)} />
         <span> · {i.key} · {i.bpm != null ? Math.round(i.bpm) : "—"} bpm · {i.input_type} · {i.mood}</span>
+        <textarea
+          ref={el => { noteRefs.current[i.id] = el; }}
+          defaultValue={i.note ?? ""}
+          onBlur={e => updateIdeaNote(i.id, e.target.value)}
+          placeholder="note..."
+        />
         <button onClick={() => play(i.raw_path)}>▶</button>
         {onPick && <button onClick={() => onPick(i)}>Use</button>}
       </li>
