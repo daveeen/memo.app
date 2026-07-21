@@ -17,7 +17,17 @@
 //      compiles the modules + registers the processor module once").
 //   3. WasmEngine.ensureReady(audioContext) — actually fetches + compiles the wasm
 //      modules; resolves a boolean, checked below rather than discarded.
-import { AudioWorklets } from "@opendaw/studio-core";
+import {
+  AudioWorklets,
+  GlobalSampleLoaderManager,
+  GlobalSoundfontLoaderManager,
+  Project,
+  SampleService,
+  SoundfontService,
+  type ProjectEnv,
+  type SampleProvider,
+  type SoundfontProvider,
+} from "@opendaw/studio-core";
 import { WasmEngine } from "@opendaw/studio-core-wasm";
 
 // Same-origin base the assets are copied into by scripts/copy-opendaw-wasm.mjs
@@ -75,4 +85,73 @@ export function ensureOpenDawEngine(audioContext: AudioContext): Promise<void> {
     })();
   }
   return _engineReady;
+}
+
+// ---------------------------------------------------------------------------
+// Headless Project assembly (Task 6)
+//
+// This closes the item Task 1's findings flagged as "the most under-scoped": there
+// is NO turnkey `createProjectEnv()` / `Project.create()` in the shipped SDK — a
+// ProjectEnv (studio-core/dist/project/ProjectEnv.d.ts) is hand-assembled from six
+// required fields (only `createEditing` is optional). Every constructor in the chain
+// was read out of the shipped studio-core `dist/*.js` and confirmed to do NO throwing
+// I/O at construction time (verified against source, not assumed):
+//
+//   new SampleService(ctx)              AssetService's `super()` only sets
+//                                       `notifier = new Notifier()` (a pure observer
+//                                       registry); the body is just `this.audioContext = ctx`.
+//                                       No I/O. (samples/SampleService.js, AssetService.js)
+//   new SoundfontService()              `super()` (pure), then fires a *background*
+//                                       `Promise.all([SoundfontStorage.get().list(),
+//                                       FactoryCatalog.get().soundfonts()])` whose ONLY
+//                                       rejection path is `console.warn(...)` — it never
+//                                       throws. `SoundfontStorage.get()` returns a pure new
+//                                       instance; with no FactoryCatalog provider installed,
+//                                       `FactoryCatalog.get()` returns the shipped `Empty`
+//                                       default (`soundfonts: async () => []`) whose own
+//                                       source comment reads: "A standalone SDK consumer that
+//                                       never installs a provider stays local-only" — exactly
+//                                       this headless case. (soundfont/SoundfontService.js,
+//                                       FactoryCatalog.js)
+//   new GlobalSampleLoaderManager(p)    stores provider + four empty UUID sets. Pure.
+//   new GlobalSoundfontLoaderManager(p) stores provider + one empty UUID set. Pure.
+//   AudioWorklets.get(ctx)              returns the instance `createFor(ctx)` stored in a
+//                                       WeakMap; ensureOpenDawEngine() awaits createFor(ctx)
+//                                       above, so it is always present here. (AudioWorklets.js)
+//   Project.new(env)                    static + synchronous; builds the box graph. Does NOT
+//                                       require the engine worklet to be booted — that is only
+//                                       needed for playback and is wired in a later task.
+//
+// SampleProvider / SoundfontProvider are single-method (`fetch`) interfaces. openDAW's real
+// providers fetch from its cloud servers, which this app has none of, so we pass minimal
+// stub providers that reject. They are NEVER invoked by the melody/chords import path:
+// importMidiIntoProject creates only `Vaporisateur` instruments (a pure synth needing no
+// sample/soundfont attachment, per Task 1's findings), so no loader ever calls
+// `provider.fetch`. If a sample/soundfont-backed instrument were ever added, the rejection
+// surfaces as an honest load error rather than a fabricated success or a silent hang.
+//
+// NOT live-verified (needs a real cross-origin-isolated browser, impossible under Node here):
+// that `Project.new(env)` and the subsequent box-graph mutations genuinely run without a
+// booted worklet. The plan's own Task 6 change note treats worklet boot as a separate later
+// step, so this is expected to hold — but it is asserted from the types/source, not observed.
+const rejectingSampleProvider: SampleProvider = {
+  fetch: () => Promise.reject(new Error("headless openDAW editor has no sample provider")),
+};
+const rejectingSoundfontProvider: SoundfontProvider = {
+  fetch: () => Promise.reject(new Error("headless openDAW editor has no soundfont provider")),
+};
+
+// Boots the engine for `audioContext` (idempotent via ensureOpenDawEngine's singleton),
+// assembles the full ProjectEnv, and returns a fresh empty Project ready to import MIDI into.
+export async function createOpenDawProject(audioContext: AudioContext): Promise<Project> {
+  await ensureOpenDawEngine(audioContext);
+  const env: ProjectEnv = {
+    audioContext,
+    audioWorklets: AudioWorklets.get(audioContext),
+    sampleManager: new GlobalSampleLoaderManager(rejectingSampleProvider),
+    soundfontManager: new GlobalSoundfontLoaderManager(rejectingSoundfontProvider),
+    sampleService: new SampleService(audioContext),
+    soundfontService: new SoundfontService(),
+  };
+  return Project.new(env);
 }
