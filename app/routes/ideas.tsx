@@ -27,6 +27,11 @@ export default function Ideas() {
   const filters = ["All", "Vocal", "Guitar", "Bright", "Warm"];
   const chip = (label: string) => { const active = filter === label; return cssText(`flex:none;padding:9px 15px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;border:1px solid ${active ? "transparent" : "rgba(0,0,0,.1)"};background:${active ? "#17161B" : "#fff"};color:${active ? "#fff" : "#57565E"};`); };
   const clearFilters = () => { setQuery(""); setFilter("All"); };
+  const noResultsMsg = q
+    ? `No ideas match “${query}”.`
+    : filter !== "All"
+      ? `No ideas match the “${filter}” filter.`
+      : "No ideas yet.";
 
   return (
     <div className="m-scroll" style={cssText("flex:1;padding:24px 22px 120px;")}>
@@ -43,8 +48,7 @@ export default function Ideas() {
       </div>
 
       <div style={cssText("margin-top:24px;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#57565E;")}>Ideas</div>
-      <h1 style={cssText("margin:5px 0 0;font-size:32px;font-weight:800;letter-spacing:-.035em;color:#17161B;line-height:1.05;")}>Your ideas,<br />on tape.</h1>
-      <p style={cssText("margin:9px 0 0;font-size:14px;line-height:1.5;color:#57565E;max-width:300px;")}>{ideas.length} rescued sketches. Tap a tape to open it, drag one into a crate to keep the good ones together.</p>
+      <h1 style={cssText("margin:5px 0 0;padding-top:4px;font-size:28px;font-weight:800;letter-spacing:-.035em;color:#17161B;line-height:1.2;")}>Your ideas,<br />on tape.</h1>
 
       <div style={cssText("margin-top:20px;display:flex;align-items:center;gap:10px;padding:0 15px;height:50px;background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:15px;box-shadow:0 4px 14px rgba(0,0,0,.04);")}>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#9a99a3" strokeWidth="2"></circle><path d="M20 20l-3.5-3.5" stroke="#9a99a3" strokeWidth="2" strokeLinecap="round"></path></svg>
@@ -65,8 +69,8 @@ export default function Ideas() {
           <button key={d.id} className="m-spine" onClick={() => pull(d.id)} style={spineStyle(d)}>
             <div style={cssText(`width:7px;align-self:stretch;background:${d.stripe};border-radius:3px 0 0 3px;flex:none;`)}></div>
             <div style={cssText("position:absolute;top:0;left:7px;right:0;height:46%;background:linear-gradient(180deg,rgba(255,255,255,.26),transparent);pointer-events:none;border-radius:0 3px 0 0;")}></div>
-            <div style={cssText("flex:1;min-width:0;margin:0 9px;padding:3px 10px;background:linear-gradient(180deg,#F4EDDB,#E6D8BC);border-radius:2px;box-shadow:0 1px 2px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.55);display:flex;align-items:center;")}>
-              <span style={cssText("font-family:'Caveat',cursive;font-size:19px;font-weight:700;line-height:1;color:#2E2418;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;")}>{d.name}</span>
+            <div style={cssText("flex:1;min-width:0;margin:0 9px;padding:4px 10px;background:linear-gradient(180deg,#F4EDDB,#E6D8BC);border-radius:2px;box-shadow:0 1px 2px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.55);display:flex;align-items:center;")}>
+              <span style={cssText("font-size:19px;font-weight:700;line-height:1.3;color:#2E2418;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;")}>{d.name}</span>
             </div>
             <div style={cssText(`flex:none;display:flex;align-items:center;gap:9px;padding-right:12px;color:${d.ink};`)}>
               <span style={cssText("font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;opacity:.8;white-space:nowrap;")}>{d.type}</span>
@@ -78,7 +82,7 @@ export default function Ideas() {
       </div>
       {shown.length === 0 && (
         <div style={cssText("text-align:center;padding:36px 14px;")}>
-          <div style={cssText("font-size:14px;font-weight:600;color:#57565E;")}>No ideas match “{query}”.</div>
+          <div style={cssText("font-size:14px;font-weight:600;color:#57565E;")}>{noResultsMsg}</div>
           <button onClick={clearFilters} style={cssText("margin-top:12px;padding:9px 18px;border-radius:20px;border:none;background:#2E2418;color:#fff;font-weight:600;font-size:13px;cursor:pointer;")}>Clear filters</button>
         </div>
       )}

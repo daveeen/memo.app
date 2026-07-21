@@ -1,6 +1,6 @@
 import { useEffect, useState, Fragment } from "react";
 import { useNavigate, useParams } from "react-router";
-import { getIdea, ideaAudioUrl, renameIdea, updateIdeaNote, updateIdeaLyrics, listSongsForIdea } from "~/lib/api/bank";
+import { getIdea, ideaAudioUrl, renameIdea, updateIdeaNote, updateIdeaLyrics, listSongsForIdea, deleteIdea } from "~/lib/api/bank";
 import { decoIdea } from "~/lib/memoVisuals";
 import { Cassette } from "~/components/memo/Cassette";
 import { cssText } from "~/lib/cssText";
@@ -22,21 +22,26 @@ export default function IdeaDetail() {
     const u = await ideaAudioUrl(row.raw_path);
     if (u) { new Audio(u).play(); setPlaying(true); }
   }
+  async function handleDelete() {
+    if (!id) return;
+    if (!window.confirm(`Delete “${d.name}”? This can't be undone.`)) return;
+    await deleteIdea(id, row.raw_path);
+    nav("/ideas");
+  }
   return (
     <div className="m-scroll" style={cssText("flex:1;padding:24px 22px 120px;")}>
       <button onClick={() => nav('/ideas')} style={cssText("display:flex;align-items:center;gap:7px;border:none;background:none;cursor:pointer;color:#57565E;font-size:14px;font-weight:600;padding:0;")}>← Ideas</button>
       <div style={cssText("margin-top:16px;display:flex;gap:16px;align-items:flex-start;")}>
-        <div style={cssText("width:150px;flex:none;")}><Cassette idea={d} /></div>
+        <div style={cssText("width:150px;flex:none;")}><Cassette idea={d} showMeta={false} /></div>
         <div style={cssText("flex:1;padding-top:4px;")}>
-          <input defaultValue={d.name} onBlur={e => renameIdea(id, e.target.value)} style={cssText("width:100%;border:none;background:none;outline:none;font-size:22px;font-weight:800;letter-spacing:-.03em;color:#17161B;padding:0;")} />
-          <div style={cssText("font-size:12.5px;color:#8a8791;margin-top:2px;")}>edit title · {d.duration}</div>
+          <input key={id} defaultValue={d.name} onBlur={e => renameIdea(id, e.target.value)} style={cssText("width:100%;border:none;background:none;outline:none;font-size:22px;font-weight:800;letter-spacing:-.03em;color:#17161B;padding:0;")} />
           <button onClick={play} style={cssText("margin-top:12px;display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:22px;border:none;background:#17161B;color:#fff;font-weight:600;font-size:13px;cursor:pointer;")}>{playing ? '❚❚' : '▶'} {playing ? 'Playing' : 'Play take'}</button>
         </div>
       </div>
 
       {/* full angular waveform */}
       <div style={cssText("margin-top:20px;background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:16px;padding:16px;box-shadow:0 4px 14px rgba(0,0,0,.04);")}>
-        <svg viewBox="0 0 100 26" preserveAspectRatio="none" style={cssText("width:100%;height:70px;display:block;")}><polygon points={d.wavePoints} fill={d.stripe}></polygon></svg>
+        <svg viewBox="0 0 100 26" preserveAspectRatio="none" style={cssText("width:100%;height:70px;display:block;")}><path d={d.wavePoints} fill={d.stripe}></path></svg>
       </div>
 
       <div style={cssText("margin-top:18px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#57565E;")}>Detected · measured</div>
@@ -83,6 +88,7 @@ export default function IdeaDetail() {
       )}
 
       <button onClick={() => nav(`/songs/new?idea=${id}`)} style={cssText("margin-top:24px;width:100%;padding:16px;border-radius:16px;border:none;background:#17161B;color:#fff;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 10px 24px rgba(20,15,40,.2);")}>Build a song with this idea →</button>
+      <button onClick={handleDelete} style={cssText("margin-top:12px;width:100%;padding:13px;border-radius:16px;border:1px solid rgba(181,80,60,.25);background:none;color:#B5503C;font-size:13.5px;font-weight:600;cursor:pointer;")}>Delete idea</button>
     </div>
   );
 }

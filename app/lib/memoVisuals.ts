@@ -14,19 +14,47 @@ export const PAL = [
 ];
 export const SEC_COLORS = ['#C4593E','#7E7E3E','#D08A44','#C9A84C','#5E8577'];
 
-// Angular fingerprint polygon — seed derived from a stable per-idea number so
-// each recording gets a unique but deterministic waveform.
+// Smooth closed-curve waveform fingerprint — seed derived from a stable
+// per-idea number so each recording gets a unique but deterministic shape.
+// Returns an SVG <path> `d` string (use with <path>, not <polygon>: a straight-
+// edge polygon through raw noise reads as jagged/sketchy, not like audio).
 export function wavePoints(seed: number): string {
-  const N=22,W=100,H=24,mid=H/2,amp=mid-1,top:string[]=[],bot:string[]=[];
-  for(let i=0;i<N;i++){ const env=1-Math.abs(i-(N-1)/2)/((N-1)/2); const r=Math.abs(Math.sin(seed*12.9898*(i+1)))%1;
-    const p=Math.max(0.06,(0.35+0.65*r)*(0.35+0.65*env)); const x=(i*W/(N-1)).toFixed(1);
-    top.push(`${x},${(mid-p*amp).toFixed(1)}`); bot.push(`${x},${(mid+p*amp).toFixed(1)}`);}
-  return top.concat(bot.reverse()).join(' ');
+  const N = 40, W = 100, H = 24, mid = H / 2, amp = mid - 1;
+  let env = Array.from({ length: N }, (_, i) => {
+    const e = 1 - Math.abs(i - (N - 1) / 2) / ((N - 1) / 2);
+    const r = Math.abs(Math.sin(seed * 12.9898 * (i + 1))) % 1;
+    return Math.max(0.06, (0.35 + 0.65 * r) * (0.35 + 0.65 * e));
+  });
+  // Smooth sample-to-sample jaggedness (two passes of a 3-tap average) so the
+  // envelope reads like a real audio waveform instead of random spikes.
+  for (let pass = 0; pass < 2; pass++) {
+    env = env.map((v, i) => (env[Math.max(0, i - 1)] + 2 * v + env[Math.min(N - 1, i + 1)]) / 4);
+  }
+  const top: [number, number][] = env.map((p, i) => [i * W / (N - 1), mid - p * amp] as [number, number]);
+  const bot: [number, number][] = env.map((p, i) => [i * W / (N - 1), mid + p * amp] as [number, number]).reverse();
+  const pts = [...top, ...bot];
+  // Quadratic midpoint smoothing through the closed point loop — turns the
+  // jagged polyline into a flowing organic curve.
+  const mid0 = [(pts[0][0] + pts[pts.length - 1][0]) / 2, (pts[0][1] + pts[pts.length - 1][1]) / 2];
+  let d = `M ${mid0[0].toFixed(1)},${mid0[1].toFixed(1)}`;
+  for (let i = 0; i < pts.length; i++) {
+    const cur = pts[i], next = pts[(i + 1) % pts.length];
+    const mx = (cur[0] + next[0]) / 2, my = (cur[1] + next[1]) / 2;
+    d += ` Q ${cur[0].toFixed(1)},${cur[1].toFixed(1)} ${mx.toFixed(1)},${my.toFixed(1)}`;
+  }
+  return d + ' Z';
 }
 
 // Stable seed from a uuid string (mockup used numeric ids; real ids are uuids).
 export function seedFromId(id: string): number {
   let h=0; for(let i=0;i<id.length;i++){ h=(h*31 + id.charCodeAt(i)) % 100000; } return (h % 900)/100 + 1;
+}
+
+// mm:ss — was hardcoding "0:" and padding the raw second count (75s rendered
+// as "0:75" instead of "1:15"); this actually rolls seconds over into minutes.
+function formatDuration(totalSec: number): string {
+  const s = Math.max(0, Math.round(totalSec));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
 
 // Cassette-shape decoration for one idea row/card. `idx` selects the palette.
@@ -39,7 +67,7 @@ export function decoIdea(d: {id:string; key?:string|null; bpm?:number|null; inpu
     name: d.title || 'Untitled',
     key: d.key || '—', bpm: d.bpm != null ? `${Math.round(d.bpm)} BPM` : '— BPM',
     type: d.input_type || 'other', mood: d.mood || '—',
-    duration: d.duration != null ? `0:${String(Math.round(d.duration)).padStart(2,'0')}` : '0:00',
+    duration: d.duration != null ? formatDuration(d.duration) : '0:00',
     wavePoints: wavePoints(seedFromId(d.id)),
     keyLow: !!d.keyLow,
     spineMeta: `${keyShort} · ${bpmShort}`,
