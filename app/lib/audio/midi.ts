@@ -8,6 +8,7 @@
 // under plain Node (verified) even though Vite's esbuild bundling papers
 // over it for the browser build.
 import pkg from "@tonejs/midi";
+import type { Track } from "@tonejs/midi";
 const { Midi } = pkg;
 
 // Semitone offset from C for each pitch class. Sharps only (never flats) to
@@ -47,6 +48,22 @@ function triadNotes(root: string, isMinor: boolean): number[] {
   return [0, third, 7].map((interval) => 48 + base + interval);
 }
 
+// Raw-MIDI-pitch note shape (as opposed to buildMidi's `notes` param, which
+// uses scientific-pitch-notation strings like "C4"). Exported so
+// app/lib/opendaw/exportMidi.ts (Task 5, the inverse of importMidi.ts/Task 4)
+// can write openDAW project note events straight to a MIDI track: those
+// events already carry an int MIDI pitch (NoteEventBox.pitch), so routing
+// them through nameToMidi(midiToName(x)) would be a pointless round trip —
+// this is the one piece of buildMidi's per-note track-writing loop that's
+// shape-identical either way, so it's extracted rather than duplicated.
+export type PlayableNote = { pitch: number; startSec: number; durSec: number };
+
+export function addNotesToTrack(track: Track, notes: PlayableNote[]): void {
+  for (const n of notes) {
+    track.addNote({ midi: n.pitch, time: n.startSec, duration: Math.max(0.1, n.durSec) });
+  }
+}
+
 export function buildMidi(
   notes: { pitch: string; startSec: number; durSec: number }[],
   chordChart: { chord: string }[],
@@ -57,13 +74,10 @@ export function buildMidi(
 
   const melody = midi.addTrack();
   melody.name = "melody";
-  for (const n of notes) {
-    melody.addNote({
-      midi: nameToMidi(n.pitch),
-      time: n.startSec,
-      duration: Math.max(0.1, n.durSec),
-    });
-  }
+  addNotesToTrack(
+    melody,
+    notes.map((n) => ({ pitch: nameToMidi(n.pitch), startSec: n.startSec, durSec: n.durSec })),
+  );
 
   const chords = midi.addTrack();
   chords.name = "chords";
