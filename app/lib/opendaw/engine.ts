@@ -5,8 +5,9 @@
 // `new WebAssembly.Instance`).
 //
 // The calls below are the REAL confirmed API from Task 1's spike (see "## Task 1
-// findings" in docs/superpowers/plans/2026-07-21-opendaw-integration.md), not the
-// plan's pre-spike guess — three steps, not two:
+// findings" in docs/superpowers/plans/2026-07-21-opendaw-integration.md) PLUS one more
+// step Task 1's spike missed entirely and only surfaced live, in a real browser (see
+// the Workers.install() comment below) — four steps, not three:
 //   1. AudioWorklets.install(url) + AudioWorklets.createFor(audioContext) — registers
 //      the worklet module for this AudioContext (`context.audioWorklet.addModule(url)`
 //      under the hood, confirmed by reading AudioWorklets.js) and instantiates the
@@ -17,6 +18,9 @@
 //      compiles the modules + registers the processor module once").
 //   3. WasmEngine.ensureReady(audioContext) — actually fetches + compiles the wasm
 //      modules; resolves a boolean, checked below rather than discarded.
+//   4. Workers.install(url) — a separate plain Web Worker (OPFS storage / peak-generation
+//      / transient-detection background tasks), required before SoundfontService can be
+//      constructed. See the WORKERS_MAIN_URL comment below for how this was found.
 import {
   AudioWorklets,
   GlobalSampleLoaderManager,
@@ -24,6 +28,7 @@ import {
   Project,
   SampleService,
   SoundfontService,
+  Workers,
   type ProjectEnv,
   type SampleProvider,
   type SoundfontProvider,
@@ -65,6 +70,19 @@ const WASM_BASE_URL = ASSET_BASE;
 // thing to check.
 const WORKLET_URL = PROCESSOR_URL;
 
+// Found live, post-launch: a real browser session threw "Workers are not installed" —
+// `new SoundfontService()` (see createOpenDawProject below) calls `Workers.get Opfs`,
+// which panics unless `Workers.install(url)` ran first. This is a SEPARATE, plain Web
+// Worker (`new Worker(url, {type:"module"})`, confirmed by reading
+// @opendaw/studio-core/dist/Workers.js) — not the AudioWorklet and not the WasmEngine
+// worker above. Task 1's spike covered AudioWorklets + WasmEngine and never surfaced
+// this third one, since it lives in @opendaw/studio-core (not studio-core-wasm) and
+// nothing in the ProjectEnv-assembly code path Task 1/6 traced calls it directly — it's
+// reached indirectly via SoundfontService's constructor. `workers-main.js` is the
+// self-contained bundle (confirmed zero top-level import/export statements) copied
+// alongside the wasm assets by scripts/copy-opendaw-wasm.mjs.
+const WORKERS_MAIN_URL = `${ASSET_BASE}/workers-main.js`;
+
 let _engineReady: Promise<void> | null = null;
 
 export function ensureOpenDawEngine(audioContext: AudioContext): Promise<void> {
@@ -82,6 +100,9 @@ export function ensureOpenDawEngine(audioContext: AudioContext): Promise<void> {
       if (!ready) {
         throw new Error("WasmEngine.ensureReady() reported the engine was not ready");
       }
+
+      // Must resolve before createOpenDawProject constructs SoundfontService.
+      await Workers.install(WORKERS_MAIN_URL);
     })();
   }
   return _engineReady;
@@ -101,18 +122,19 @@ export function ensureOpenDawEngine(audioContext: AudioContext): Promise<void> {
 //                                       `notifier = new Notifier()` (a pure observer
 //                                       registry); the body is just `this.audioContext = ctx`.
 //                                       No I/O. (samples/SampleService.js, AssetService.js)
-//   new SoundfontService()              `super()` (pure), then fires a *background*
-//                                       `Promise.all([SoundfontStorage.get().list(),
-//                                       FactoryCatalog.get().soundfonts()])` whose ONLY
-//                                       rejection path is `console.warn(...)` — it never
-//                                       throws. `SoundfontStorage.get()` returns a pure new
-//                                       instance; with no FactoryCatalog provider installed,
-//                                       `FactoryCatalog.get()` returns the shipped `Empty`
-//                                       default (`soundfonts: async () => []`) whose own
-//                                       source comment reads: "A standalone SDK consumer that
-//                                       never installs a provider stays local-only" — exactly
-//                                       this headless case. (soundfont/SoundfontService.js,
-//                                       FactoryCatalog.js)
+//   new SoundfontService()              CORRECTION (found live, in a real browser, not from
+//                                       source reading alone): this was originally documented
+//                                       as never throwing — WRONG. `SoundfontStorage.get().list()`
+//                                       calls `Workers.get Opfs`, which SYNCHRONOUSLY panics
+//                                       ("Workers are not installed") if `Workers.install()`
+//                                       hasn't resolved yet — the throw happens while
+//                                       constructing the `Promise.all([...])` array argument,
+//                                       before any `.then()`/`console.warn` rejection handler
+//                                       even attaches, so it propagates straight out of the
+//                                       constructor instead of warning in the background.
+//                                       Fixed by awaiting `Workers.install(...)` in
+//                                       ensureOpenDawEngine() before this constructor ever runs
+//                                       (see above). (soundfont/SoundfontService.js, Workers.js)
 //   new GlobalSampleLoaderManager(p)    stores provider + four empty UUID sets. Pure.
 //   new GlobalSoundfontLoaderManager(p) stores provider + one empty UUID set. Pure.
 //   AudioWorklets.get(ctx)              returns the instance `createFor(ctx)` stored in a
