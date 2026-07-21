@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { analyzeCapture } from "~/lib/audio/analyze";
 import { saveIdea } from "~/lib/api/bank";
 
-export function RecordPanel({ onSaved, analyser }: { onSaved: () => void; analyser?: AnalyserNode }) {
+export function RecordPanel({ onSaved, analyser }: { onSaved: (newIdeaId?: string) => void; analyser?: AnalyserNode }) {
   const rec = useRef<MediaRecorder>(undefined);
   const stream = useRef<MediaStream>(undefined);
   const src = useRef<MediaStreamAudioSourceNode>(undefined);
@@ -39,13 +39,13 @@ export function RecordPanel({ onSaved, analyser }: { onSaved: () => void; analys
       const blob = new Blob(chunks.current, { type: "audio/webm" });
       try {
         const a = await analyzeCapture(blob);
-        await saveIdea(blob, a, "Untitled");
+        const savedIdea = await saveIdea(blob, a, "Untitled");
+        setStatus("idle");
+        onSaved(savedIdea.id);
       } catch {
         setStatus("idle");
         return;
       }
-      setStatus("idle");
-      onSaved();
     };
     rec.current.start();
     setStatus("rec");
