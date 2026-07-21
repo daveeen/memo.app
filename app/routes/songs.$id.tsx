@@ -107,7 +107,7 @@ export default function Builder() {
         )}
       </div>
 
-      <div style={cssText("position:absolute;bottom:0;left:0;right:0;z-index:30;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-top:1px solid rgba(0,0,0,.07);padding:14px 20px calc(14px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:14px;")}>
+      <div style={cssText("position:fixed;bottom:80px;left:0;right:0;z-index:40;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-top:1px solid rgba(0,0,0,.07);padding:14px 20px;display:flex;align-items:center;gap:14px;")}>
         <button onClick={togglePlay} style={cssText("width:46px;height:46px;border-radius:50%;border:none;background:#17161B;color:#fff;cursor:pointer;font-size:16px;flex:none;")}>{playing ? "❚❚" : "▶"}</button>
         <div style={cssText("flex:1;")}>
           <div style={cssText("font-size:12px;font-weight:700;color:#17161B;text-transform:capitalize;")}>{transportSec?.label ?? ""}</div>
