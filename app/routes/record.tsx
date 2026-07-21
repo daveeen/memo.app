@@ -1,7 +1,8 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { analyzeCapture } from "~/lib/audio/analyze";
-import { saveIdea } from "~/lib/api/bank";
+import { saveIdea, listBriefs } from "~/lib/api/bank";
+import { soundsLike } from "~/lib/memoVisuals";
 import { cssText } from "~/lib/cssText";
 import type { CaptureAnalysis } from "~/lib/types";
 
@@ -18,17 +19,10 @@ const waveBars = Array.from({ length: 46 }, (_, i) => {
   };
 });
 
-// "Sounds like" reference list — static fixture, no similarity backend exists
-// (Phase B). Copied verbatim from the mockup's renderVals().
-const similar = [
-  { title: "Ivy", artist: "Frank Ocean", art: "linear-gradient(140deg,#7E7E3E,#4E5F2C)", match: "94%" },
-  { title: "Vienna", artist: "Billy Joel", art: "linear-gradient(140deg,#C97B3C,#8E3F27)", match: "91%" },
-  { title: "The Night We Met", artist: "Lord Huron", art: "linear-gradient(140deg,#5E8577,#3E5F53)", match: "88%" },
-  { title: "Skinny Love", artist: "Bon Iver", art: "linear-gradient(140deg,#A85463,#7A3946)", match: "85%" },
-];
-
 export default function Record() {
   const nav = useNavigate();
+  const [briefs, setBriefs] = useState<any[]>([]);
+  useEffect(() => { listBriefs().then(setBriefs); }, []);
   const rec = useRef<MediaRecorder>(undefined);
   const stream = useRef<MediaStream>(undefined);
   const chunks = useRef<Blob[]>([]);
@@ -88,6 +82,8 @@ export default function Record() {
     const saved = await saveIdea(blobRef.current, analysis, pendingTitle);
     nav(edit ? `/ideas/${saved.id}` : "/ideas");
   }
+
+  const similar = analysis ? soundsLike({ key: analysis.detectedKey, bpm: analysis.bpm }, briefs) : [];
 
   const revealStats = analysis ? [
     { label: "Input", value: analysis.inputType, inf: false },
@@ -222,23 +218,27 @@ export default function Record() {
             })}
           </div>
 
-          {/* similar vibes */}
-          <div style={cssText("margin-top:22px;display:flex;align-items:baseline;justify-content:space-between;")}>
-            <div style={cssText("font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#8a7d68;")}>Sounds like</div>
-            <div style={cssText("font-size:11.5px;font-weight:600;color:#a89a82;")}>matched on key · tempo · mood</div>
-          </div>
-          <div style={cssText("margin-top:12px;display:flex;flex-direction:column;gap:9px;")}>
-            {similar.map((v, i) => (
-              <div key={i} style={cssText("display:flex;align-items:center;gap:12px;padding:8px;border-radius:12px;background:#F7F1E3;border:1px solid rgba(46,36,24,.1);")}>
-                <div style={cssText(`width:44px;height:44px;border-radius:9px;flex:none;background:${v.art};box-shadow:0 3px 7px rgba(46,36,24,.18);`)}></div>
-                <div style={cssText("flex:1;min-width:0;")}>
-                  <div style={cssText("font-size:14px;font-weight:700;color:#2E2418;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;")}>{v.title}</div>
-                  <div style={cssText("font-size:12px;color:#8a7d68;")}>{v.artist}</div>
-                </div>
-                <span style={cssText("font-size:11px;font-weight:700;color:#8a7d68;font-family:'Space Mono',monospace;white-space:nowrap;")}>{v.match}</span>
+          {/* sounds like — real key+BPM match against the user's own analyzed
+              reference tracks (vibe_briefs); empty until they've used Brief */}
+          {similar.length > 0 && (
+            <>
+              <div style={cssText("margin-top:22px;display:flex;align-items:baseline;justify-content:space-between;")}>
+                <div style={cssText("font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#8a7d68;")}>Sounds like</div>
+                <div style={cssText("font-size:11.5px;font-weight:600;color:#a89a82;")}>matched on key · tempo</div>
               </div>
-            ))}
-          </div>
+              <div style={cssText("margin-top:12px;display:flex;flex-direction:column;gap:9px;")}>
+                {similar.map((v) => (
+                  <div key={v.id} style={cssText("display:flex;align-items:center;gap:12px;padding:8px;border-radius:12px;background:#F7F1E3;border:1px solid rgba(46,36,24,.1);")}>
+                    <div style={cssText(`width:44px;height:44px;border-radius:9px;flex:none;background:${v.art};box-shadow:0 3px 7px rgba(46,36,24,.18);`)}></div>
+                    <div style={cssText("flex:1;min-width:0;")}>
+                      <div style={cssText("font-size:14px;font-weight:700;color:#2E2418;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;")}>{v.title}</div>
+                    </div>
+                    <span style={cssText("font-size:11px;font-weight:700;color:#8a7d68;font-family:'Space Mono',monospace;white-space:nowrap;")}>{v.matchPct}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
 
           <div style={cssText("margin-top:auto;display:flex;gap:10px;padding-top:22px;")}>
             <button onClick={discard} style={cssText("flex:none;padding:15px 18px;border-radius:15px;border:1px solid rgba(46,36,24,.14);background:#F7F1E3;color:#8a7d68;font-weight:600;font-size:14px;cursor:pointer;")}>Discard</button>
