@@ -7,18 +7,11 @@ import { soundsLike } from "~/lib/memoVisuals";
 import { cssText } from "~/lib/cssText";
 import type { CaptureAnalysis } from "~/lib/types";
 
-// Pure CSS decoration (not audio-reactive) — copied verbatim from the mockup's
-// renderVals(): 46 bars, height/hue derived from position, duration/delay from
-// index. Module-level since it never depends on state.
-const waveBars = Array.from({ length: 46 }, (_, i) => {
-  const c = 22.5, env = 1 - Math.abs(i - c) / c;
-  return {
-    h: Math.round(18 + 108 * Math.max(0.12, env)) + "px",
-    dur: (0.5 + (i % 6) * 0.12).toFixed(2) + "s",
-    delay: (((i * 41) % 100) / 100).toFixed(2) + "s",
-    color: `hsl(${16 + i * 2.2},72%,58%)`,
-  };
-});
+// Real-time waveform driven by the mic's own AnalyserNode (see startLiveWave) —
+// no decorative CSS pulse. Colour keeps the mockup's per-index hue sweep.
+const BAR_COUNT = 46;
+const barColor = (i: number) => `hsl(${16 + i * 2.2},72%,58%)`;
+const REST_BARS = Array.from({ length: BAR_COUNT }, () => 0.12);
 
 export default function Record() {
   const nav = useNavigate();
@@ -33,8 +26,49 @@ export default function Record() {
   const [phase, setPhase] = useState<"idle" | "recording" | "analysing" | "reveal">("idle");
   const [recTime, setRecTime] = useState("00:00.0");
   const [analysis, setAnalysis] = useState<Omit<CaptureAnalysis, "id" | "cleanedAudioPath">>();
-  const [revealStep, setRevealStep] = useState(0);
   const [pendingTitle, setPendingTitle] = useState("Untitled idea");
+
+  // Live waveform: an AnalyserNode tapped off the recording MediaStream, sampled
+  // every animation frame. Never connected to ctx.destination, so the mic never
+  // plays back through the speakers (no feedback loop) — it's read-only.
+  const audioCtxRef = useRef<AudioContext>(undefined);
+  const rafRef = useRef<number>(0);
+  const [liveBars, setLiveBars] = useState<number[]>(REST_BARS);
+
+  function startLiveWave(mediaStream: MediaStream) {
+    const ctx = new AudioContext();
+    const source = ctx.createMediaStreamSource(mediaStream);
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 2048;
+    source.connect(analyser);
+    audioCtxRef.current = ctx;
+    const buf = new Uint8Array(analyser.fftSize);
+    const tick = () => {
+      analyser.getByteTimeDomainData(buf);
+      setLiveBars(Array.from({ length: BAR_COUNT }, (_, i) => {
+        const v = buf[Math.floor((i / BAR_COUNT) * buf.length)];
+        return Math.abs(v - 128) / 128; // 0 = silence, 1 = full-scale
+      }));
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+  }
+  function stopLiveWave(resetVisual = true) {
+    cancelAnimationFrame(rafRef.current);
+    rafRef.current = 0;
+    audioCtxRef.current?.close();
+    audioCtxRef.current = undefined;
+    if (resetVisual) setLiveBars(REST_BARS);
+  }
+  useEffect(() => () => stopLiveWave(false), []);
+
+  async function finishAnalysis(blob: Blob) {
+    blobRef.current = blob;
+    const a = await analyzeCapture(blob);
+    setAnalysis(a);
+    setPendingTitle(a.moodTag ? `${a.moodTag} idea` : "Untitled idea");
+    setPhase("reveal");
+  }
 
   async function start() {
     try { stream.current = await navigator.mediaDevices.getUserMedia({ audio: true }); }
@@ -43,20 +77,15 @@ export default function Record() {
     rec.current = new MediaRecorder(stream.current);
     rec.current.ondataavailable = (e) => chunks.current.push(e.data);
     rec.current.onstop = async () => {
+      stopLiveWave();
       stream.current?.getTracks().forEach((t) => t.stop());
       clearInterval(timer.current);
       setPhase("analysing");
-      const blob = new Blob(chunks.current, { type: "audio/webm" });
-      blobRef.current = blob;
-      const a = await analyzeCapture(blob);
-      setAnalysis(a);
-      setPendingTitle(a.moodTag ? `${a.moodTag} idea` : "Untitled idea");
-      setPhase("reveal");
-      setRevealStep(0);
-      [1, 2, 3, 4].forEach((n) => setTimeout(() => setRevealStep(n), n * 380));
+      await finishAnalysis(new Blob(chunks.current, { type: "audio/webm" }));
     };
     rec.current.start();
     setPhase("recording");
+    startLiveWave(stream.current);
     let ms = 0;
     timer.current = window.setInterval(() => {
       ms += 100; const s = Math.floor(ms / 1000), t = Math.floor((ms % 1000) / 100);
@@ -73,6 +102,7 @@ export default function Record() {
       rec.current.onstop = null;
       rec.current.stop();
     }
+    stopLiveWave();
     stream.current?.getTracks().forEach((t) => t.stop());
     clearInterval(timer.current);
     blobRef.current = undefined;
@@ -83,6 +113,10 @@ export default function Record() {
     if (!blobRef.current || !analysis) return;
     const saved = await saveIdea(blobRef.current, analysis, pendingTitle);
     nav(edit ? `/ideas/${saved.id}` : "/ideas");
+  }
+  async function uploadFile(f: File) {
+    setPhase("analysing");
+    await finishAnalysis(f);
   }
 
   const moodTag = analysis?.moodTag;
@@ -134,12 +168,15 @@ export default function Record() {
   const recSub2 = phase === "analysing" ? "analysing…" : "new idea";
   const reelAnim = spinning ? "animation:mReel 2.4s linear infinite;" : "";
   const reelAnimB = spinning ? "animation:mReel 3.6s linear infinite;" : "";
-  const saveBtnStyle = `flex:1;padding:15px;border-radius:15px;border:none;background:#17161B;color:#fff;font-weight:700;font-size:14px;cursor:pointer;opacity:${revealStep >= 4 ? 1 : .4};pointer-events:${revealStep >= 4 ? "auto" : "none"};`;
+  const saveBtnStyle = `flex:1;padding:15px;border-radius:15px;border:none;background:#17161B;color:#fff;font-weight:700;font-size:14px;cursor:pointer;`;
 
   return (
     <div style={cssText(`flex:1;min-height:100vh;display:flex;flex-direction:column;` + (phase === "recording" || phase === "analysing" ? "background:radial-gradient(120% 80% at 20% 0%,#3a2416 0,transparent 55%),radial-gradient(120% 80% at 85% 8%,#2c2013 0,transparent 52%),radial-gradient(130% 90% at 50% 110%,#3a1e12 0,transparent 55%),#161009;" : "background:#EFE6D4;"))}>
       <div style={cssText("flex:1;position:relative;display:flex;flex-direction:column;align-items:center;overflow:hidden;")}>
         {/* idle */}
+        {phase === "idle" && (
+          <button onClick={() => nav("/ideas")} style={cssText("position:absolute;top:22px;left:22px;z-index:5;display:flex;align-items:center;gap:7px;border:none;background:none;cursor:pointer;color:#57565E;font-size:14px;font-weight:600;padding:0;")}>← Ideas</button>
+        )}
         {phase === "idle" && (
           <div style={cssText("margin-top:96px;text-align:center;padding:0 34px;")}>
             <div style={cssText("font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#57565E;")}>Record</div>
@@ -158,8 +195,8 @@ export default function Record() {
             <div style={cssText("margin-top:22px;font-size:54px;font-weight:800;letter-spacing:-.02em;color:#fbf4e6;font-variant-numeric:tabular-nums;z-index:5;")}>{recTime}</div>
             <div style={cssText("margin-top:2px;font-size:13px;font-weight:500;color:#c3b193;z-index:5;")}>{recSub}</div>
             <div style={cssText("margin-top:40px;display:flex;align-items:center;justify-content:center;gap:2px;height:140px;width:320px;z-index:5;")}>
-              {waveBars.map((b, i) => (
-                <div key={i} style={cssText(`width:3px;height:${b.h};background:${b.color};transform-origin:center center;animation:mWave ${b.dur} ease-in-out infinite;animation-delay:${b.delay};`)}></div>
+              {liveBars.map((v, i) => (
+                <div key={i} style={cssText(`width:3px;height:126px;background:${barColor(i)};border-radius:2px;transform:scaleY(${((18 + 108 * Math.max(0.06, v)) / 126).toFixed(3)});transition:transform 60ms linear;`)}></div>
               ))}
             </div>
           </>
@@ -172,7 +209,7 @@ export default function Record() {
               <div style={cssText("position:absolute;top:0;left:14%;width:16%;height:100%;background:rgba(255,255,255,.14);transform:skewX(-12deg);")}></div>
               <div style={cssText("position:absolute;top:26px;left:38px;right:38px;height:96px;border-radius:9px;background:linear-gradient(180deg,#F4EDDB,#E6D8BC);box-shadow:0 2px 7px rgba(0,0,0,.28);overflow:hidden;display:flex;flex-direction:column;justify-content:center;padding:0 22px;")}>
                 <div style={cssText("position:absolute;top:0;left:0;right:0;height:6px;background:#B34A34;")}></div>
-                <span style={cssText("font-family:'Caveat',cursive;font-size:30px;font-weight:700;line-height:1;color:#2E2418;")}>{recSub2}</span>
+                <span style={cssText("font-size:30px;font-weight:700;line-height:1;color:#2E2418;")}>{recSub2}</span>
                 <span style={cssText("font-size:11px;font-weight:700;letter-spacing:.08em;color:#8a7250;margin-top:6px;")}>MEMO · SIDE A · NORMAL BIAS</span>
               </div>
               <div style={cssText("position:absolute;top:140px;left:74px;right:74px;height:104px;border-radius:14px;background:radial-gradient(circle at 50% 38%,#2a2118,#0c0906);box-shadow:inset 0 3px 9px rgba(0,0,0,.7);display:flex;align-items:center;justify-content:space-between;padding:0 42px;")}>
@@ -194,22 +231,28 @@ export default function Record() {
               </div>
             </button>
             <div style={cssText("position:absolute;bottom:118px;left:50%;transform:translateX(-50%);z-index:5;font-size:12px;font-weight:600;color:#57565E;")}>Tap to record</div>
-            <div style={cssText("position:absolute;bottom:70px;left:50%;transform:translateX(-50%);z-index:5;font-size:12px;color:#8a8791;")}>Mic blocked? <a href="#" onClick={(e) => e.preventDefault()}>Upload a file</a></div>
+            <div style={cssText("position:absolute;bottom:70px;left:50%;transform:translateX(-50%);z-index:5;font-size:12px;color:#8a8791;")}>
+              Mic blocked?{" "}
+              <label style={cssText("color:#B5503C;cursor:pointer;")}>
+                Upload a file
+                <input type="file" accept="audio/*" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadFile(f); }} />
+              </label>
+            </div>
           </>
         )}
         {/* recording controls */}
         {phase === "recording" && (
-          <div style={cssText("position:absolute;bottom:128px;left:0;right:0;z-index:6;padding:0 40px;display:flex;align-items:center;justify-content:space-between;")}>
-            <button onClick={discard} style={cssText("color:#efe4cf;font-size:15px;font-weight:600;background:none;border:none;cursor:pointer;")}>Cancel</button>
+          <div style={cssText("position:absolute;bottom:236px;left:0;right:0;z-index:6;padding:0 32px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:16px;")}>
+            <button onClick={discard} style={cssText("justify-self:end;padding:10px 18px;border-radius:20px;background:rgba(255,255,255,.08);color:#efe4cf;font-size:14px;font-weight:600;border:none;cursor:pointer;")}>Cancel</button>
             <button onClick={stop} style={cssText("width:80px;height:80px;border-radius:50%;background:linear-gradient(145deg,#C97B3C,#A8432F);border:5px solid rgba(255,255,255,.16);cursor:pointer;box-shadow:0 14px 34px rgba(160,86,58,.5);display:flex;align-items:center;justify-content:center;")}><div style={cssText("width:26px;height:26px;border-radius:6px;background:#fff;")}></div></button>
-            <button onClick={stop} style={cssText("color:#efe4cf;font-size:15px;font-weight:600;background:none;border:none;cursor:pointer;")}>Save</button>
+            <button onClick={stop} style={cssText("justify-self:start;padding:10px 18px;border-radius:20px;background:rgba(255,255,255,.08);color:#efe4cf;font-size:14px;font-weight:600;border:none;cursor:pointer;")}>Save</button>
           </div>
         )}
       </div>
 
       {/* reveal / complete sheet */}
       {phase === "reveal" && (
-        <div className="m-scroll" style={cssText("position:absolute;inset:0;z-index:20;background:#EFE6D4;display:flex;flex-direction:column;padding:60px 24px 28px;")}>
+        <div className="m-scroll" style={cssText("position:fixed;inset:0;z-index:20;background:#EFE6D4;display:flex;flex-direction:column;padding:60px 24px 28px;-webkit-overflow-scrolling:touch;")}>
           <div style={cssText("font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#8a7d68;")}>Analysis · pulled from the shell</div>
           <input value={pendingTitle} onChange={(e) => setPendingTitle(e.target.value)} style={cssText("margin-top:6px;border:none;background:none;outline:none;font-size:26px;font-weight:800;letter-spacing:-.03em;color:#2E2418;padding:0;")} />
           <div style={cssText("font-size:12.5px;color:#8a7d68;margin-top:2px;")}>Edit the title, or keep the suggestion.</div>
@@ -223,8 +266,11 @@ export default function Record() {
           {/* compact stat grid, no tags */}
           <div style={cssText("margin-top:16px;display:grid;grid-template-columns:1fr 1fr;background:#F7F1E3;border:1px solid rgba(46,36,24,.12);border-radius:14px;overflow:hidden;box-shadow:0 4px 14px rgba(60,44,32,.07);")}>
             {revealStats.map((s, i) => {
-              const show = revealStep >= i + 1;
-              const cell = `padding:13px 15px;border-right:1px solid rgba(46,36,24,.1);border-bottom:1px solid rgba(46,36,24,.1);opacity:${show ? 1 : 0};transform:translateY(${show ? 0 : 6}px);transition:all .4s ease;`;
+              // Staggered entrance via a self-completing CSS animation (fill-mode both),
+              // not a setTimeout chain — a JS timer chain stalls if the tab gets
+              // backgrounded mid-analysis (browsers throttle background-tab timers),
+              // which could leave this row stuck invisible. This always finishes.
+              const cell = `padding:13px 15px;border-right:1px solid rgba(46,36,24,.1);border-bottom:1px solid rgba(46,36,24,.1);animation:mUp .35s ease ${(i * 0.12).toFixed(2)}s both;`;
               const valStyle = s.inf
                 ? "font-size:17px;font-weight:800;font-style:italic;color:#9A5A3C;margin-top:3px;text-transform:capitalize;"
                 : "font-size:17px;font-weight:800;color:#2E2418;margin-top:3px;";
