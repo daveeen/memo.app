@@ -17,6 +17,7 @@ export default function Dashboard() {
   const [justCreatedId, setJustCreatedId] = useState<string>();
   const [idea, setIdea] = useState<any>();
   const [brief, setBrief] = useState<any>();
+  const [songId, setSongId] = useState<string>();
   const [midiPath, setMidiPath] = useState<string>();
   const [briefs, setBriefs] = useState<any[]>([]);
   const [running, setRunning] = useState(false);
@@ -66,8 +67,8 @@ export default function Dashboard() {
         <option value="">pick brief</option>
         {briefs.map(b => <option key={b.id} value={b.id}>{b.source_track_name}</option>)}
       </select>
-      <SongBuilderPanel idea={idea} brief={brief} analyser={analyser} onBuilt={setMidiPath} />
-      <ProducePanel midiPath={midiPath} />
+      <SongBuilderPanel idea={idea} brief={brief} analyser={analyser} onBuilt={(id, path) => { setSongId(id); setMidiPath(path); }} />
+      <ProducePanel songId={songId} midiPath={midiPath} />
     </main>
   );
 }

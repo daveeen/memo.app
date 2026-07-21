@@ -1,6 +1,6 @@
 import { supabase } from "~/lib/supabase";
 
-export function ProducePanel({ midiPath }: { midiPath?: string }) {
+export function ProducePanel({ songId, midiPath }: { songId?: string; midiPath?: string }) {
   async function download() {
     if (!midiPath) return;
     const { data } = await supabase.storage.from("midi").createSignedUrl(midiPath, 3600);
@@ -8,6 +8,6 @@ export function ProducePanel({ midiPath }: { midiPath?: string }) {
   }
   return <div>
     <button disabled={!midiPath} onClick={download}>Download .mid</button>
-    <a href="/produce">Open in openDAW →</a>
+    {songId && <a href={`/produce/${songId}`}>Open in openDAW →</a>}
   </div>;
 }
