@@ -509,3 +509,140 @@ Add a `## Decisions` entry (or update the existing openDAW stub entry) noting th
 - [ ] **Step 3: State the live-verification gap plainly**
 
 List explicitly, in the final task report, everything this plan could NOT verify without a live browser: engine boot, MIDI import producing correct-sounding playback, drag/resize/delete interaction, the Storage/COEP fetch actually succeeding, export round-trip actually producing a valid re-importable `.mid`. This is expected given the environment — the point is naming the gap, not pretending it's closed.
+
+---
+
+## Task 1 findings
+
+**Verdict: DONE — not BLOCKED.** All three Step-6 gate pieces are concretely discoverable from the shipped `.d.ts`/`.js`: project creation (`Project.new(env)`), note-region/event creation (`ProjectApi.createNoteRegion` / `createNoteEvent`), and engine install (`WasmEngine.install` + `ensureReady`). The shapes are concrete classes/enums, not "too deeply generic to use." The headless SDK path the plan's architecture chose is real. **However, several draft signatures in Tasks 3–9 are wrong and must change — details below.** The biggest under-scoped item is assembling a `ProjectEnv` (Task 6), and the biggest live-browser risk is the AudioWorklet processor asset (Task 3).
+
+### Environment / version
+- **Installed version is still `0.0.160`** (`@opendaw/studio-sdk`), unchanged from CLAUDE.md. Sub-packages: `studio-core@0.1.1`, `studio-core-wasm@0.0.5`, `lib-midi@0.0.70`, `lib-box@0.0.90`, `studio-adapters@0.1.1`, `lib-dsp@0.0.88`.
+- **License on the installed packages is `LGPL-3.0-or-later`** (per `studio-sdk/package.json` and `studio-core-wasm/package.json`), not the AGPL v3 the old stub comment recorded. Just an observation — the user already resolved licensing.
+
+### Confirmed real paths (on disk, differ slightly from plan Step 1 guesses)
+- `node_modules/@opendaw/studio-core/dist/project/ProjectApi.d.ts`
+- `node_modules/@opendaw/studio-core/dist/project/Project.d.ts` (project creation lives here)
+- `node_modules/@opendaw/studio-core/dist/EngineFacade.d.ts` (top-level, NOT under a subdir) + `Engine.d.ts` (the interface it implements)
+- `node_modules/@opendaw/studio-core/dist/AudioWorklets.d.ts` (`.js` read too)
+- `node_modules/@opendaw/studio-core-wasm/dist/WasmEngine.d.ts` (+ `boot.d.ts`, `engine-modules.d.ts`)
+- `node_modules/@opendaw/lib-midi/dist/MidiFileDecoder.d.ts` (+ `MidiFileFormat`, `MidiTrack`, `ControlEvent`, `ControlType`, `MidiData`)
+- `node_modules/@opendaw/lib-dsp/dist/ppqn.d.ts` (time-unit helpers) + `notes.d.ts` (`NoteEvent` shape)
+- `node_modules/@opendaw/studio-adapters/dist/factories/` (`InstrumentFactories`, `InstrumentFactory`, `InstrumentProduct`)
+
+### Confirmed signatures
+
+**Project creation (the piece prior research hadn't pinned — Step 2):**
+```ts
+// @opendaw/studio-core  (class Project)
+static new(env: ProjectEnv, options?: { noDefaultUser?: boolean }): Project
+static load(env: ProjectEnv, arrayBuffer: ArrayBuffer): Project   // (loads an existing .od project, not .mid)
+// instance accessors we rely on:
+project.api:      ProjectApi        // note/instrument creation
+project.engine:   EngineFacade      // transport (play/stop/position)
+project.editing:  Editing           // ALL mutations must be wrapped here
+project.timelineBox / primaryAudioUnitBox / boxGraph ...
+```
+`ProjectEnv` (`studio-core/dist/project/ProjectEnv.d.ts`) is **heavy** — all fields required except `createEditing`:
+```ts
+interface ProjectEnv {
+  audioContext: AudioContext;
+  audioWorklets: AudioWorklets;              // AudioWorklets.install(url) then await AudioWorklets.createFor(ctx)
+  sampleManager: SampleLoaderManager;        // new GlobalSampleLoaderManager(provider)
+  soundfontManager: SoundfontLoaderManager;  // new GlobalSoundfontLoaderManager(provider)
+  sampleService: SampleService;              // new SampleService(audioContext)
+  soundfontService: SoundfontService;        // new SoundfontService()
+  createEditing?: Func<BoxGraph, Editing>;
+}
+```
+There is **no turnkey `createProjectEnv()` / `Project.create()`** — the integrator hand-assembles this. All constructors are public and typed, so it's discoverable, but it is real work (see Task 6 change note). `GlobalSampleLoaderManager`/`GlobalSoundfontLoaderManager` each need a `SampleProvider`/`SoundfontProvider` — exact provider instance to pass must be nailed down at implementation time (candidates live in `studio-core/dist/samples` & `soundfont`).
+
+**Editing wrapper (applies to every mutation in Tasks 4, 8, 9):**
+```ts
+project.editing.modify<R>(modifier: () => R | void, mark?: boolean): Option<R>
+```
+`ProjectApi.duplicateNotes`'s own doc comment confirms: "The caller is responsible for wrapping the call in `editing.modify(...)`."
+
+**ProjectApi (note/instrument creation) — real signatures:**
+```ts
+createInstrument(factory, options?): { audioUnitBox: AudioUnitBox; instrumentBox; trackBox: TrackBox }  // InstrumentProduct
+createNoteTrack(audioUnitBox: AudioUnitBox, insertIndex?): TrackBox      // needs an EXISTING AudioUnitBox
+createNoteRegion({ trackBox, position, duration, eventCollection?, name?, hue?, ... }): NoteRegionBox
+createNoteEvent({ owner: { events: PointerField<Pointers.NoteEventCollection> },
+                  position, duration, pitch, velocity?, cent?, chance? }): NoteEventBox
+replaceMIDIInstrument(target: InstrumentBox, fromFactory: InstrumentFactory, attachment?): Attempt<InstrumentBox,string>
+setBpm(value: number): void
+exportMIDI(collection: NoteEventCollectionBoxAdapter, name?): Promise<...>   // openDAW's OWN midi export (see Task 5)
+```
+- **`position`/`duration` are `ppqn` (integers), NOT seconds.** `pitch` is `int` (MIDI note number). `velocity` is `float` unitValue **0..1** (normalize MIDI 0..127 → `/127`).
+- To make a note track you generally want `createInstrument(...)` (creates AudioUnit + track + instrument in one call). `createNoteTrack` alone requires a pre-existing `AudioUnitBox` (`project.primaryAudioUnitBox` exists, or from a prior `createInstrument`).
+
+**EngineFacade (transport — Task 7), obtained as `project.engine`:**
+```ts
+play(): void
+stop(reset?: boolean): void          // note the optional reset arg
+setPosition(position: ppqn): void
+get position(): ObservableValue<ppqn>     // subscribe, don't poll a plain getter
+get isPlaying(): ObservableValue<boolean>
+get bpm(): ObservableValue<bpm>
+isReady(): Promise<void>
+setWorklet(worklet: EngineWorklet): void  // engine needs a worklet before it plays (see Task 6 boot note)
+```
+
+**WASM engine install (Task 3):**
+```ts
+// @opendaw/studio-core-wasm  ->  namespace WasmEngine
+WasmEngine.install(urls: { processorUrl: string; offlineWorkerUrl: string; wasmUrl: string }): void
+WasmEngine.ensureReady(context: BaseAudioContext): Promise<boolean>   // returns boolean, not void
+WasmEngine.isReady(): boolean; setEnabled(b): void; isEnabled(): boolean
+```
+Exported name is exactly **`WasmEngine`** (a namespace, not a class — call `WasmEngine.install(...)`, no `new`).
+
+**MIDI decode (Task 4) — real shape, materially different from the draft's assumption:**
+```ts
+// @opendaw/lib-midi
+new MidiFileDecoder(input: ByteArrayInput).decode(): MidiFileFormat   // SYNC. Input must be wrapped in ByteArrayInput (from @opendaw/lib-std) — NOT a raw ArrayBuffer/Uint8Array.
+class MidiFileFormat { tracks: ReadonlyArray<MidiTrack>; formatType: int; timeDivision: int }
+class MidiTrack { controlEvents: ArrayMultimap<Channel, ControlEvent>; metaEvents: MetaEvent[] }
+class ControlEvent { ticks: int; type: ControlType; param0: byte; param1: byte }
+enum ControlType { NOTE_ON=144, NOTE_OFF=128, ... }
+```
+- The decoder returns **raw MIDI control events keyed by channel, NOT pre-paired {pitch,start,duration,velocity} note objects.** You must pair `NOTE_ON` (param0=pitch, param1=velocity) with the matching `NOTE_OFF` (or `NOTE_ON` velocity 0), ordered by `ticks`, per channel/pitch, to reconstruct durations.
+- **Tick-scale gotcha:** decoded `ticks` are in the file's own `timeDivision`, which is **not** openDAW's `PPQN.Quarter`. Rescale: `openDawPpqn = ticks * (PPQN.Quarter / timeDivision)`.
+- `ArrayMultimap` is iterable: `for (const [channel, events] of track.controlEvents) { ... }`.
+
+**Time-unit helpers (`@opendaw/lib-dsp`, `PPQN`):**
+```ts
+PPQN.Quarter = 960
+PPQN.secondsToPulses(seconds, bpm): ppqn
+PPQN.pulsesToSeconds(pulses, bpm): seconds
+PPQN.toParts(ppqn, num?, den?): { bars, beats, semiquavers, ticks }
+```
+
+**Instrument options (Task 9) — a FIXED SDK list, not free-form:**
+`InstrumentFactories.Named` keys = `Apparat, MIDIOutput, Nano, Playfield, Soundfont, Tape, Vaporisateur` (from `@opendaw/studio-adapters`). The synth instruments playable without a sample/soundfont attachment are **`Vaporisateur`** and **`Apparat`** (Nano/Playfield/Soundfont require attachments). So the picker's real list is a fixed set, and instrument swap uses `project.api.replaceMIDIInstrument(instrumentBox, InstrumentFactories.<Name>)` inside `editing.modify`.
+
+### WASM asset file list (Step 3 — exact, for Task 3's copy step)
+Source dir: `node_modules/@opendaw/studio-core-wasm/dist/`. Copy into `public/opendaw-wasm/` (same-origin, for COEP `require-corp`):
+- `wasm-processor.js`  → `processorUrl`
+- `wasm-offline-worker.js`  → `offlineWorkerUrl`
+- `wasm/engine.wasm` + `wasm/plugins/*.wasm` → `wasmUrl` points at the **base** that contains `wasm/` (`loadEngineModules(base?)` fetches `engine.wasm` + the plugin `.wasm`s relative to it). There are **26 plugin `.wasm` files** under `wasm/plugins/` (device_apparat, device_arpeggio, device_compressor, device_crusher, device_dattorro_reverb, device_delay, device_fold, device_gate, device_maximizer, device_nano, device_neural_amp, device_pitch, device_playfield_sample, device_revamp, device_reverb, device_soundfont, device_spielwerk, device_stereo_tool, device_tidal, device_vaporisateur, device_velocity, device_vocoder, device_waveshaper, device_werkstatt, device_zeitgeist — plus `engine.wasm`). Copy the whole `wasm/` tree, not a hand-picked subset.
+- Package `exports` map exposes these as `./wasm-processor.js`, `./wasm-offline-worker.js`, `./wasm/*`.
+
+### Node-level sanity import (Step 4)
+- **No `@opendaw/*` package imports under plain `node` (v22).** Cause is **packaging, not browser-dependency**: the compiled `dist/*.js` use extensionless relative imports (`export * from "./Channel"`) that only a bundler resolves, and the `exports` maps forbid deep-subpath imports. `--experimental-specifier-resolution=node` was removed in Node 22, so that escape hatch is gone. This is the *same class* of issue as the essentia.js `.es.js`/`.umd.js` gotcha in CLAUDE.md.
+- **The pure data packages DO run headlessly once bundled** — verified with a real esbuild-bundle roundtrip (not a token gesture): built a `.mid` with the project's existing `@tonejs/midi`, decoded it through openDAW's `new MidiFileDecoder(new ByteArrayInput(bytes.buffer)).decode()`, and recovered exactly `pitches 60,64,67` at `ticks 0,480,960` (`formatType=1, timeDivision=480, tracks=2`); `PPQN.Quarter=960`, `PPQN.secondsToPulses(0.5,120)=960`. **So Task 4 Step 3's headless roundtrip check IS feasible** via a throwaway esbuild-bundled scratch (`npx esbuild entry.mjs --bundle --format=esm --platform=node`), which is how it should be done — plain `node import` will not work.
+- `studio-core` / `studio-core-wasm` were not import-executed (same packaging block; and they additionally need `AudioContext`/`AudioWorklet`/`SharedArrayBuffer` — genuinely browser-only). Their signatures were confirmed by `.d.ts` reading, which left no real ambiguity, so no REPL was needed for them.
+
+### Per-task change list (draft code that MUST change)
+
+- **Task 3 (engine loader + assets):** `ensureOpenDawEngine(audioContext)` body must do THREE things, not two: (1) `AudioWorklets.install(workletUrl)` then `await AudioWorklets.createFor(audioContext)`; (2) `WasmEngine.install({ processorUrl, offlineWorkerUrl, wasmUrl })`; (3) `await WasmEngine.ensureReady(audioContext)` (returns `Promise<boolean>` — check it). Imports: `import { WasmEngine } from "@opendaw/studio-core-wasm"`, `import { AudioWorklets, Project } from "@opendaw/studio-core"`. Copy the whole `wasm/` tree + the two `.js` bundles (list above) via a plain Node predev/prebuild copy script (no Vite plugin needed — pure copy). **OPEN RISK (needs live browser):** `AudioWorklets.install(url)` registers an AudioWorklet processor module via `context.audioWorklet.addModule(url)`, but the package that builds those processors — `@opendaw/studio-core-processors` — is a **dev-only dependency and is NOT installed**. The most likely shipped file to point at is `wasm-processor.js`, but this cannot be confirmed without booting a real cross-origin-isolated page. This is the single biggest boot-time unknown; flag it loudly in Task 3's report.
+- **Task 4 (import):** `importMidiIntoProject(project: Project, midiBytes: ArrayBuffer)`. Wrap bytes in `new ByteArrayInput(midiBytes)` before `MidiFileDecoder`. Decoder yields raw `ControlEvent`s — **pair NOTE_ON/NOTE_OFF yourself**; rescale `ticks` by `PPQN.Quarter / timeDivision`; normalize velocity `/127`. Create tracks with `project.api.createInstrument(InstrumentFactories.Vaporisateur)` (one per source track: melody, chords), then `createNoteRegion({trackBox, position, duration})`, then a `createNoteEvent({owner:{events}, position, duration, pitch, velocity})` per note — **all inside `project.editing.modify(() => {...})`.** The draft's "create a note track via ProjectApi, then a note region/event per decoded note" is directionally right but understates the pairing + ppqn-rescale + editing-wrap. Note the real memo `.mid` (from `buildMidi`) will decode with an extra tempo/meta track — iterate ALL tracks and filter to those with note events; don't assume track indices.
+- **Task 5 (export):** `exportProjectToMidi(project: Project, bpm: number): Uint8Array` is viable. Read notes back from the project's `NoteEventCollectionBoxAdapter`s (each `NoteEvent` exposes `pitch: int`, `velocity: unitValue`, and position/duration in **ppqn** via `EventSpan`); convert ppqn→sec with `PPQN.pulsesToSeconds(ppqn, bpm)` to build the `{pitch, startSec, durSec}[]` that the existing `buildMidi` wants (plan's option (b) — correct). **ALTERNATIVE:** openDAW ships its own exporter — `NoteMidiExport.fromCollection(collection): MidiTrack` + `MidiTrack.encode(): ArrayBufferLike`, and `ProjectApi.exportMIDI(...)`. Reusing the tested `buildMidi` is fine; just know the native path exists.
+- **Task 6 (produce.tsx):** the `// TODO: construct the real Project instance here` is the most under-scoped line in the plan. It requires assembling the full `ProjectEnv` (audioContext + `await AudioWorklets.createFor(ctx)` + `new SampleService(ctx)` + `new SoundfontService()` + `new GlobalSampleLoaderManager(provider)` + `new GlobalSoundfontLoaderManager(provider)`) then `Project.new(env)`. Put this in `engine.ts`/a helper, not inline. Then boot the engine worklet before transport works: either `project.startAudioWorklet()` or `AudioWorklets.get(ctx).createEngine({project})` → `project.engine.setWorklet(worklet)` (exact sequence needs the live-browser pass). The COEP `fetch(signedUrl,{mode:"cors"})` risk is unchanged.
+- **Task 7 (transport):** `engine` is `EngineFacade` = `project.engine`. `engine.play()` / `engine.stop()` are correct; `stop` accepts optional `reset`. Position readout must subscribe to `engine.position` (an `ObservableValue<ppqn>`), not read a scalar — convert with `PPQN.toParts`/`pulsesToSeconds`.
+- **Task 8 (piano roll):** component stays API-agnostic (good). But its `Region` uses `startSec`/`durSec`, so produce.tsx's `onMove`/`onResize` handlers must convert sec↔ppqn (`PPQN.secondsToPulses`/`pulsesToSeconds`) when writing back, inside `editing.modify`. **There is NO `ProjectApi.deleteRegion` / mutate-region method** — region/note edits are box-graph-level (set the `NoteRegionBox`/`NoteEventBox` position/duration fields, or delete the box) wrapped in `editing.modify`. Update the "real ProjectApi mutate/delete call" language: it's `editing.modify` + box field setters / box deletion, not a named ProjectApi delete.
+- **Task 9 (instrument picker):** replace placeholder `["piano","synth"]` with the real fixed list (`Vaporisateur`, `Apparat`, and optionally attachment-backed `Nano`/`Soundfont`/`Playfield`). Swap via `project.api.replaceMIDIInstrument(instrumentBox, InstrumentFactories.<Name>)` inside `editing.modify`. Export button + `{upsert:true}` draft is correct and unaffected.
+
+### Still needs a live browser (unchanged from plan's stated limits)
+Engine/worklet boot, the `AudioWorklets.install` processor-asset question, `SharedArrayBuffer`/cross-origin-isolation, actual playback, drag/resize/delete, the Storage/COEP fetch, and a full import→edit→export→re-import round-trip. The MIDI decode half of the round-trip is already proven headless (above).
