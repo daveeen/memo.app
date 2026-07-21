@@ -12,7 +12,8 @@ export function RecordPanel({ onSaved, analyser }: { onSaved: (newIdeaId?: strin
   async function start() {
     try {
       stream.current = await navigator.mediaDevices.getUserMedia({ audio: true });
-    } catch {
+    } catch (err) {
+      console.error("[RecordPanel] getUserMedia failed:", err);
       setStatus("idle");
       return;
     }
@@ -42,7 +43,8 @@ export function RecordPanel({ onSaved, analyser }: { onSaved: (newIdeaId?: strin
         const savedIdea = await saveIdea(blob, a, "Untitled");
         setStatus("idle");
         onSaved(savedIdea.id);
-      } catch {
+      } catch (err) {
+        console.error("[RecordPanel] analyze/save failed:", err);
         setStatus("idle");
         return;
       }

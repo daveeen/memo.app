@@ -16,17 +16,42 @@ const midiToName = (m: number) => {
 const hzToMidi = (f: number) => 69 + 12 * Math.log2(f / 440);
 
 export async function analyzeCapture(blob: Blob): Promise<Omit<CaptureAnalysis, "id" | "cleanedAudioPath">> {
+  // TEMP diagnostic instrumentation — pinpointing a live-browser-only failure
+  // (analyzeCapture/saveIdea throws a bare WASM pointer number, not an Error).
+  // Remove once root cause is found and fixed.
   const e = getEssentia();
+  console.log("[analyzeCapture] decoding blob", { size: blob.size, type: blob.type });
   const { pcm, sampleRate, durationSec } = await decodeAndClean(blob);
+  console.log("[analyzeCapture] decoded", { pcmLength: pcm.length, sampleRate, durationSec });
+  if (pcm.length === 0) console.warn("[analyzeCapture] pcm is EMPTY after silence-trim — likely cause");
   const vec = e.arrayToVector(pcm);
 
-  const { key, scale } = e.KeyExtractor(vec);
-  const bpm = e.PercivalBpmEstimator(vec).bpm;
-  const inputType = classifyInput(e, vec);
+  let key: string, scale: string;
+  try {
+    ({ key, scale } = e.KeyExtractor(vec));
+    console.log("[analyzeCapture] KeyExtractor ok", key, scale);
+  } catch (err) { console.error("[analyzeCapture] KeyExtractor threw", err); throw err; }
 
-  const py = e.PitchYinProbabilistic(vec, 4096, HOP_SIZE, 0.1, "zero", false, sampleRate);
+  let bpm: number;
+  try {
+    bpm = e.PercivalBpmEstimator(vec).bpm;
+    console.log("[analyzeCapture] PercivalBpmEstimator ok", bpm);
+  } catch (err) { console.error("[analyzeCapture] PercivalBpmEstimator threw", err); throw err; }
+
+  let inputType: "hum" | "vocal" | "guitar" | "other";
+  try {
+    inputType = classifyInput(e, vec);
+    console.log("[analyzeCapture] classifyInput ok", inputType);
+  } catch (err) { console.error("[analyzeCapture] classifyInput threw", err); throw err; }
+
+  let py: any;
+  try {
+    py = e.PitchYinProbabilistic(vec, 4096, HOP_SIZE, 0.1, "zero", false, sampleRate);
+    console.log("[analyzeCapture] PitchYinProbabilistic ok");
+  } catch (err) { console.error("[analyzeCapture] PitchYinProbabilistic threw", err); throw err; }
   const pitches = e.vectorToArray(py.pitch);
   const voiced = e.vectorToArray(py.voicedProbabilities);
+  console.log("[analyzeCapture] pitch frames", pitches.length);
   // Each frame spans exactly HOP_SIZE/sampleRate seconds. Do NOT derive hop from
   // durationSec/pitches.length: the frame grid covers fewer samples than the
   // (silence-trimmed) signal, so that back-derivation over-stretches note times.
