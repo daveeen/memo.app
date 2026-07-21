@@ -6,3 +6,8 @@
 # React Router
 /.react-router/
 /build/
+
+# openDAW WASM engine assets — mechanically mirrored from node_modules/@opendaw/studio-core-wasm
+# by scripts/copy-opendaw-wasm.mjs (predev/prebuild hook), not hand-authored. Regenerated on
+# every install/build rather than committed.
+/public/opendaw-wasm/

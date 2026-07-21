@@ -3,6 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "predev": "node scripts/copy-opendaw-wasm.mjs",
+    "prebuild": "node scripts/copy-opendaw-wasm.mjs",
     "build": "react-router build",
     "dev": "react-router dev",
     "start": "react-router-serve ./build/server/index.js",
