@@ -13,6 +13,15 @@ export async function decodeAndClean(blob: Blob): Promise<{ pcm: Float32Array; s
   const thr = 0.02; let s = 0, e = len - 1;
   while (s < len && Math.abs(mono[s]) < thr) s++;
   while (e > s && Math.abs(mono[e]) < thr) e--;
-  const trimmed = mono.subarray(s, e + 1);
+  // Essentia's FFT-based algorithms (Spectrum, used inside classify.ts's
+  // classifyInput) require an EVEN-length input signal — confirmed straight out
+  // of the essentia.js WASM binary's own error string: "FFT can only be computed
+  // on frames which size is even and non zero, otherwise an exception is thrown."
+  // Real recordings trim to an arbitrary length (odd about half the time); the
+  // fixed-length synthetic test signal used during development was even by luck,
+  // which is why this only surfaced on real audio. Drop one trailing sample to
+  // guarantee evenness for every downstream Essentia consumer, not just Spectrum.
+  const evenEnd = (e - s + 1) % 2 === 0 ? e : e - 1;
+  const trimmed = mono.subarray(s, evenEnd + 1);
   return { pcm: trimmed, sampleRate: buf.sampleRate, durationSec: trimmed.length / buf.sampleRate };
 }
