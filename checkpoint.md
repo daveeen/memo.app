@@ -1,6 +1,12 @@
 # Checkpoint — 2026-07-21
 
-State: clean, all committed, `master`, HEAD `df8fba9`, tag `checkpoint-idea-notes-done`.
+State: clean, all committed, `master`, HEAD `3990dda`. openDAW integration plan (all 10 tasks) is now complete — the section below describing it as "not started" is historical, kept for context.
+
+## Update: openDAW integration complete
+
+All 10 tasks of `docs/superpowers/plans/2026-07-21-opendaw-integration.md` are built and committed (`a4315b3` through `3990dda`). Real headless-SDK integration — `ProjectEnv`/`Project` construction, MIDI import/export, transport controls, piano-roll editing, instrument swap, export-with-overwrite — not a stub. `CLAUDE.md` has the full gotchas list from this build. Nothing here has been live-browser-verified (no browser in this build environment) — that's the next real step, alongside the Supabase/Cloudflare setup below.
+
+One unrelated finding from this session, not investigated: `docs/ux/memo-ux-flow.md` exists in the repo, dated 2026-07-20, not created by any task in this session — provenance unknown, left untouched.
 
 ## Resume instructions (fresh session)
 
