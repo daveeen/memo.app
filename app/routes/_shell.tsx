@@ -31,13 +31,17 @@ export default function Shell() {
     <div style={cssText("position:relative;min-height:100vh;background:#EFE6D4;display:flex;flex-direction:column;")}>
       <Outlet />
       {showTabs && (
-        <div style={cssText("position:fixed;bottom:0;left:0;right:0;height:80px;background:rgba(239,230,212,.92);backdrop-filter:blur(12px);border-top:1px solid rgba(0,0,0,.06);display:flex;align-items:center;justify-content:space-around;padding-bottom:14px;z-index:50;")}>
+        <div style={cssText("position:fixed;bottom:0;left:0;right:0;height:80px;background:rgba(231,220,193,.96);backdrop-filter:blur(12px);border-top:1px solid rgba(46,36,24,.08);box-shadow:0 -10px 26px rgba(46,36,24,.1);display:flex;align-items:center;justify-content:space-around;padding-bottom:14px;z-index:50;")}>
           <button onClick={() => nav("/ideas")} style={tab(ideasOn)}>
             <span style={cssText("font-size:20px;")}>▚</span>
             <span style={cssText("font-size:11px;font-weight:700;margin-top:3px;")}>Ideas</span>
           </button>
-          <button onClick={() => nav("/record")} style={cssText("display:flex;flex-direction:column;align-items:center;border:none;cursor:pointer;background:none;")}>
-            <span style={cssText("width:52px;height:52px;border-radius:50%;background:#17161B;color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 6px 16px rgba(20,15,40,.25);")}>●</span>
+          <button onClick={() => nav("/record")} style={cssText("display:flex;flex-direction:column;align-items:center;border:none;background:none;cursor:pointer;margin-top:-16px;")}>
+            <div style={cssText("width:66px;height:44px;border-radius:11px;background:linear-gradient(160deg,#CD8140,#8E3F27);box-shadow:0 10px 24px rgba(160,86,58,.45),inset 0 1px 2px rgba(255,255,255,.32),inset 0 -5px 12px rgba(0,0,0,.28);display:flex;align-items:center;justify-content:center;gap:12px;border:4px solid #EFE6D4;")}>
+              <div style={cssText("width:15px;height:15px;border-radius:50%;background:#F4EDDB;box-shadow:inset 0 1px 1px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;")}><div style={cssText("width:4px;height:4px;border-radius:50%;background:#2E2418;")}></div></div>
+              <div style={cssText("width:15px;height:15px;border-radius:50%;background:#F4EDDB;box-shadow:inset 0 1px 1px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;")}><div style={cssText("width:4px;height:4px;border-radius:50%;background:#2E2418;")}></div></div>
+            </div>
+            <span style={cssText("font-size:10px;font-weight:700;margin-top:5px;color:#57565E;")}>Record</span>
           </button>
           <button onClick={() => nav("/songs")} style={tab(songsOn)}>
             <span style={cssText("font-size:20px;")}>♪</span>
