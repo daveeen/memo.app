@@ -60,3 +60,7 @@ export async function saveSong(s: any, midi: Uint8Array) {
   if (error) throw error;
   return { song: data, midiPath: path };
 }
+
+export async function updateIdeaNote(id: string, note: string) {
+  await supabase.from("ideas").update({ note }).eq("id", id);
+}
