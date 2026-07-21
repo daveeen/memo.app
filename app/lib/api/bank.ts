@@ -64,3 +64,48 @@ export async function saveSong(s: any, midi: Uint8Array) {
 export async function updateIdeaNote(id: string, note: string) {
   await supabase.from("ideas").update({ note }).eq("id", id);
 }
+
+export async function getIdea(id: string) {
+  const { data, error } = await supabase.from("ideas").select("*").eq("id", id).single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateIdeaLyrics(id: string, lyrics: string) {
+  await supabase.from("ideas").update({ lyrics }).eq("id", id);
+}
+
+export async function getBrief(id: string) {
+  const { data, error } = await supabase.from("vibe_briefs").select("*").eq("id", id).single();
+  if (error) throw error;
+  return data;
+}
+
+// Songs list with parent titles joined in one query (no new column). Supabase
+// embeds related rows via the FK relationships declared in 0001_init.sql.
+export async function listSongs() {
+  const { data } = await supabase
+    .from("songs")
+    .select("*, ideas(title), vibe_briefs(source_track_name)")
+    .order("created_at", { ascending: false });
+  return data ?? [];
+}
+
+export async function listSongsForIdea(ideaId: string) {
+  const { data } = await supabase
+    .from("songs")
+    .select("*, vibe_briefs(source_track_name)")
+    .eq("idea_id", ideaId)
+    .order("created_at", { ascending: false });
+  return data ?? [];
+}
+
+export async function getSong(id: string) {
+  const { data, error } = await supabase
+    .from("songs")
+    .select("*, ideas(*), vibe_briefs(*)")
+    .eq("id", id)
+    .single();
+  if (error) throw error;
+  return data;
+}
