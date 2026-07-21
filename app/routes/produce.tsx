@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { supabase } from "~/lib/supabase";
+import { cssText } from "~/lib/cssText";
 import { createOpenDawProject } from "~/lib/opendaw/engine";
 import { importMidiIntoProject } from "~/lib/opendaw/importMidi";
 import { exportProjectToMidi } from "~/lib/opendaw/exportMidi";
@@ -54,6 +55,16 @@ const INSTRUMENT_FACTORIES: Record<InstrumentName, InstrumentFactory<void>> = {
   Vaporisateur: InstrumentFactories.Vaporisateur,
   Apparat: InstrumentFactories.Apparat,
 };
+
+// Display-only accent dot colors for the piano-roll/instrumentation track rows — taken
+// verbatim from the mockup's prodTracks/prodInstruments seed data (Melody #C97B3C, Chords
+// #D08A44, .memo-design/_renderVals.js:262-270). Purely cosmetic: cycles by render order,
+// which matches buildRegionModel's stable Melody-then-Chords track order. Has no bearing on
+// track identity — that's still `trackId`.
+const TRACK_ACCENT_COLORS = ["#C97B3C", "#D08A44"];
+function trackAccentColor(index: number): string {
+  return TRACK_ACCENT_COLORS[index % TRACK_ACCENT_COLORS.length];
+}
 
 // One PianoRoll `Region` (== one note EVENT — see PianoRoll's header) plus the SDK-side handles
 // needed to mutate it. Kept in produce.tsx, NOT on PianoRoll's Region type, so that component
@@ -153,6 +164,7 @@ function buildRegionModel(project: Project): RegionModel {
 
 export default function Produce() {
   const { songId } = useParams();
+  const nav = useNavigate();
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const [errorMessage, setErrorMessage] = useState("");
   const [midiPath, setMidiPath] = useState<string>();
@@ -394,21 +406,28 @@ export default function Produce() {
 
   if (state === "error") {
     return (
-      <div>
-        <p>Couldn't open the editor: {errorMessage}</p>
+      <div className="m-scroll" style={cssText("flex:1;padding:56px 20px 40px;background:linear-gradient(180deg,#211913,#171009);")}>
+        <div style={cssText("font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#a68a63;")}>openDAW</div>
+        <p style={cssText("margin-top:8px;font-size:14px;color:#e9dcc4;")}>Couldn't open the editor: {errorMessage}</p>
         {midiPath && (
-          <p>
-            <a
-              href="#"
-              onClick={async (e) => {
-                e.preventDefault();
-                const { data } = await supabase.storage.from("midi").createSignedUrl(midiPath, 3600);
-                if (data) window.open(data.signedUrl);
-              }}
-            >
-              Download .mid instead
-            </a>
-          </p>
+          <div style={cssText("margin-top:16px;background:rgba(255,255,255,.04);border:1px dashed rgba(255,255,255,.14);border-radius:12px;padding:12px 14px;")}>
+            <div style={cssText("font-size:12px;font-weight:800;color:#c9b79a;")}>Editor won’t load?</div>
+            <div style={cssText("font-size:12px;color:#8a7458;margin-top:3px;line-height:1.45;")}>
+              The original arrangement is always safe —{" "}
+              <a
+                href="#"
+                onClick={async (e) => {
+                  e.preventDefault();
+                  const { data } = await supabase.storage.from("midi").createSignedUrl(midiPath, 3600);
+                  if (data) window.open(data.signedUrl);
+                }}
+                style={cssText("color:#D08A44;")}
+              >
+                download the .mid
+              </a>{" "}
+              and open it in any DAW.
+            </div>
+          </div>
         )}
       </div>
     );
@@ -416,56 +435,163 @@ export default function Produce() {
 
   if (state === "ready" && project) {
     return (
-      <div>
-        <TransportControls engine={project.engine} />
+      <div className="m-scroll" style={cssText("flex:1;padding:56px 20px 40px;background:linear-gradient(180deg,#211913,#171009);")}>
+        <button
+          onClick={() => nav(`/songs/${songId}`)}
+          style={cssText(
+            "display:flex;align-items:center;gap:7px;border:none;background:none;cursor:pointer;color:#c9b79a;font-size:14px;font-weight:600;padding:0;",
+          )}
+        >
+          ← Song
+        </button>
 
-        <div>
-          <button onClick={handleUndo} disabled={!project.editing.canUndo()}>
+        <div style={cssText("margin-top:14px;display:flex;align-items:center;justify-content:space-between;")}>
+          <div>
+            <div style={cssText("font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#a68a63;")}>openDAW</div>
+            <h2 style={cssText("margin:3px 0 0;font-size:24px;font-weight:800;letter-spacing:-.02em;color:#F4EDDB;")}>Produce</h2>
+          </div>
+          <div
+            style={cssText(
+              "display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:#8fce9a;background:rgba(143,206,154,.12);border:1px solid rgba(143,206,154,.3);border-radius:20px;padding:5px 11px;",
+            )}
+          >
+            <span style={cssText("width:7px;height:7px;border-radius:50%;background:#8fce9a;box-shadow:0 0 8px #8fce9a;")} />
+            Engine ready
+          </div>
+        </div>
+        <div style={cssText("margin-top:8px;display:flex;gap:7px;")}>
+          <span
+            style={cssText(
+              "font-size:11px;font-weight:800;color:#F4EDDB;background:rgba(255,255,255,.08);border-radius:7px;padding:4px 9px;font-family:'Space Mono',monospace;",
+            )}
+          >
+            {bpm} BPM
+          </span>
+          <span style={cssText("font-size:11px;font-weight:700;color:#c9b79a;background:rgba(255,255,255,.05);border-radius:7px;padding:4px 9px;")}>
+            .mid loaded
+          </span>
+        </div>
+
+        {/* transport — real TransportControls (play/stop + bars:beats), just framed like the mockup */}
+        <div
+          style={cssText(
+            "margin-top:16px;display:flex;align-items:center;gap:12px;background:#120c07;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:12px 14px;",
+          )}
+        >
+          <TransportControls engine={project.engine} />
+        </div>
+
+        {/* undo/redo — no mockup equivalent; styled with the mockup's own chip tokens for consistency */}
+        <div style={cssText("margin-top:10px;display:flex;gap:8px;")}>
+          <button
+            onClick={handleUndo}
+            disabled={!project.editing.canUndo()}
+            style={{
+              ...cssText("font-size:11px;font-weight:700;color:#c9b79a;background:rgba(255,255,255,.05);border-radius:7px;padding:6px 11px;border:none;cursor:pointer;"),
+              opacity: project.editing.canUndo() ? 1 : 0.4,
+            }}
+          >
             ↶ Undo
           </button>
-          <button onClick={handleRedo} disabled={!project.editing.canRedo()}>
+          <button
+            onClick={handleRedo}
+            disabled={!project.editing.canRedo()}
+            style={{
+              ...cssText("font-size:11px;font-weight:700;color:#c9b79a;background:rgba(255,255,255,.05);border-radius:7px;padding:6px 11px;border:none;cursor:pointer;"),
+              opacity: project.editing.canRedo() ? 1 : 0.4,
+            }}
+          >
             ↷ Redo
           </button>
         </div>
 
-        <div>
-          {tracks.map((t) => (
-            <label key={t.trackId} style={{ marginRight: 12 }}>
-              <strong>{t.label}</strong> instrument:{" "}
-              <InstrumentPicker
-                trackId={t.trackId}
-                current={instruments[t.trackId] ?? "Vaporisateur"}
-                onChange={handleInstrumentChange}
-              />
+        {/* piano roll — real PianoRoll render with real note data; mockup's decorative seeded
+            notes are dropped, per-track rows above it use real regions/tracks state only */}
+        <div style={cssText("margin-top:14px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#a68a63;")}>
+          Piano roll
+        </div>
+        <div style={cssText("margin-top:10px;background:#120c07;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:12px;overflow:hidden;")}>
+          {tracks.map((t, i) => (
+            <div key={t.trackId} style={cssText("display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;")}>
+              <div style={cssText("display:flex;align-items:center;gap:7px;")}>
+                <div style={{ width: 8, height: 8, borderRadius: 2, background: trackAccentColor(i) }} />
+                <span style={cssText("font-size:12px;font-weight:800;color:#e9dcc4;")}>{t.label}</span>
+              </div>
+              <span style={cssText("font-size:10px;color:#8a7458;")}>
+                {regions.filter((r) => r.trackId === t.trackId).length} notes
+              </span>
+            </div>
+          ))}
+          <PianoRoll
+            regions={regions}
+            pxPerPpqn={PX_PER_PPQN}
+            tracks={tracks}
+            activeTrackId={activeTrackId}
+            onActiveTrackChange={setActiveTrackId}
+            onMove={handleMove}
+            onResize={handleResize}
+            onVelocityChange={handleVelocityChange}
+            onDelete={handleDelete}
+            onAddNote={handleAddNote}
+          />
+        </div>
+
+        {/* instrument picker — real InstrumentPicker (native <select>, factory-swap onChange
+            untouched), framed as a row per the mockup; the mockup's per-option chip buttons
+            aren't reproducible here without editing InstrumentPicker.tsx itself (out of scope) */}
+        <div style={cssText("margin-top:16px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#a68a63;")}>
+          Instrumentation · tap to swap
+        </div>
+        <div style={cssText("margin-top:10px;display:flex;flex-direction:column;gap:9px;")}>
+          {tracks.map((t, i) => (
+            <label
+              key={t.trackId}
+              style={cssText(
+                "display:flex;align-items:center;gap:10px;background:#120c07;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 12px;",
+              )}
+            >
+              <div style={{ width: 8, height: 8, borderRadius: 2, background: trackAccentColor(i), flex: "none" }} />
+              <span style={cssText("flex:none;width:58px;font-size:12px;font-weight:800;color:#e9dcc4;")}>{t.label}</span>
+              <div style={cssText("flex:1;display:flex;gap:6px;overflow-x:auto;")}>
+                <InstrumentPicker
+                  trackId={t.trackId}
+                  current={instruments[t.trackId] ?? "Vaporisateur"}
+                  onChange={handleInstrumentChange}
+                />
+              </div>
             </label>
           ))}
         </div>
 
-        <PianoRoll
-          regions={regions}
-          pxPerPpqn={PX_PER_PPQN}
-          tracks={tracks}
-          activeTrackId={activeTrackId}
-          onActiveTrackChange={setActiveTrackId}
-          onMove={handleMove}
-          onResize={handleResize}
-          onVelocityChange={handleVelocityChange}
-          onDelete={handleDelete}
-          onAddNote={handleAddNote}
-        />
-
-        <div>
-          <button onClick={handleExport}>Export .mid</button>
+        {/* export */}
+        <div style={cssText("margin-top:18px;display:flex;flex-direction:column;gap:10px;")}>
+          <button
+            onClick={handleExport}
+            style={cssText(
+              "width:100%;padding:15px;border-radius:14px;border:none;background:linear-gradient(135deg,#C97B3C,#A8432F);color:#fff;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 10px 24px rgba(160,86,58,.35);",
+            )}
+          >
+            Export .mid
+          </button>
           {exportError && (
-            <p role="alert" style={{ color: "crimson" }}>
+            <p role="alert" style={cssText("text-align:center;font-size:13px;font-weight:700;color:#ff6b6b;margin:0;")}>
               Export failed: {exportError}
             </p>
           )}
-          {exportedOk && !exportError && <span style={{ color: "green" }}> Exported ✓</span>}
+          {exportedOk && !exportError && (
+            <div style={cssText("text-align:center;font-size:13px;font-weight:700;color:#8fce9a;")}>✓ Saved back to your song — edits kept.</div>
+          )}
         </div>
       </div>
     );
   }
 
-  return <p>Loading…</p>;
+  return (
+    <div
+      className="m-scroll"
+      style={cssText("flex:1;padding:56px 20px 40px;background:linear-gradient(180deg,#211913,#171009);display:flex;align-items:center;justify-content:center;")}
+    >
+      <p style={cssText("font-size:14px;color:#c9b79a;")}>Loading…</p>
+    </div>
+  );
 }
