@@ -1,7 +1,7 @@
 {
   ".impeccable/hook.cache.json": {
-    "mtime": 1784677685.5522962,
-    "ast_hash": "63911e7eff00b56c677efe850ddaddfe",
+    "mtime": 1784687924.1709814,
+    "ast_hash": "c8a0e94bfc03529da715e99729957837",
     "semantic_hash": ""
   },
   "app/lib/api/arrange.ts": {
@@ -10,8 +10,8 @@
     "semantic_hash": "6de82e931bc806ee55209162498b79ac"
   },
   "app/lib/api/bank.ts": {
-    "mtime": 1784638073.0845387,
-    "ast_hash": "3bd412ee8cd04ffacb5f1da2063ea581",
+    "mtime": 1784688262.7200716,
+    "ast_hash": "bdc3cfe19562a99ce355a9133b1d6809",
     "semantic_hash": ""
   },
   "app/lib/api/tracks.ts": {
@@ -20,8 +20,8 @@
     "semantic_hash": "5044d283398c5939ddad8ede26317c25"
   },
   "app/lib/audio/analyze.ts": {
-    "mtime": 1784612341.8767245,
-    "ast_hash": "3e3ce6909b5a8bf523a7a1d316b7e506",
+    "mtime": 1784682041.238386,
+    "ast_hash": "88cc7c8b3e9c673972f682abfe847c9f",
     "semantic_hash": ""
   },
   "app/lib/audio/chords.ts": {
@@ -50,9 +50,9 @@
     "semantic_hash": ""
   },
   "app/lib/audio/playback.ts": {
-    "mtime": 1784592315.377939,
-    "ast_hash": "71350960e3ca4377fe153d6e505d545f",
-    "semantic_hash": "71350960e3ca4377fe153d6e505d545f"
+    "mtime": 1784682041.242462,
+    "ast_hash": "95d5d6fbf2c25e8c32e15833906e42bd",
+    "semantic_hash": ""
   },
   "app/lib/audio/segment.ts": {
     "mtime": 1784565549.4812105,
@@ -65,23 +65,23 @@
     "semantic_hash": "4966cfa85c2ca06320d24563c31e63c3"
   },
   "app/lib/types.ts": {
-    "mtime": 1784563324.4980414,
-    "ast_hash": "d016273e055beaa8e34e262e8de444c1",
-    "semantic_hash": "d016273e055beaa8e34e262e8de444c1"
+    "mtime": 1784688262.7220826,
+    "ast_hash": "27e9ad8fb4fe7a51dfa1287c34103d2f",
+    "semantic_hash": ""
   },
   "app/root.tsx": {
-    "mtime": 1784636988.6924794,
-    "ast_hash": "f90327194af9df6f73f46d1f281ac3b6",
+    "mtime": 1784682041.245294,
+    "ast_hash": "c876a15ffa53837ac6835418ac3f0190",
     "semantic_hash": ""
   },
   "app/routes.ts": {
-    "mtime": 1784617965.6670177,
-    "ast_hash": "6555ed30661a38e92abb2d70beb42b9e",
+    "mtime": 1784682041.2488751,
+    "ast_hash": "0ed9a9f62e4e00829ba3459956115b51",
     "semantic_hash": ""
   },
   "app/routes/produce.tsx": {
-    "mtime": 1784618897.322702,
-    "ast_hash": "1567920ccd41a48419a9864adcd21db4",
+    "mtime": 1784682041.2533214,
+    "ast_hash": "bb4467b7dfd8346c15e7bfb670bad20c",
     "semantic_hash": ""
   },
   "package.json": {
@@ -130,8 +130,8 @@
     "semantic_hash": "6039343316221e64f08f61f1fd391558"
   },
   "CLAUDE.md": {
-    "mtime": 1784619570.6968973,
-    "ast_hash": "43c7fa3a667e5104c4b9b3dc4eb437f5",
+    "mtime": 1784682041.2268891,
+    "ast_hash": "6a712c52bb7e3fd682ceabc5c085637b",
     "semantic_hash": ""
   },
   "README.md": {
@@ -170,18 +170,18 @@
     "semantic_hash": "a54a3fb90a81aba0acf11f04a7f77fd1"
   },
   "app/components/opendaw/InstrumentPicker.tsx": {
-    "mtime": 1784634708.0825772,
-    "ast_hash": "ab9a9065bb326ddd7f31b2a026e7cd83",
+    "mtime": 1784682041.2348902,
+    "ast_hash": "f9910e13f530fac8a0bb64d1f823af3d",
     "semantic_hash": ""
   },
   "app/components/opendaw/PianoRoll.tsx": {
-    "mtime": 1784634676.1007416,
-    "ast_hash": "a7fc005d30fbf1bdcd7734f68c028425",
+    "mtime": 1784682041.2348902,
+    "ast_hash": "d57b5770c9b3ee4092edc9529f975ce9",
     "semantic_hash": ""
   },
   "app/components/opendaw/TransportControls.tsx": {
-    "mtime": 1784634695.9974377,
-    "ast_hash": "62a8777be834a618fa60436932842c45",
+    "mtime": 1784682041.2348902,
+    "ast_hash": "96510f8030ab00afd4e0cdaea51d250b",
     "semantic_hash": ""
   },
   "app/lib/opendaw/engine.ts": {
@@ -205,8 +205,8 @@
     "semantic_hash": ""
   },
   "docs/ux/memo-ux-flow.md": {
-    "mtime": 1784607301.1452098,
-    "ast_hash": "5b6890774d67400879546524032ce89b",
+    "mtime": 1784682041.308051,
+    "ast_hash": "d1cc670a53314852ae73572c32e8121e",
     "semantic_hash": ""
   },
   "supabase/.temp/linked-project.json": {
@@ -225,93 +225,93 @@
     "semantic_hash": ""
   },
   "app/components/memo/Cassette.tsx": {
-    "mtime": 1784638726.1497042,
-    "ast_hash": "f0b674e64b8ebd2349284b3225903bf5",
+    "mtime": 1784682041.2328842,
+    "ast_hash": "e5e077f01d29f2d1329e11b8246a7c77",
     "semantic_hash": ""
   },
   "app/lib/cssText.test.mjs": {
-    "mtime": 1784617734.2843144,
-    "ast_hash": "e7292041fbefd0b09f4e79d0a4dbfd9d",
+    "mtime": 1784682041.242462,
+    "ast_hash": "476be576a5c282013902eeead900129b",
     "semantic_hash": ""
   },
   "app/lib/cssText.ts": {
-    "mtime": 1784617757.8769574,
-    "ast_hash": "949fccaecca4e4d56733b4884870844d",
+    "mtime": 1784682041.242462,
+    "ast_hash": "2f80e2b2d80f6cce61d86f1f098dd269",
     "semantic_hash": ""
   },
   "app/lib/memoVisuals.ts": {
-    "mtime": 1784638055.8293853,
-    "ast_hash": "25df8adf7c38ee641f22862d81667ffc",
+    "mtime": 1784688262.7220826,
+    "ast_hash": "d8e021ee2b3bb30df3cb670cdfb8f4a2",
     "semantic_hash": ""
   },
   "app/routes/_shell.tsx": {
-    "mtime": 1784638680.7519588,
-    "ast_hash": "2101e68e863998573e85a9b2f7ca1413",
+    "mtime": 1784682041.2488751,
+    "ast_hash": "964940eac23f8719e1fdcb5032728e94",
     "semantic_hash": ""
   },
   "app/routes/auth.tsx": {
-    "mtime": 1784636386.8344698,
-    "ast_hash": "3c6b12f361d698fb8edc98f721bda3c3",
+    "mtime": 1784682041.2488751,
+    "ast_hash": "872dd55e085c8e18bbd31fe67462c214",
     "semantic_hash": ""
   },
   "app/routes/brief.tsx": {
-    "mtime": 1784618638.6957195,
-    "ast_hash": "f0c2fbfab3917478ec12d6b87569b53d",
+    "mtime": 1784682041.2488751,
+    "ast_hash": "ec085eb132d0645cd9beadd04d0d1d63",
     "semantic_hash": ""
   },
   "app/routes/ideas.$id.tsx": {
-    "mtime": 1784638745.1665425,
-    "ast_hash": "c713c3328afdb54bf2b6b6b528763aed",
+    "mtime": 1784688262.7220826,
+    "ast_hash": "5622751790b1eb6c51b6f66376b7fb5f",
     "semantic_hash": ""
   },
   "app/routes/ideas.tsx": {
-    "mtime": 1784638991.9805264,
-    "ast_hash": "8c06187a4a95ff9fe22aa27c32b7bd46",
+    "mtime": 1784688185.6452615,
+    "ast_hash": "cabea5e027d4dba6a489c4aafbb89ea1",
     "semantic_hash": ""
   },
   "app/routes/record.tsx": {
-    "mtime": 1784638698.173594,
-    "ast_hash": "a906ecf45bf0e4384f348c2e7869796b",
+    "mtime": 1784688262.7220826,
+    "ast_hash": "6b243d8fa48ea2fff59d870683af2d7c",
     "semantic_hash": ""
   },
   "app/routes/songs.$id.tsx": {
-    "mtime": 1784634533.236219,
-    "ast_hash": "a5d3acd206502c7f18837810b7d02187",
+    "mtime": 1784684991.1109104,
+    "ast_hash": "48d9f007d15de6ca1ce32ba908217b4d",
     "semantic_hash": ""
   },
   "app/routes/songs.new.tsx": {
-    "mtime": 1784634594.8878593,
-    "ast_hash": "6c156fc5d127e4d48fd636fbc323f47f",
+    "mtime": 1784688262.7268875,
+    "ast_hash": "f6ec0f4cd2fa2588a71fb8247267f986",
     "semantic_hash": ""
   },
   "app/routes/songs.tsx": {
-    "mtime": 1784618499.8472328,
-    "ast_hash": "c837047db26f53c5f9253ccf9be9e912",
+    "mtime": 1784682041.2553225,
+    "ast_hash": "62588871244b6f5f8111cdf5bf348d85",
     "semantic_hash": ""
   },
   "app/routes/splash.tsx": {
-    "mtime": 1784617994.7225919,
-    "ast_hash": "9671f4627785cb81caac92a9d2e8d71d",
+    "mtime": 1784682041.2557645,
+    "ast_hash": "d00136137732eb70a4b6321a02fcd7a8",
     "semantic_hash": ""
   },
   "scripts/extract-memo-screens.mjs": {
-    "mtime": 1784617705.1836329,
-    "ast_hash": "6378c861fc1bc0d8b11a0f9549242097",
+    "mtime": 1784682041.3212755,
+    "ast_hash": "c2ee064a2bfd0466979a35f89bd88257",
     "semantic_hash": ""
   },
   "supabase/migrations/0003_add_idea_lyrics.sql": {
-    "mtime": 1784617890.8963284,
-    "ast_hash": "cf135641d2ce65e692b2971c1e4c3caa",
+    "mtime": 1784682041.32328,
+    "ast_hash": "7c3ebf4878bc44550e663551d3634523",
     "semantic_hash": ""
   },
   "docs/design/Memo Claude Design/doc-page.js": {
-    "mtime": 1784631888.8880825,
-    "ast_hash": "a86e6c76d222bb9ddee7b7c07e357e01",
+    "mtime": 1784682041.2656395,
+    "ast_hash": "12a0fb04845dc68ce85103f8f607a8e4",
     "semantic_hash": ""
   },
   "docs/design/Memo Claude Design/support.js": {
-    "mtime": 1784631888.8977704,
-    "ast_hash": "450f2a9297cd55032eb905780de3016b",
+    "mtime": 1784682041.2676458,
+    "ast_hash": "4bfea9d9dcb18d2e9932e77ca19ecb87",
     "semantic_hash": ""
   },
   "docs/design/Memo Claude Design/uploads/.impeccable/hook.cache.json": {
@@ -320,83 +320,148 @@
     "semantic_hash": ""
   },
   "docs/design/Memo Claude Design/Cassette.dc.html": {
-    "mtime": 1784632834.6929302,
-    "ast_hash": "3812dd26cd7e3e160d14c0af857f4d41",
+    "mtime": 1784682041.2569246,
+    "ast_hash": "1c2f8ed037cf616ba34c3273b4108a09",
     "semantic_hash": ""
   },
   "docs/design/Memo Claude Design/Memo (3).html": {
-    "mtime": 1784631889.0854614,
-    "ast_hash": "c33d041060b3e366164a402fab334e0d",
+    "mtime": 1784682041.258567,
+    "ast_hash": "04b811de99f87d2f1563834b2677bf25",
     "semantic_hash": ""
   },
   "docs/design/Memo Claude Design/Memo-print.dc.html": {
-    "mtime": 1784631888.865237,
-    "ast_hash": "62cb85b2175658c879a60b6d40b344fd",
+    "mtime": 1784682041.258567,
+    "ast_hash": "e3ff1289a46cd371d682a217ab692514",
     "semantic_hash": ""
   },
   "docs/design/Memo Claude Design/Memo.dc.html": {
-    "mtime": 1784632818.4048886,
-    "ast_hash": "bd05dc98699b04be70b566a46a1789e8",
+    "mtime": 1784682041.2656395,
+    "ast_hash": "e527ecf21bdcc716cf858cb15f3930d2",
     "semantic_hash": ""
   },
   "docs/design/Memo Claude Design/uploads/2026-07-21-opendaw-integration-design.md": {
-    "mtime": 1784631888.9096682,
-    "ast_hash": "e503d8df545b3be91adc7149e13bea84",
+    "mtime": 1784682041.2676458,
+    "ast_hash": "6212daeb2861cefa8a4e4d0b339d73e6",
     "semantic_hash": ""
   },
   "docs/design/Memo Claude Design/uploads/memo-ux-flow.md": {
-    "mtime": 1784631888.926918,
-    "ast_hash": "5b6890774d67400879546524032ce89b",
+    "mtime": 1784682041.2696517,
+    "ast_hash": "d1cc670a53314852ae73572c32e8121e",
     "semantic_hash": ""
   },
   "docs/design/Memo Claude Design/uploads/WhatsApp Image 2026-07-21 at 12.09.37 PM.jpeg": {
-    "mtime": 1784631888.92068,
+    "mtime": 1784682041.2676458,
     "ast_hash": "a64ba9bdae544047fb675bebf1669a56",
     "semantic_hash": ""
   },
   "docs/design/Memo Claude Design/uploads/pasted-1784542605984-0.png": {
-    "mtime": 1784631888.948836,
+    "mtime": 1784682041.2747607,
     "ast_hash": "1fc2eda08c7eb6d0738cd508c4b954cf",
     "semantic_hash": ""
   },
   "docs/design/Memo Claude Design/uploads/pasted-1784542620511-0.png": {
-    "mtime": 1784631888.9688396,
+    "mtime": 1784682041.2747607,
     "ast_hash": "e43ca34b4a68e77cb5c73cea2eb9d8e5",
     "semantic_hash": ""
   },
   "docs/design/Memo Claude Design/uploads/pasted-1784542625188-0.png": {
-    "mtime": 1784631888.983832,
+    "mtime": 1784682041.2864547,
     "ast_hash": "d55537409ff8b8c3465d5ae431121769",
     "semantic_hash": ""
   },
   "docs/design/Memo Claude Design/uploads/pasted-1784542630618-0.png": {
-    "mtime": 1784631889.014714,
+    "mtime": 1784682041.2953303,
     "ast_hash": "7962cbbd59a53f620b5fa121300fcf0b",
     "semantic_hash": ""
   },
   "docs/design/Memo Claude Design/uploads/pasted-1784606118651-0.png": {
-    "mtime": 1784631889.0284016,
+    "mtime": 1784682041.2953303,
     "ast_hash": "0ef3505e464fa1f7ae9f5c7605bc912b",
     "semantic_hash": ""
   },
   "docs/design/Memo Claude Design/uploads/pasted-1784606697685-0.png": {
-    "mtime": 1784631889.0383863,
+    "mtime": 1784682041.2953303,
     "ast_hash": "51ea18e5a575b5e084633871b4d0ca6a",
     "semantic_hash": ""
   },
   "docs/design/Memo Claude Design/uploads/pasted-1784608514815-0.png": {
-    "mtime": 1784631889.0504594,
+    "mtime": 1784682041.2953303,
     "ast_hash": "f77efbd4ac9e6df07b306704f9fa56a5",
     "semantic_hash": ""
   },
   "supabase/migrations/0004_dedupe_vibe_briefs.sql": {
-    "mtime": 1784634901.2557828,
-    "ast_hash": "d08802572a5eca2f85ee3864d8e85cd5",
+    "mtime": 1784682041.32328,
+    "ast_hash": "2d07d2f09ebc6fcc4a1e99ea84d17256",
     "semantic_hash": ""
   },
   "docs/superpowers/specs/2026-07-22-ideas-songs-playback-polish-design.md": {
-    "mtime": 1784677685.3486094,
-    "ast_hash": "aff2e918c3967b2fa293b1edebc96352",
+    "mtime": 1784682041.308051,
+    "ast_hash": "8c9a904e3c8c5156077e47b339b52aab",
+    "semantic_hash": ""
+  },
+  "app/components/Spinner.tsx": {
+    "mtime": 1784682041.2288947,
+    "ast_hash": "1267e20bd21a84a31a870a8a01de3ccd",
+    "semantic_hash": ""
+  },
+  "app/lib/api/suggestSimilar.ts": {
+    "mtime": 1784688262.7200716,
+    "ast_hash": "5269f7e8d71c430a01e63a580417d71c",
+    "semantic_hash": ""
+  },
+  "app/lib/useCachedFetch.ts": {
+    "mtime": 1784682041.245294,
+    "ast_hash": "41ed9b7ec8f90f464f267ee86a8322ac",
+    "semantic_hash": ""
+  },
+  "app/lib/usePreviewPlayer.ts": {
+    "mtime": 1784688262.7220826,
+    "ast_hash": "3c74c10f203b1a18c44f46f083689948",
+    "semantic_hash": ""
+  },
+  "scripts/check-memoVisuals.mjs": {
+    "mtime": 1784682041.320822,
+    "ast_hash": "82f23608244ae1ebcb8922a2e65945cf",
+    "semantic_hash": ""
+  },
+  "supabase/functions/suggest-similar/index.ts": {
+    "mtime": 1784688262.7268875,
+    "ast_hash": "a35e11b0f3478a44c7cb2d119f8eaa08",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/0005_add_idea_waveform.sql": {
+    "mtime": 1784682041.32328,
+    "ast_hash": "be60d3f109896e998a4150e008fbec25",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/0006_add_song_notes_lyrics.sql": {
+    "mtime": 1784682579.9477937,
+    "ast_hash": "c65950a0829970300e9d3edfd2c31540",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/0007_add_idea_sounds_like.sql": {
+    "mtime": 1784688262.7268875,
+    "ast_hash": "729be4625decfadbdee43478cae98531",
+    "semantic_hash": ""
+  },
+  "docs/design/Memo.html": {
+    "mtime": 1784682041.3068788,
+    "ast_hash": "30199126930d13fc4a4c9b2a07f15cc8",
+    "semantic_hash": ""
+  },
+  "docs/superpowers/plans/2026-07-22-ideas-songs-playback-polish.md": {
+    "mtime": 1784682041.308051,
+    "ast_hash": "f70048470961c866f855fd73a7155e6f",
+    "semantic_hash": ""
+  },
+  "docs/superpowers/plans/2026-07-22-reference-song-discovery.md": {
+    "mtime": 1784685731.5086699,
+    "ast_hash": "b6665ee056afcacec3a38123ea09187e",
+    "semantic_hash": ""
+  },
+  "docs/superpowers/specs/2026-07-22-reference-song-discovery-design.md": {
+    "mtime": 1784685380.7425346,
+    "ast_hash": "d36a8ee20b703f4b0aea9adb77a62181",
     "semantic_hash": ""
   }
 }

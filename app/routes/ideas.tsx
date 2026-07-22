@@ -33,8 +33,6 @@ export default function Ideas() {
     : filter !== "All"
       ? `No ideas match the "${filter}" filter.`
       : "No ideas yet.";
-  const searching = !!q || filter !== "All";
-
   const spineRow = (d: any) => (
     <button key={d.id} className="m-spine" onClick={() => pull(d.id)} style={spineStyle(d)}>
       <div style={cssText(`width:7px;align-self:stretch;background:${d.stripe};border-radius:3px 0 0 3px;flex:none;`)}></div>
@@ -49,7 +47,6 @@ export default function Ideas() {
       </div>
     </button>
   );
-  const recent = ideas.slice(0, 3);
 
   if (loading) return <Spinner />;
 
@@ -79,15 +76,6 @@ export default function Ideas() {
           <button key={f} onClick={() => setFilter(f)} style={chip(f)}>{f}</button>
         ))}
       </div>
-
-      {!searching && recent.length > 0 && (
-        <>
-          <div style={cssText("margin-top:16px;font-size:16px;font-weight:700;letter-spacing:-.02em;color:#2E2418;")}>Recent</div>
-          <div style={cssText("margin-top:10px;background:linear-gradient(180deg,#2E2318,#1B140D);border-radius:12px;padding:10px 9px;box-shadow:inset 0 2px 12px rgba(0,0,0,.55),0 8px 18px rgba(60,44,32,.16);display:flex;flex-direction:column;gap:5px;overflow:visible;flex:none;")}>
-            {recent.map(spineRow)}
-          </div>
-        </>
-      )}
 
       <div style={cssText("margin-top:16px;display:flex;align-items:baseline;justify-content:space-between;flex:none;")}>
         <div style={cssText("font-size:16px;font-weight:700;letter-spacing:-.02em;color:#2E2418;")}>All ideas</div>
