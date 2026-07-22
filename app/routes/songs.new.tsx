@@ -67,7 +67,7 @@ export default function Chooser() {
     setBusy(true);
     try {
       const s = await buildSong(idea, brief);
-      const midi = buildMidi(idea.notes_json ?? idea.notes, s.chordChart, idea.bpm);
+      const midi = buildMidi(idea.notes_json ?? idea.notes, s.chordChart, idea.bpm, idea.key);
       const { song } = await saveSong(s, midi);
       nav(`/songs/${song.id}`);
     } catch (e) { console.error("[chooser] build failed:", e); setBusy(false); }

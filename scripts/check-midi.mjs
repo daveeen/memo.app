@@ -33,6 +33,11 @@ const { Midi } = midiPkg;
 // (CaptureAnalysis.notes); chordChart shape matches SongBuild.chordChart /
 // chords.ts's nearestChord output ("C", "Am", ...).
 {
+  // C4/E4/G4 are all diatonic in C major and all four timings/durations are
+  // already exact multiples of the 16th-note grid at 120 BPM (0.125s) — this
+  // fixture is a no-op for quantizeMelody by construction, so the existing
+  // exact-value assertions below stay valid rather than needing recomputed
+  // "what does quantization produce" numbers.
   const notes = [
     { pitch: "C4", startSec: 0, durSec: 0.5 },
     { pitch: "E4", startSec: 0.5, durSec: 0.5 },
@@ -40,8 +45,9 @@ const { Midi } = midiPkg;
   ];
   const chordChart = [{ chord: "C" }, { chord: "Am" }, { chord: "F" }, { chord: "G" }];
   const bpm = 120;
+  const key = "C major";
 
-  const bytes = buildMidi(notes, chordChart, bpm);
+  const bytes = buildMidi(notes, chordChart, bpm, key);
   assert(bytes instanceof Uint8Array, "buildMidi did not return a Uint8Array");
 
   const parsed = new Midi(bytes);

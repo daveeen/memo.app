@@ -39,6 +39,15 @@ function nameToMidi(name: string): number {
   return NOTE_TO_SEMITONE[pitchClass] + (parseInt(octave, 10) + 1) * 12;
 }
 
+// The actual inverse of nameToMidi — needed here (not just in analyze.ts,
+// which has its own copy for detection output) because quantizeMelody below
+// snaps a MIDI pitch and has to hand buildMidi back a name string, matching
+// the `{pitch: string}` shape callers already pass around.
+const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+function midiToName(m: number): string {
+  return `${NOTE_NAMES[((m % 12) + 12) % 12]}${Math.floor(m / 12) - 1}`;
+}
+
 // Major or minor triad rooted around MIDI 48-67 (octave 3-ish) — clear of the
 // melody track's typical vocal range and well inside the valid 0-127 range.
 // Mirrors chords.ts's triad(root, minor): [0, minor ? 3 : 4, 7].
@@ -46,6 +55,49 @@ function triadNotes(root: string, isMinor: boolean): number[] {
   const base = NOTE_TO_SEMITONE[root] ?? 0;
   const third = isMinor ? 3 : 4;
   return [0, third, 7].map((interval) => 48 + base + interval);
+}
+
+// Snaps a captured melody to the song's key (pitch) and a 16th-note grid
+// (rhythm). The raw pitch-detector output is frame-by-frame — every bit of
+// natural vibrato or timing jitter from the original hum comes through
+// verbatim otherwise, which reads as noisy rather than melodic. `key` is
+// analyze.ts's detectedKey format ("C major" / "A minor" — space-separated
+// root + scale word), not chords.ts's "Cm"-style chord-quality notation.
+function quantizeMelody(
+  notes: { pitch: string; startSec: number; durSec: number }[],
+  key: string,
+  bpm: number,
+): { pitch: string; startSec: number; durSec: number }[] {
+  const [rootName, scaleWord] = key.split(" ");
+  const root = NOTE_TO_SEMITONE[rootName] ?? 0;
+  const intervals = scaleWord === "minor" ? [0, 2, 3, 5, 7, 8, 10] : [0, 2, 4, 5, 7, 9, 11];
+  const inScale = new Set(intervals.map((iv) => (root + iv) % 12));
+
+  function snapPitch(midi: number): number {
+    for (let delta = 0; delta <= 6; delta++) {
+      if (inScale.has(((midi - delta) % 12 + 12) % 12)) return midi - delta;
+      if (inScale.has(((midi + delta) % 12 + 12) % 12)) return midi + delta;
+    }
+    return midi; // unreachable — every 12-note chromatic run contains a scale tone within 6 semitones
+  }
+
+  const grid = (60 / bpm) / 4; // one 16th note
+  const snapped = notes.map((n) => ({
+    pitch: midiToName(snapPitch(nameToMidi(n.pitch))),
+    startSec: Math.round(n.startSec / grid) * grid,
+    durSec: Math.max(grid, Math.round(n.durSec / grid) * grid),
+  }));
+
+  // Rhythm-snapping can push a note's end past the next note's (also
+  // snapped) start — clip rather than let two notes stack. Input notes are
+  // already time-ordered (analyze.ts emits them in capture order), so a
+  // single forward pass is enough.
+  for (let i = 0; i < snapped.length - 1; i++) {
+    const end = snapped[i].startSec + snapped[i].durSec;
+    const nextStart = snapped[i + 1].startSec;
+    if (end > nextStart) snapped[i].durSec = Math.max(grid / 2, nextStart - snapped[i].startSec);
+  }
+  return snapped;
 }
 
 // Raw-MIDI-pitch note shape (as opposed to buildMidi's `notes` param, which
@@ -68,6 +120,7 @@ export function buildMidi(
   notes: { pitch: string; startSec: number; durSec: number }[],
   chordChart: { chord: string }[],
   bpm: number,
+  key: string,
 ): Uint8Array {
   const midi = new Midi();
   midi.header.setTempo(bpm);
@@ -76,7 +129,7 @@ export function buildMidi(
   melody.name = "melody";
   addNotesToTrack(
     melody,
-    notes.map((n) => ({ pitch: nameToMidi(n.pitch), startSec: n.startSec, durSec: n.durSec })),
+    quantizeMelody(notes, key, bpm).map((n) => ({ pitch: nameToMidi(n.pitch), startSec: n.startSec, durSec: n.durSec })),
   );
 
   const chords = midi.addTrack();
