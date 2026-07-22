@@ -7,11 +7,14 @@ import { useEffect, useRef, useState } from "react";
 // different url mid-playback switches .src; tapping the SAME url again
 // toggles pause/resume instead of restarting from 0.
 //
-// iTunes preview urls (audio-ssl.itunes.apple.com) play directly via a plain
-// <audio> element cross-origin — CORS only blocks reading/decoding audio
-// DATA (fetch + decodeAudioData), not playback, so no proxy is needed here
-// (unlike track-search's ?preview= route, which exists for the analysis
-// path in brief.tsx, a different use case).
+// This app's COEP require-corp header blocks a plain cross-origin <audio src>
+// load unless the response carries Cross-Origin-Resource-Policy — Apple's CDN
+// doesn't set one, so playback (unlike track-search's `fetchPreviewBlob`,
+// which already goes through the proxy for its own reasons) needs routing
+// through track-search's `?preview=` proxy too, which now sets that header.
+const PREVIEW_PROXY_BASE = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/track-search`;
+const proxiedPreviewUrl = (url: string) => `${PREVIEW_PROXY_BASE}?preview=${encodeURIComponent(url)}`;
+
 export function usePreviewPlayer() {
   const [playingUrl, setPlayingUrl] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement>(undefined);
@@ -30,8 +33,9 @@ export function usePreviewPlayer() {
       setPlayingUrl(null);
       return;
     }
-    if (el.src !== url) {
-      el.src = url;
+    const proxied = proxiedPreviewUrl(url);
+    if (el.src !== proxied) {
+      el.src = proxied;
       el.currentTime = 0;
     }
     el.play();
