@@ -79,9 +79,14 @@ export default function App() {
   // mobile-width column). Without this wrapper the app stretches edge-to-edge on
   // any desktop browser window, which is also what made it hard to test locally.
   // translateZ(0) gives fixed-position descendants (tab bar, transport bar) a
-  // containing block scoped to this column instead of the full viewport.
+  // containing block scoped to this column instead of the full viewport. That makes
+  // the column's own height the reference for their bottom:0 — so the column must be
+  // EXACTLY viewport-height and scroll internally, never grow with content. With
+  // minHeight:100vh it grew, and on a long page (Songs) the tab bar landed at the
+  // bottom of the document instead of the screen. Every route root already expects
+  // this: they're all flex:1 + .m-scroll.
   return (
-    <div style={{ maxWidth: 480, margin: "0 auto", minHeight: "100vh", position: "relative", transform: "translateZ(0)", boxShadow: "0 0 60px rgba(0,0,0,.08)" }}>
+    <div style={{ maxWidth: 480, margin: "0 auto", height: "100dvh", overflow: "hidden", display: "flex", flexDirection: "column", position: "relative", transform: "translateZ(0)", boxShadow: "0 0 60px rgba(0,0,0,.08)" }}>
       <Outlet />
     </div>
   );

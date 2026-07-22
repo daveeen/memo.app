@@ -22,7 +22,7 @@ export default function Ideas() {
 
   const pull = (id: string) => { setPullingId(id); setTimeout(() => nav(`/ideas/${id}`), 440); };
   const spineStyle = (d: any) => cssText(
-    `position:relative;display:flex;align-items:center;width:100%;height:38px;border:none;padding:0;cursor:pointer;text-align:left;border-radius:3px;background:${d.shell};box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 -2px 4px rgba(0,0,0,.25),0 2px 5px rgba(0,0,0,.35);` +
+    `position:relative;display:flex;align-items:center;width:100%;height:38px;flex:none;border:none;padding:0;cursor:pointer;text-align:left;border-radius:3px;background:${d.shell};box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 -2px 4px rgba(0,0,0,.25),0 2px 5px rgba(0,0,0,.35);` +
     (pullingId === d.id ? "transform:translateX(54px) scale(1.04);box-shadow:-16px 14px 32px rgba(0,0,0,.5);z-index:9;filter:brightness(1.07);" : "transform:translateX(0);")
   );
   const filters = ["All", "Vocal", "Guitar", "Bright", "Warm"];
@@ -51,7 +51,7 @@ export default function Ideas() {
   if (loading) return <Spinner />;
 
   return (
-    <div style={cssText("height:100dvh;overflow:hidden;display:flex;flex-direction:column;padding:24px 22px 90px;animation:mUp .3s ease both;")}>
+    <div style={cssText("flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;padding:24px 22px 90px;animation:mUp .3s ease both;")}>
       <div style={cssText("display:flex;align-items:center;justify-content:space-between;")}>
         <div style={cssText("display:flex;align-items:center;gap:9px;")}>
           <div style={cssText("width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#17161B,#39373f);display:flex;align-items:center;justify-content:center;")}>
@@ -92,14 +92,27 @@ export default function Ideas() {
           The root's own padding-bottom:80px (not this box's padding) reserves
           the fixed tab bar's height, so this box's available space stops
           right above it instead of extending underneath it. */}
-      <div className="m-scroll" style={cssText("margin-top:10px;flex:1;min-height:0;background:linear-gradient(180deg,#2E2318,#1B140D);border-radius:12px;padding:10px 9px;box-shadow:inset 0 2px 12px rgba(0,0,0,.55),0 8px 18px rgba(60,44,32,.16);display:flex;flex-direction:column;gap:5px;")}>
-        {shown.map(spineRow)}
-        {shown.length === 0 && (
-          <div style={cssText("flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:14px;")}>
-            <div style={cssText("font-size:14px;font-weight:600;color:#c9b79a;")}>{noResultsMsg}</div>
-            <button onClick={clearFilters} style={cssText("margin-top:12px;padding:9px 18px;border-radius:20px;border:none;background:#F4EDDB;color:#2E2418;font-weight:600;font-size:13px;cursor:pointer;")}>Clear filters</button>
-          </div>
-        )}
+      {/* Outer = the still frame: owns the background/radius/border/shadow and
+          overflow:hidden, so the top and bottom border never move and rows are clipped
+          by the rounded corners. A real CSS `border` clips content at the padding box,
+          i.e. INSIDE it — so the frame's outline is always drawn whole, never covered
+          by a scrolled tape. Inner = the scroller (padding + gap live here, not on the
+          frame). The two absolute lips come after the scroller in DOM order so they paint
+          over it — the top-most and bottom-most tapes slide under the frame's edge instead
+          of ending in a hard cut mid-row. Each lip fades to the frame gradient's colour at
+          that end (#2E2318 top, #1B140D bottom), so it reads as the edge, not a band. */}
+      <div style={cssText("position:relative;margin-top:10px;flex:1;min-height:0;background:linear-gradient(180deg,#2E2318,#1B140D);border:1px solid rgba(255,255,255,.1);border-radius:12px;box-shadow:inset 0 2px 12px rgba(0,0,0,.55),0 8px 18px rgba(60,44,32,.16);overflow:hidden;display:flex;flex-direction:column;")}>
+        <div className="m-scroll" style={cssText("flex:1;min-height:0;padding:10px 9px;display:flex;flex-direction:column;gap:5px;")}>
+          {shown.map(spineRow)}
+          {shown.length === 0 && (
+            <div style={cssText("flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:14px;")}>
+              <div style={cssText("font-size:14px;font-weight:600;color:#c9b79a;")}>{noResultsMsg}</div>
+              <button onClick={clearFilters} style={cssText("margin-top:12px;padding:9px 18px;border-radius:20px;border:none;background:#F4EDDB;color:#2E2418;font-weight:600;font-size:13px;cursor:pointer;")}>Clear filters</button>
+            </div>
+          )}
+        </div>
+        <div style={cssText("position:absolute;left:0;right:0;top:0;height:14px;background:linear-gradient(180deg,#2E2318 30%,rgba(46,35,24,0));pointer-events:none;")}></div>
+        <div style={cssText("position:absolute;left:0;right:0;bottom:0;height:14px;background:linear-gradient(180deg,rgba(27,20,13,0),#1B140D 70%);pointer-events:none;")}></div>
       </div>
     </div>
   );

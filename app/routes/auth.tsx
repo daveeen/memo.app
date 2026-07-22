@@ -24,7 +24,7 @@ export default function Auth() {
   }
 
   return (
-    <div style={cssText("flex:1;min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:0 34px;")}>
+    <div style={cssText("flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;padding:0 34px;")}>
       <div style={cssText("width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#17161B,#39373f);display:flex;align-items:center;justify-content:center;margin-bottom:24px;")}>
         <svg width="28" height="20" viewBox="0 0 40 28" fill="none"><path d="M2 20 L8 8 L14 20 L20 4 L26 20 L32 8 L38 20" stroke="white" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round"></path></svg>
       </div>

@@ -28,7 +28,7 @@ export default function Shell() {
   const songsOn = p.startsWith("/songs") || p.startsWith("/brief");
 
   return (
-    <div style={cssText("position:relative;min-height:100vh;background:#EFE6D4;display:flex;flex-direction:column;")}>
+    <div style={cssText("position:relative;flex:1;min-height:0;background:#EFE6D4;display:flex;flex-direction:column;")}>
       <Outlet />
       {showTabs && (
         <div style={cssText("position:fixed;bottom:0;left:0;right:0;height:80px;background:rgba(231,220,193,.96);backdrop-filter:blur(12px);border-top:1px solid rgba(46,36,24,.08);box-shadow:0 -10px 26px rgba(46,36,24,.1);display:flex;align-items:center;justify-content:space-around;padding-bottom:14px;z-index:50;")}>

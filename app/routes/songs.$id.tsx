@@ -110,6 +110,12 @@ export default function Builder() {
   const positionLabel = (sec: number) => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, "0")}`;
 
   return (
+    // The transport bar is a SIBLING of the scroller, not a child: this root carries
+    // `animation:mUp ... both`, whose persisted `transform:translateY(0)` would make it
+    // the containing block for `position:fixed` — pinning the bar to the scrolling
+    // content instead of the screen. Outside it, the bar's nearest transformed ancestor
+    // is root.tsx's 480px column, which is exactly viewport-height.
+    <>
     <div className="m-scroll" style={cssText("flex:1;padding:24px 22px 190px;animation:mUp .3s ease both;")}>
       {/* bottom padding clears the fixed transport bar (~74px) stacked above the
           fixed tab bar (80px) below it — 120px used to let the last card hide behind them. */}
@@ -171,22 +177,24 @@ export default function Builder() {
         )}
       </div>
 
-      <div style={cssText("position:fixed;bottom:80px;left:0;right:0;z-index:40;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-top:1px solid rgba(0,0,0,.07);padding:14px 20px;display:flex;align-items:center;gap:14px;")}>
-        <button onClick={togglePlay} style={cssText("width:46px;height:46px;border-radius:50%;border:none;background:#17161B;color:#fff;cursor:pointer;font-size:16px;flex:none;")}>{playing ? "❚❚" : "▶"}</button>
-        <div style={cssText("flex:1;")}>
-          <div style={cssText("font-size:12px;font-weight:700;color:#17161B;text-transform:capitalize;")}>{transportSec?.label ?? ""}</div>
-          <div
-            onPointerDown={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect();
-              seek((e.clientX - rect.left) / rect.width);
-            }}
-            style={cssText("height:5px;border-radius:3px;background:rgba(0,0,0,.08);margin-top:6px;overflow:hidden;cursor:pointer;")}
-          >
-            <div style={cssText(`height:100%;width:${progressPct}%;background:#B5503C;`)}></div>
-          </div>
-        </div>
-        <span style={cssText("font-family:'Space Mono',monospace;font-size:12px;color:#8a8791;")}>{positionLabel(position)} / {positionLabel(duration)}</span>
-      </div>
     </div>
+
+    <div style={cssText("position:fixed;bottom:80px;left:0;right:0;z-index:40;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-top:1px solid rgba(0,0,0,.07);padding:14px 20px;display:flex;align-items:center;gap:14px;")}>
+      <button onClick={togglePlay} style={cssText("width:46px;height:46px;border-radius:50%;border:none;background:#17161B;color:#fff;cursor:pointer;font-size:16px;flex:none;")}>{playing ? "❚❚" : "▶"}</button>
+      <div style={cssText("flex:1;")}>
+        <div style={cssText("font-size:12px;font-weight:700;color:#17161B;text-transform:capitalize;")}>{transportSec?.label ?? ""}</div>
+        <div
+          onPointerDown={(e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            seek((e.clientX - rect.left) / rect.width);
+          }}
+          style={cssText("height:5px;border-radius:3px;background:rgba(0,0,0,.08);margin-top:6px;overflow:hidden;cursor:pointer;")}
+        >
+          <div style={cssText(`height:100%;width:${progressPct}%;background:#B5503C;`)}></div>
+        </div>
+      </div>
+      <span style={cssText("font-family:'Space Mono',monospace;font-size:12px;color:#8a8791;")}>{positionLabel(position)} / {positionLabel(duration)}</span>
+    </div>
+    </>
   );
 }

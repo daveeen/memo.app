@@ -194,7 +194,7 @@ export default function Record() {
   const saveBtnStyle = `flex:1;padding:15px;border-radius:15px;border:none;background:#17161B;color:#fff;font-weight:700;font-size:14px;cursor:pointer;`;
 
   return (
-    <div style={cssText(`flex:1;min-height:100vh;display:flex;flex-direction:column;` + (phase === "recording" || phase === "analysing" ? "background:radial-gradient(120% 80% at 20% 0%,#3a2416 0,transparent 55%),radial-gradient(120% 80% at 85% 8%,#2c2013 0,transparent 52%),radial-gradient(130% 90% at 50% 110%,#3a1e12 0,transparent 55%),#161009;" : "background:#EFE6D4;"))}>
+    <div style={cssText(`flex:1;min-height:0;display:flex;flex-direction:column;` + (phase === "recording" || phase === "analysing" ? "background:radial-gradient(120% 80% at 20% 0%,#3a2416 0,transparent 55%),radial-gradient(120% 80% at 85% 8%,#2c2013 0,transparent 52%),radial-gradient(130% 90% at 50% 110%,#3a1e12 0,transparent 55%),#161009;" : "background:#EFE6D4;"))}>
       <div style={cssText("flex:1;position:relative;display:flex;flex-direction:column;align-items:center;overflow:hidden;")}>
         {/* idle */}
         {phase === "idle" && (
