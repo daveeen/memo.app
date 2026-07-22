@@ -5,7 +5,6 @@ import { saveIdea } from "~/lib/api/bank";
 import { searchTracks } from "~/lib/api/tracks";
 import { suggestSimilar } from "~/lib/api/suggestSimilar";
 import { usePreviewPlayer } from "~/lib/usePreviewPlayer";
-import { envelopeToPath } from "~/lib/memoVisuals";
 import { cssText } from "~/lib/cssText";
 import type { CaptureAnalysis, SoundsLikeEntry } from "~/lib/types";
 
@@ -202,6 +201,17 @@ export default function Record() {
   const reelAnimB = spinning ? "animation:mReel 3.6s linear infinite;" : "";
   const saveBtnStyle = `flex:1;padding:15px;border-radius:15px;border:none;background:#17161B;color:#fff;font-weight:700;font-size:14px;cursor:pointer;`;
 
+  // Live bars stay individual strokes (not one filled blob) but get pulled
+  // toward their neighbours — two passes of a 3-tap average, same technique
+  // memoVisuals.ts's wavePoints() uses — so the row ripples as a wave instead
+  // of each bar jumping independently ("squared"). pow(v,0.55) is a gain
+  // curve: quiet mic input gets boosted more than loud, so it visibly moves
+  // even during quiet stretches of a hum instead of sitting near-flat.
+  let liveWave = liveBars.map((v) => Math.max(0.05, Math.pow(v, 0.55)));
+  for (let pass = 0; pass < 2; pass++) {
+    liveWave = liveWave.map((v, i) => (liveWave[Math.max(0, i - 1)] + 2 * v + liveWave[Math.min(liveWave.length - 1, i + 1)]) / 4);
+  }
+
   return (
     <div style={cssText(`flex:1;min-height:0;display:flex;flex-direction:column;` + (phase === "recording" || phase === "analysing" ? "background:radial-gradient(120% 80% at 20% 0%,#3a2416 0,transparent 55%),radial-gradient(120% 80% at 85% 8%,#2c2013 0,transparent 52%),radial-gradient(130% 90% at 50% 110%,#3a1e12 0,transparent 55%),#161009;" : "background:#EFE6D4;"))}>
       <div style={cssText("flex:1;position:relative;display:flex;flex-direction:column;align-items:center;overflow:hidden;")}>
@@ -226,10 +236,10 @@ export default function Record() {
             </div>
             <div style={cssText("margin-top:22px;font-size:54px;font-weight:800;letter-spacing:-.02em;color:#fbf4e6;font-variant-numeric:tabular-nums;z-index:5;")}>{recTime}</div>
             <div style={cssText("margin-top:2px;font-size:13px;font-weight:500;color:#c3b193;z-index:5;")}>{recSub}</div>
-            <div style={cssText("margin-top:40px;display:flex;align-items:center;justify-content:center;height:140px;width:320px;z-index:5;")}>
-              <svg viewBox="0 0 100 24" preserveAspectRatio="none" style={cssText("width:100%;height:100%;display:block;")}>
-                <path d={envelopeToPath(liveBars.map((v) => Math.max(0.06, v)))} fill="#fff"></path>
-              </svg>
+            <div style={cssText("margin-top:40px;display:flex;align-items:center;justify-content:center;gap:2px;height:140px;width:320px;z-index:5;")}>
+              {liveWave.map((v, i) => (
+                <div key={i} style={cssText(`width:3px;height:126px;background:#F4EDDB;border-radius:2px;transform:scaleY(${((18 + 108 * v) / 126).toFixed(3)});transition:transform 60ms linear;`)}></div>
+              ))}
             </div>
           </>
         )}

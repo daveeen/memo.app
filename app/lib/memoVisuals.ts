@@ -20,7 +20,7 @@ export const SEC_COLORS = ['#C4593E','#7E7E3E','#D08A44','#C9A84C','#5E8577'];
 // normalized envelope of any length, via quadratic midpoint smoothing (turns
 // a jagged polyline into a flowing organic curve — a straight-edge <polygon>
 // through raw samples reads as sketchy, not like audio).
-export function envelopeToPath(env: number[]): string {
+function envelopeToPath(env: number[]): string {
   const W = 100, H = 24, mid = H / 2, amp = mid - 1;
   const n = env.length;
   const top: [number, number][] = env.map((p, i) => [i * W / (n - 1), mid - p * amp] as [number, number]);
