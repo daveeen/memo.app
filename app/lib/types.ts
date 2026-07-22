@@ -17,4 +17,5 @@ export interface SongBuild {
   structure: { label: string; order: number }[];
   instrumentation: string[]; backingMidiPath?: string;
 }
+export interface SoundsLikeEntry { title: string; artist: string; artworkUrl: string; previewUrl: string; }
 export interface BankEntry extends CaptureAnalysis { createdAt: string; title: string; }
