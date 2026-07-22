@@ -109,10 +109,10 @@ export default function Record() {
     setPhase("idle");
     setRecTime("00:00.0");
   };
-  async function save(edit: boolean) {
+  async function save() {
     if (!blobRef.current || !analysis) return;
-    const saved = await saveIdea(blobRef.current, analysis, pendingTitle);
-    nav(edit ? `/ideas/${saved.id}` : "/ideas");
+    await saveIdea(blobRef.current, analysis, pendingTitle);
+    nav("/ideas");
   }
   async function uploadFile(f: File) {
     setPhase("analysing");
@@ -257,10 +257,9 @@ export default function Record() {
           <input value={pendingTitle} onChange={(e) => setPendingTitle(e.target.value)} style={cssText("margin-top:6px;border:none;background:none;outline:none;font-size:26px;font-weight:800;letter-spacing:-.03em;color:#2E2418;padding:0;")} />
           <div style={cssText("font-size:12.5px;color:#8a7d68;margin-top:2px;")}>Edit the title, or keep the suggestion.</div>
 
-          {/* play + edit row */}
+          {/* play row */}
           <div style={cssText("margin-top:16px;display:flex;gap:10px;")}>
-            <button onClick={togglePlay} style={cssText("flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;border-radius:13px;border:none;background:#2E2418;color:#F4EDDB;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 6px 16px rgba(46,36,24,.24);")}>{playing ? "❚❚" : "▶"} {playing ? "Playing" : "Play take"}</button>
-            <button onClick={() => save(true)} style={cssText("flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;border-radius:13px;border:1px solid rgba(46,36,24,.18);background:#F7F1E3;color:#2E2418;font-size:14px;font-weight:700;cursor:pointer;")}>✎ Edit</button>
+            <button onClick={togglePlay} style={cssText("width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;border-radius:13px;border:none;background:#2E2418;color:#F4EDDB;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 6px 16px rgba(46,36,24,.24);")}>{playing ? "❚❚" : "▶"} {playing ? "Playing" : "Play take"}</button>
           </div>
 
           {/* compact stat grid, no tags */}
@@ -320,7 +319,7 @@ export default function Record() {
           <div style={cssText("margin-top:auto;display:flex;gap:10px;padding-top:22px;")}>
             <button onClick={discard} style={cssText("flex:none;padding:15px 18px;border-radius:15px;border:1px solid rgba(46,36,24,.14);background:#F7F1E3;color:#8a7d68;font-weight:600;font-size:14px;cursor:pointer;")}>Discard</button>
             <button onClick={start} style={cssText("flex:none;padding:15px 18px;border-radius:15px;border:1px solid rgba(46,36,24,.14);background:#F7F1E3;color:#8a7d68;font-weight:600;font-size:14px;cursor:pointer;")}>Retry</button>
-            <button onClick={() => save(false)} style={cssText(saveBtnStyle)}>Save idea</button>
+            <button onClick={save} style={cssText(saveBtnStyle)}>Save idea</button>
           </div>
         </div>
       )}
