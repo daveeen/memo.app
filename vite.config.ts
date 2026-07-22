@@ -23,7 +23,7 @@ export default defineConfig({
         display: "standalone",
         background_color: "#000000",
         theme_color: "#000000",
-        icons: [{ src: "/icon-512.png", sizes: "512x512", type: "image/png" }],
+        icons: [{ src: "/memo-logomark.png", sizes: "1024x1024", type: "image/png" }],
       },
     }),
   ],

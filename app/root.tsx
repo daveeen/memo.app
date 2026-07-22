@@ -20,6 +20,8 @@ export const links: Route.LinksFunction = () => [
   // injected (confirmed: build/client/index.html had neither tag). Added
   // manually; SW registration is manual too, see App()'s effect below.
   { rel: "manifest", href: "/manifest.webmanifest" },
+  { rel: "icon", href: "/memo-logomark.ico" },
+  { rel: "icon", type: "image/png", href: "/memo-logomark.png" },
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   {
     rel: "preconnect",
