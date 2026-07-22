@@ -115,9 +115,21 @@ function formatDuration(totalSec: number): string {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
 
-// Cassette-shape decoration for one idea row/card. `idx` selects the palette.
-export function decoIdea(d: {id:string; key?:string|null; bpm?:number|null; input_type?:string|null; mood?:string|null; title?:string; duration?:number|null; keyLow?:boolean; waveform_json?: number[] | null}, idx: number) {
-  const p = PAL[idx % PAL.length];
+// Palette index derived from the idea's own id (same hashing approach as
+// seedFromId), not list position — decoIdea() used to take an `idx` param
+// for this, which meant the SAME idea could render a different tape/wave
+// colour depending on where it happened to sit in whatever array was being
+// mapped (e.g. index 0 on the list vs. hardcoded index 0 on Idea Detail
+// regardless of the idea's real position). Stable per-id colour means an
+// idea looks the same everywhere it's rendered.
+function paletteIndexFromId(id: string): number {
+  let h = 0; for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) % 100000;
+  return h % PAL.length;
+}
+
+// Cassette-shape decoration for one idea row/card.
+export function decoIdea(d: {id:string; key?:string|null; bpm?:number|null; input_type?:string|null; mood?:string|null; title?:string; duration?:number|null; keyLow?:boolean; waveform_json?: number[] | null}) {
+  const p = PAL[paletteIndexFromId(d.id)];
   const keyShort = (d.key||'').split(' ')[0];
   const bpmShort = d.bpm != null ? `${Math.round(d.bpm)}` : '—';
   const realPeaks = d.waveform_json && d.waveform_json.length > 1 ? d.waveform_json : null;

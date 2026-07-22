@@ -26,7 +26,7 @@ export default function IdeaDetail() {
   useEffect(() => () => { audioRef.current?.pause(); }, []);
   if (loading) return <Spinner />;
   if (!row || !id) return null;
-  const d = decoIdea(row, 0);
+  const d = decoIdea(row);
   async function togglePlay() {
     if (!audioRef.current) {
       const u = await ideaAudioUrl(row.raw_path);

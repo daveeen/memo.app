@@ -13,7 +13,7 @@ export default function Ideas() {
   const [filter, setFilter] = useState("All");
   const [pullingId, setPullingId] = useState<string | null>(null);
 
-  const ideas = rows.map((r, i) => decoIdea(r, i));
+  const ideas = rows.map((r) => decoIdea(r));
   const q = query.trim().toLowerCase();
   const match = (d: any) =>
     (!q || [d.name, d.key, d.bpm, d.type, d.mood].join(" ").toLowerCase().includes(q)) &&
@@ -54,7 +54,7 @@ export default function Ideas() {
   if (loading) return <Spinner />;
 
   return (
-    <div style={cssText("height:100dvh;overflow:hidden;display:flex;flex-direction:column;padding:24px 22px 80px;animation:mUp .3s ease both;")}>
+    <div style={cssText("height:100dvh;overflow:hidden;display:flex;flex-direction:column;padding:24px 22px 90px;animation:mUp .3s ease both;")}>
       <div style={cssText("display:flex;align-items:center;justify-content:space-between;")}>
         <div style={cssText("display:flex;align-items:center;gap:9px;")}>
           <div style={cssText("width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#17161B,#39373f);display:flex;align-items:center;justify-content:center;")}>

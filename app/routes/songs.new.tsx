@@ -38,9 +38,15 @@ export default function Chooser() {
       <p style={cssText("font-size:13.5px;color:#57565E;margin:0 0 18px;")}>The builder needs one of each.</p>
 
       <div style={cssText("font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#B5503C;")}>Side A · your idea</div>
-      <div style={cssText("display:flex;gap:10px;overflow-x:auto;margin-top:10px;padding-bottom:4px;")}>
-        {ideas.map((i, idx) => {
-          const d = decoIdea(i, idx);
+      {/* padding:7px on all sides gives the selected outline (3px solid +
+          2px offset = 5px halo beyond each card's own box) room to render
+          fully instead of getting clipped at the scroll container's own
+          edge — most visible on the first/last card, where there's no
+          neighboring card's gap to absorb it. -webkit-overflow-scrolling
+          gives iOS proper momentum instead of stiff step-scrolling. */}
+      <div style={cssText("display:flex;gap:10px;overflow-x:auto;margin-top:10px;padding:7px;-webkit-overflow-scrolling:touch;")}>
+        {ideas.map((i) => {
+          const d = decoIdea(i);
           return (
             <button
               key={i.id}
