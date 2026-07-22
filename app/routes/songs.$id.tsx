@@ -57,6 +57,23 @@ export default function Builder() {
     rafRef.current = requestAnimationFrame(trackPosition);
   }
 
+  // Shared by togglePlay's "start from nothing" path and playFromRow's
+  // "wasn't playing yet" path — both need the same guarded playSong() call,
+  // controller/playing/raf-loop bookkeeping.
+  async function startPlayback(): Promise<SongPlayback | null> {
+    if (startingRef.current) return null;
+    startingRef.current = true;
+    try {
+      const controller = await playSong(chart, idea.bpm);
+      controllerRef.current = controller;
+      setPlaying(true);
+      rafRef.current = requestAnimationFrame(trackPosition);
+      return controller;
+    } finally {
+      startingRef.current = false;
+    }
+  }
+
   async function togglePlay() {
     if (playing) {
       controllerRef.current?.stop();
@@ -65,15 +82,7 @@ export default function Builder() {
       setPlaying(false);
       return;
     }
-    if (startingRef.current) return;
-    startingRef.current = true;
-    try {
-      controllerRef.current = await playSong(chart, idea.bpm);
-      setPlaying(true);
-      rafRef.current = requestAnimationFrame(trackPosition);
-    } finally {
-      startingRef.current = false;
-    }
+    await startPlayback();
   }
 
   function seek(fraction: number) {
@@ -81,6 +90,17 @@ export default function Builder() {
     const sec = Math.max(0, Math.min(1, fraction)) * duration;
     controllerRef.current.seek(sec);
     setPosition(sec);
+  }
+
+  // Clicking a structure row jumps playback to that section's first chord —
+  // starts playback if nothing's playing yet, or seeks in place if it is.
+  async function playFromRow(rowIndex: number) {
+    const startChordIndex = chordCountsByRow.slice(0, rowIndex).reduce((a: number, b: number) => a + b, 0);
+    const startSec = startChordIndex * beat;
+    const controller = playing ? controllerRef.current : await startPlayback();
+    if (!controller) return;
+    controller.seek(startSec);
+    setPosition(startSec);
   }
 
   const currentChordIndex = Math.min(chart.length - 1, Math.floor(position / beat));
@@ -110,7 +130,8 @@ export default function Builder() {
         {structure.map((sec: any, i: number) => (
           <div
             key={i}
-            style={cssText(`display:flex;align-items:center;gap:10px;padding:12px 14px;${i < structure.length - 1 ? "border-bottom:1px solid rgba(46,36,24,.08);" : ""}${playing && i === playRow ? "background:rgba(181,80,60,.08);" : ""}`)}
+            onClick={() => playFromRow(i)}
+            style={cssText(`display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;${i < structure.length - 1 ? "border-bottom:1px solid rgba(46,36,24,.08);" : ""}${playing && i === playRow ? "background:rgba(181,80,60,.08);" : ""}`)}
           >
             <div style={cssText(`width:9px;height:9px;border-radius:3px;background:${sec.color};flex:none;`)}></div>
             <div style={cssText("width:74px;flex:none;font-size:13px;font-weight:800;color:#2E2418;text-transform:capitalize;")}>{sec.label}</div>
