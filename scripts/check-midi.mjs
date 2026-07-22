@@ -33,24 +33,40 @@ const { Midi } = midiPkg;
 // (CaptureAnalysis.notes); chordChart shape matches SongBuild.chordChart /
 // chords.ts's nearestChord output ("C", "Am", ...).
 {
+  // C4/E4/G4 are all diatonic in C major and all four timings/durations are
+  // already exact multiples of the 16th-note grid at 120 BPM (0.125s) — this
+  // fixture is a no-op for quantizeMelody by construction, so the existing
+  // exact-value assertions below stay valid rather than needing recomputed
+  // "what does quantization produce" numbers.
   const notes = [
     { pitch: "C4", startSec: 0, durSec: 0.5 },
     { pitch: "E4", startSec: 0.5, durSec: 0.5 },
     { pitch: "G4", startSec: 1.0, durSec: 0.5 },
   ];
-  const chordChart = [{ chord: "C" }, { chord: "Am" }, { chord: "F" }, { chord: "G" }];
+  // Section labels chosen to exercise both buildDrumTrack branches: Intro
+  // and Outro get the sparse pattern (3 hits each), the two Verse slots get
+  // the full pattern (6 hits each) — 3+6+6+3 = 18 total drum hits.
+  const chordChart = [
+    { chord: "C", section: "Intro" },
+    { chord: "Am", section: "Verse" },
+    { chord: "F", section: "Verse" },
+    { chord: "G", section: "Outro" },
+  ];
   const bpm = 120;
+  const key = "C major";
 
-  const bytes = buildMidi(notes, chordChart, bpm);
+  const bytes = buildMidi(notes, chordChart, bpm, key);
   assert(bytes instanceof Uint8Array, "buildMidi did not return a Uint8Array");
 
   const parsed = new Midi(bytes);
-  assert(parsed.tracks.length === 2, `expected 2 tracks, got ${parsed.tracks.length}`);
+  assert(parsed.tracks.length === 3, `expected 3 tracks, got ${parsed.tracks.length}`);
 
   const melody = parsed.tracks.find((tr) => tr.name === "melody");
   const chords = parsed.tracks.find((tr) => tr.name === "chords");
+  const drums = parsed.tracks.find((tr) => tr.name === "drums");
   assert(melody, "melody track missing");
   assert(chords, "chords track missing");
+  assert(drums, "drums track missing");
   assert(
     melody.notes.length === notes.length,
     `expected ${notes.length} melody notes, got ${melody.notes.length}`,
@@ -59,16 +75,17 @@ const { Midi } = midiPkg;
     chords.notes.length === chordChart.length * 3,
     `expected ${chordChart.length * 3} chord notes, got ${chords.notes.length}`,
   );
+  assert(drums.notes.length === 18, `expected 18 drum hits, got ${drums.notes.length}`);
 
   // Spot-check actual MIDI numbers, not just counts.
   assert(melody.notes[0].midi === 60, `expected C4 -> midi 60, got ${melody.notes[0].midi}`);
   assert(melody.notes[1].midi === 64, `expected E4 -> midi 64, got ${melody.notes[1].midi}`);
   assert(melody.notes[2].midi === 67, `expected G4 -> midi 67, got ${melody.notes[2].midi}`);
-  for (const n of [...melody.notes, ...chords.notes]) {
+  for (const n of [...melody.notes, ...chords.notes, ...drums.notes]) {
     assert(n.midi >= 0 && n.midi <= 127, `midi value out of range: ${n.midi}`);
   }
 
   console.log(
-    `buildMidi() roundtrip OK: ${melody.notes.length} melody notes, ${chords.notes.length} chord notes`,
+    `buildMidi() roundtrip OK: ${melody.notes.length} melody notes, ${chords.notes.length} chord notes, ${drums.notes.length} drum hits`,
   );
 }

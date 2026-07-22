@@ -151,9 +151,11 @@ function buildRegionModel(project: Project): RegionModel {
       // options are literally "Vaporisateur"/"Apparat" is indistinguishable text soup with no
       // styling to separate them (a real user hit this: reported seeing "Vaporisateur /
       // Apparat / Vaporisateur 2 / Apparat" with no way to tell label from option). Track order
-      // is stable and matches buildMidi()'s fixed two-track output (app/lib/audio/midi.ts:
-      // melody added first, chords second) — labeling by that known order is unambiguous.
-      const label = audioUnitIndex === 0 ? "Melody" : audioUnitIndex === 1 ? "Chords" : `Track ${audioUnitIndex + 1}`;
+      // is stable and matches buildMidi()'s fixed three-track output (app/lib/audio/midi.ts:
+      // melody added first, chords second, drums third) — labeling by that known order is
+      // unambiguous. (The "drums" track still imports as an ordinary Vaporisateur note track,
+      // same known limitation as importMidi.ts — this only fixes its display label.)
+      const label = audioUnitIndex === 0 ? "Melody" : audioUnitIndex === 1 ? "Chords" : audioUnitIndex === 2 ? "Drums" : `Track ${audioUnitIndex + 1}`;
       tracks.push({ trackId, label });
     }
     audioUnitIndex++;

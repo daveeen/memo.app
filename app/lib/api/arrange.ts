@@ -3,7 +3,7 @@ import type { CaptureAnalysis, VibeBrief, SongBuild } from "~/lib/types";
 
 const URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/arrange`;
 
-export async function buildSong(idea: any, brief: any): Promise<Omit<SongBuild, "id" | "backingMidiPath">> {
+export async function buildSong(idea: any, brief: any | null): Promise<Omit<SongBuild, "id" | "backingMidiPath">> {
   // `arrange` is deployed with Supabase JWT verification on, so the Authorization header must
   // carry the signed-in user's own access token — the shared anon key is not a user session and
   // either fails verification outright or (worse) authenticates as no one in particular.
@@ -17,15 +17,21 @@ export async function buildSong(idea: any, brief: any): Promise<Omit<SongBuild, 
     body: JSON.stringify({
       key: idea.key, tempo: idea.bpm,
       chords: [], melody_contour: (idea.notes_json ?? idea.notes)?.map((n: any) => n.pitch),
-      ref_progression: brief.progression_json ?? brief.chordProgression,
-      structure: (brief.structure_json ?? brief.sections).map((s: any, i: number) => ({ label: s.label, order: i + 1 })),
+      ref_progression: brief ? (brief.progression_json ?? brief.chordProgression) : null,
+      structure: brief ? (brief.structure_json ?? brief.sections).map((s: any, i: number) => ({ label: s.label, order: i + 1 })) : null,
     }),
   });
   if (!r.ok) {
     const err = await r.json().catch(() => ({}));
     throw new Error(err.error ?? `arrange failed: ${r.status}`);
   }
-  const { chordChart, instrumentation } = await r.json();
-  const structure = (brief.structure_json ?? brief.sections).map((s: any, i: number) => ({ label: s.label, order: i + 1 }));
-  return { sourceIdeaId: idea.id, sourceVibeBriefId: brief.id, chordChart, structure, instrumentation };
+  // `structure` now comes back from the arrange function itself — either an
+  // echo of the reference structure we sent, or (when we sent null because
+  // there was no brief) the one Gemini invented from key/tempo/melody alone.
+  // Gemini only returns {label} per entry (see arrange/index.ts's schema);
+  // `order` is derived from array position here, same as it always was for
+  // the brief-supplied case.
+  const { chordChart, instrumentation, structure: rawStructure } = await r.json();
+  const structure = (rawStructure ?? []).map((s: any, i: number) => ({ label: s.label, order: i + 1 }));
+  return { sourceIdeaId: idea.id, sourceVibeBriefId: brief?.id ?? null, chordChart, structure, instrumentation };
 }

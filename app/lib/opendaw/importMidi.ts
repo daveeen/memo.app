@@ -1,9 +1,16 @@
 // Decodes a .mid file (as produced by app/lib/audio/midi.ts's buildMidi(), which
-// emits exactly two note tracks — "melody" and "chords" — via `midi.addTrack()`)
+// emits three note tracks — "melody", "chords", "drums" — via `midi.addTrack()`)
 // into a fresh openDAW Project: one Vaporisateur instrument + note track per
 // source MIDI track that actually contains notes, with each decoded note
 // represented as a NoteEventBox inside a single NoteRegionBox spanning that
 // track's notes.
+//
+// Known limitation: every track, including "drums" (General MIDI channel 10),
+// imports as an ordinary melodic Vaporisateur note track — there is no
+// percussion-aware instrument in this app's fixed Vaporisateur/Apparat enum,
+// so the drum pattern plays back as pitched synth notes here, not drum hits.
+// Fixing this needs a real percussion instrument/sample story this app
+// doesn't have yet, not a one-line change — out of scope for now.
 //
 // Real confirmed API per "## Task 1 findings" in
 // docs/superpowers/plans/2026-07-21-opendaw-integration.md — NOT the plan's
