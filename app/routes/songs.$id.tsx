@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
-import { getSong } from "~/lib/api/bank";
+import { getSong, updateSongNote, updateSongLyrics } from "~/lib/api/bank";
 import { playSong, type SongPlayback } from "~/lib/audio/playback";
 import { supabase } from "~/lib/supabase";
 import { SEC_COLORS, chordIndexToRow } from "~/lib/memoVisuals";
@@ -135,6 +135,12 @@ export default function Builder() {
           <span key={i} style={cssText("font-size:12.5px;font-weight:600;font-style:italic;color:#9A5A3C;background:#F1E7D3;border:1px dashed rgba(154,90,60,.4);border-radius:20px;padding:6px 12px;")}>~ {name}</span>
         ))}
       </div>
+
+      <div style={cssText("margin-top:20px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#57565E;")}>Lyrics</div>
+      <textarea defaultValue={song.lyrics ?? ''} onBlur={e => updateSongLyrics(id, e.target.value)} placeholder="write the words to sing over this..." style={cssText("margin-top:8px;width:100%;height:88px;border:1px solid rgba(0,0,0,.08);border-radius:13px;padding:11px 13px;font-size:14px;line-height:1.5;color:#17161B;background:#fff;outline:none;")}></textarea>
+      <div style={cssText("margin-top:14px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#57565E;")}>Notes</div>
+      <textarea defaultValue={song.note ?? ''} onBlur={e => updateSongNote(id, e.target.value)} placeholder="production ideas, arrangement reminders..." style={cssText("margin-top:8px;width:100%;height:64px;border:1px solid rgba(0,0,0,.08);border-radius:13px;padding:11px 13px;font-size:14px;color:#17161B;background:#fff;outline:none;")}></textarea>
+      <div style={cssText("font-size:11px;color:#8a8791;margin-top:6px;")}>Saved automatically.</div>
 
       <div style={cssText("margin-top:20px;display:flex;flex-direction:column;gap:10px;")}>
         <button onClick={exportMidi} style={cssText("width:100%;padding:15px;border-radius:15px;border:none;background:linear-gradient(135deg,#C97B3C,#A8432F);color:#fff;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 10px 24px rgba(160,86,58,.35);")}>Export .mid</button>

@@ -127,3 +127,11 @@ export async function getSong(id: string) {
   if (error) throw error;
   return data;
 }
+
+export async function updateSongNote(id: string, note: string) {
+  await supabase.from("songs").update({ note }).eq("id", id);
+}
+
+export async function updateSongLyrics(id: string, lyrics: string) {
+  await supabase.from("songs").update({ lyrics }).eq("id", id);
+}
