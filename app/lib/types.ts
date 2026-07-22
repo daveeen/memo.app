@@ -3,6 +3,7 @@ export interface CaptureAnalysis {
   inputType: "hum" | "vocal" | "guitar" | "other"; moodTag: string;
   notes: { pitch: string; startSec: number; durSec: number }[];
   cleanedAudioPath: string;
+  waveformPeaks: number[];
 }
 export interface VibeBrief {
   id: string; sourceTrackName: string; source: "itunes" | "upload"; previewUrl?: string;

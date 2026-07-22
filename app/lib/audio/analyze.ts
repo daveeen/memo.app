@@ -3,6 +3,7 @@ import { decodeAndClean } from "./decode";
 import { classifyInput } from "./classify";
 import { detectChords } from "./chords";
 import { segment } from "./segment";
+import { bucketPeaks } from "~/lib/memoVisuals";
 import type { CaptureAnalysis, VibeBrief } from "~/lib/types";
 
 // PitchYinProbabilistic emits one pitch frame every HOP_SIZE samples.
@@ -59,7 +60,8 @@ export async function analyzeCapture(blob: Blob): Promise<Omit<CaptureAnalysis, 
   const notes = framesToNotes(pitches, voiced, hop);
 
   const moodTag = moodFrom(scale, bpm);
-  return { durationSec, detectedKey: `${key} ${scale}`, bpm, inputType, moodTag, notes };
+  const waveformPeaks = bucketPeaks(pcm);
+  return { durationSec, detectedKey: `${key} ${scale}`, bpm, inputType, moodTag, notes, waveformPeaks };
 }
 
 // Reference tracks (iTunes previews / uploads) are polyphonic songs, unlike a
