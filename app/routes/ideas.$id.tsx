@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, Fragment } from "react";
+import { usePreviewPlayer } from "~/lib/usePreviewPlayer";
 import { useNavigate, useParams } from "react-router";
 import { getIdea, ideaAudioUrl, renameIdea, updateIdeaNote, updateIdeaLyrics, listSongsForIdea, deleteIdea } from "~/lib/api/bank";
 import { decoIdea } from "~/lib/memoVisuals";
@@ -16,6 +17,7 @@ export default function IdeaDetail() {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(undefined);
+  const { playingUrl: previewPlayingUrl, toggle: togglePreview } = usePreviewPlayer();
   useEffect(() => {
     if (!id) return;
     listSongsForIdea(id).then(setSongs);
@@ -105,6 +107,28 @@ export default function IdeaDetail() {
       <div style={cssText("margin-top:14px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#57565E;")}>Lyrics</div>
       <textarea defaultValue={row.lyrics ?? ''} onBlur={e => updateIdeaLyrics(id, e.target.value)} placeholder="words for the melody…" style={cssText("margin-top:8px;width:100%;height:88px;border:1px solid rgba(0,0,0,.08);border-radius:13px;padding:11px 13px;font-size:14px;line-height:1.5;color:#17161B;background:#fff;outline:none;")}></textarea>
       <div style={cssText("font-size:11px;color:#8a8791;margin-top:6px;")}>Saved automatically.</div>
+
+      {row.sounds_like_json && row.sounds_like_json.length > 0 && (
+        <>
+          <div style={cssText("margin-top:20px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#57565E;")}>Sounds like</div>
+          <div style={cssText("margin-top:10px;display:flex;flex-direction:column;gap:9px;")}>
+            {row.sounds_like_json.map((t: { title: string; artist: string; artworkUrl: string; previewUrl: string }, i: number) => (
+              <button
+                key={i}
+                onClick={() => togglePreview(t.previewUrl)}
+                style={cssText("display:flex;align-items:center;gap:12px;padding:8px;border-radius:12px;background:#fff;border:1px solid rgba(0,0,0,.07);cursor:pointer;text-align:left;width:100%;")}
+              >
+                <div style={cssText(`width:44px;height:44px;border-radius:9px;flex:none;background-color:#e3d8c4;background-image:url(${t.artworkUrl});background-size:cover;background-position:center;box-shadow:0 3px 7px rgba(0,0,0,.12);`)}></div>
+                <div style={cssText("flex:1;min-width:0;")}>
+                  <div style={cssText("font-size:14px;font-weight:700;color:#17161B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;")}>{t.title}</div>
+                  <div style={cssText("font-size:11.5px;color:#8a8791;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;")}>{t.artist}</div>
+                </div>
+                <span style={cssText("font-size:16px;color:#B5503C;flex:none;")}>{previewPlayingUrl === t.previewUrl ? "❚❚" : "▶"}</span>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
 
       {songs.length > 0 && (
         <>

@@ -1,7 +1,12 @@
 import { supabase } from "~/lib/supabase";
-import type { CaptureAnalysis, BankEntry, VibeBrief } from "~/lib/types";
+import type { CaptureAnalysis, BankEntry, VibeBrief, SoundsLikeEntry } from "~/lib/types";
 
-export async function saveIdea(blob: Blob, a: Omit<CaptureAnalysis, "id" | "cleanedAudioPath">, title: string) {
+export async function saveIdea(
+  blob: Blob,
+  a: Omit<CaptureAnalysis, "id" | "cleanedAudioPath">,
+  title: string,
+  soundsLike: SoundsLikeEntry[] = [],
+) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("not authenticated");
   const path = `${user.id}/${crypto.randomUUID()}.webm`;
@@ -10,7 +15,7 @@ export async function saveIdea(blob: Blob, a: Omit<CaptureAnalysis, "id" | "clea
   const { data, error } = await supabase.from("ideas").insert({
     title, raw_path: path, duration: a.durationSec, key: a.detectedKey,
     bpm: a.bpm, notes_json: a.notes, input_type: a.inputType, mood: a.moodTag,
-    waveform_json: a.waveformPeaks,
+    waveform_json: a.waveformPeaks, sounds_like_json: soundsLike,
   }).select().single();
   if (error) throw error;
   return data;

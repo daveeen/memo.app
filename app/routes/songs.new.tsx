@@ -1,11 +1,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
-import { listIdeas, listBriefs, saveSong } from "~/lib/api/bank";
+import { listIdeas, listBriefs, saveBrief, saveSong } from "~/lib/api/bank";
 import { buildSong } from "~/lib/api/arrange";
 import { buildMidi } from "~/lib/audio/midi";
+import { analyzeReference } from "~/lib/audio/analyze";
+import { searchTracks, fetchPreviewBlob } from "~/lib/api/tracks";
 import { decoIdea, PAL } from "~/lib/memoVisuals";
 import { Cassette } from "~/components/memo/Cassette";
+import { usePreviewPlayer } from "~/lib/usePreviewPlayer";
 import { cssText } from "~/lib/cssText";
+
+type SearchTrack = { trackName: string; artist: string; artworkUrl: string; previewUrl: string };
 
 export default function Chooser() {
   const nav = useNavigate();
@@ -15,8 +20,36 @@ export default function Chooser() {
   const [ideaId, setIdeaId] = useState<string | null>(sp.get("idea"));
   const [briefId, setBriefId] = useState<string | null>(sp.get("brief"));
   const [busy, setBusy] = useState(false);
+  const [briefQuery, setBriefQuery] = useState("");
+  const [briefResults, setBriefResults] = useState<SearchTrack[]>([]);
+  const [analyzingUrl, setAnalyzingUrl] = useState<string | null>(null);
+  const { playingUrl, toggle: togglePreview } = usePreviewPlayer();
   useEffect(() => { listIdeas().then(setIdeas); listBriefs().then(setBriefs); }, []);
-  const ready = !!ideaId && !!briefId && !busy;
+  const picked = !!ideaId && !!briefId;
+  const ready = picked && !busy;
+
+  async function searchBriefs() {
+    const hits = await searchTracks(briefQuery).catch(() => []);
+    setBriefResults(hits);
+  }
+
+  // Picking a search result runs it through the same analyze -> saveBrief
+  // pipeline brief.tsx's pick() already uses (saveBrief already dedupes by
+  // track+source, from an earlier fix) — then selects the resulting brief.
+  async function pickSearchResult(t: SearchTrack) {
+    setAnalyzingUrl(t.previewUrl);
+    try {
+      const blob = await fetchPreviewBlob(t.previewUrl);
+      const a = await analyzeReference(blob, t.trackName, "itunes");
+      const saved = await saveBrief({ ...a, previewUrl: t.previewUrl });
+      setBriefs((prev) => [saved, ...prev.filter((b) => b.id !== saved.id)]);
+      setBriefId(saved.id);
+      setBriefQuery("");
+      setBriefResults([]);
+    } finally {
+      setAnalyzingUrl(null);
+    }
+  }
 
   async function build() {
     const idea = ideas.find((i) => i.id === ideaId);
@@ -60,10 +93,43 @@ export default function Chooser() {
       </div>
 
       <div style={cssText("margin-top:22px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#7C7A3A;")}>
-        Side B · reference brief <span style={cssText("color:#8a8791;font-weight:600;text-transform:none;letter-spacing:0;")}>· recents first</span>
+        Side B · reference brief
       </div>
-      <div style={cssText("display:flex;flex-direction:column;gap:9px;margin-top:10px;")}>
-        {briefs.map((b, idx) => {
+      <div style={cssText("margin-top:10px;display:flex;align-items:center;gap:10px;padding:0 15px;height:48px;background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.04);")}>
+        <button onClick={searchBriefs} aria-label="Search" style={cssText("display:flex;align-items:center;border:none;background:none;padding:0;cursor:pointer;")}>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#9a99a3" strokeWidth="2" /><path d="M20 20l-3.5-3.5" stroke="#9a99a3" strokeWidth="2" strokeLinecap="round" /></svg>
+        </button>
+        <input value={briefQuery} onChange={(e) => setBriefQuery(e.target.value)} placeholder="Search a track..." style={cssText("flex:1;border:none;background:none;outline:none;font-size:14.5px;color:#17161B;font-weight:500;")} />
+      </div>
+
+      {briefQuery ? (
+        <div style={cssText("display:flex;flex-direction:column;gap:9px;margin-top:10px;")}>
+          {briefResults.map((t, i) => (
+            <div
+              key={i}
+              style={cssText(`display:flex;align-items:center;gap:12px;padding:10px;border-radius:14px;background:#fff;border:1px solid rgba(0,0,0,.07);`)}
+            >
+              <div style={cssText(`width:44px;height:44px;border-radius:10px;flex:none;background-color:#e8e6ea;background-image:url(${t.artworkUrl});background-size:cover;background-position:center;`)}></div>
+              <div style={cssText("flex:1;text-align:left;min-width:0;")}>
+                <div style={cssText("font-size:14px;font-weight:700;color:#17161B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;")}>{t.trackName}</div>
+                <div style={cssText("font-size:12px;color:#8a8791;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;")}>{t.artist}</div>
+              </div>
+              <button onClick={() => togglePreview(t.previewUrl)} style={cssText("flex:none;width:30px;height:30px;border-radius:50%;border:none;background:#F7F1E3;color:#7C7A3A;cursor:pointer;font-size:12px;")}>
+                {playingUrl === t.previewUrl ? "❚❚" : "▶"}
+              </button>
+              <button
+                onClick={() => pickSearchResult(t)}
+                disabled={analyzingUrl === t.previewUrl}
+                style={cssText(`flex:none;padding:8px 14px;border-radius:20px;border:none;background:#17161B;color:#fff;font-size:12px;font-weight:700;cursor:pointer;opacity:${analyzingUrl === t.previewUrl ? .5 : 1};`)}
+              >
+                {analyzingUrl === t.previewUrl ? "Analyzing..." : "Select"}
+              </button>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div style={cssText("display:flex;flex-direction:column;gap:9px;margin-top:10px;")}>
+          {briefs.map((b, idx) => {
           const art = PAL[idx % PAL.length].shell;
           return (
             <button
@@ -80,14 +146,18 @@ export default function Chooser() {
             </button>
           );
         })}
-      </div>
+        </div>
+      )}
 
       <button
         onClick={build}
         disabled={!ready}
-        style={cssText(`margin-top:24px;width:100%;padding:16px;border-radius:16px;border:none;font-size:15px;font-weight:700;cursor:pointer;background:#17161B;color:#fff;opacity:${ready ? 1 : .4};pointer-events:${ready ? "auto" : "none"};box-shadow:0 10px 24px rgba(20,15,40,.2);`)}
+        style={cssText(`margin-top:24px;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:16px;border-radius:16px;border:none;font-size:15px;font-weight:700;cursor:pointer;background:#17161B;color:#fff;opacity:${!picked ? .4 : 1};pointer-events:${ready ? "auto" : "none"};box-shadow:0 10px 24px rgba(20,15,40,.2);`)}
       >
-        {ready ? "Build song →" : "Pick one of each to build"}
+        {busy && (
+          <span style={cssText("width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;animation:mSpin .8s linear infinite;display:inline-block;")}></span>
+        )}
+        {busy ? "Building..." : !picked ? "Pick one of each to build" : "Build song →"}
       </button>
     </div>
   );

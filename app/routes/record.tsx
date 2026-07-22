@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { analyzeCapture } from "~/lib/audio/analyze";
-import { saveIdea, listBriefs } from "~/lib/api/bank";
+import { saveIdea } from "~/lib/api/bank";
 import { searchTracks } from "~/lib/api/tracks";
-import { soundsLike } from "~/lib/memoVisuals";
+import { suggestSimilar } from "~/lib/api/suggestSimilar";
+import { usePreviewPlayer } from "~/lib/usePreviewPlayer";
 import { cssText } from "~/lib/cssText";
-import type { CaptureAnalysis } from "~/lib/types";
+import type { CaptureAnalysis, SoundsLikeEntry } from "~/lib/types";
 
 // Real-time waveform driven by the mic's own AnalyserNode (see startLiveWave) —
 // no decorative CSS pulse. Colour keeps the mockup's per-index hue sweep.
@@ -15,9 +16,8 @@ const REST_BARS = Array.from({ length: BAR_COUNT }, () => 0.12);
 
 export default function Record() {
   const nav = useNavigate();
-  const [briefs, setBriefs] = useState<any[]>([]);
-  useEffect(() => { listBriefs().then(setBriefs); }, []);
-  const [itunesHits, setItunesHits] = useState<{ trackName: string; artist: string; artworkUrl: string }[]>([]);
+  const [soundsLike, setSoundsLike] = useState<SoundsLikeEntry[]>([]);
+  const { playingUrl: previewPlayingUrl, toggle: togglePreview } = usePreviewPlayer();
   const rec = useRef<MediaRecorder>(undefined);
   const stream = useRef<MediaStream>(undefined);
   const chunks = useRef<Blob[]>([]);
@@ -111,7 +111,7 @@ export default function Record() {
   };
   async function save() {
     if (!blobRef.current || !analysis) return;
-    await saveIdea(blobRef.current, analysis, pendingTitle);
+    await saveIdea(blobRef.current, analysis, pendingTitle, soundsLike);
     nav("/ideas");
   }
   async function uploadFile(f: File) {
@@ -119,24 +119,31 @@ export default function Record() {
     await finishAnalysis(f);
   }
 
-  const moodTag = analysis?.moodTag;
+  // Real "sounds like": Gemini suggests actual song/artist names for this
+  // capture's key/bpm/mood/type, each gets resolved to a real iTunes hit
+  // (artwork + playable preview) via the existing searchTracks() client —
+  // any suggestion iTunes can't find is silently dropped rather than shown
+  // as a broken/unplayable row. Replaces the old vibe_briefs-cache matching
+  // and mood-word iTunes text search, both removed.
   useEffect(() => {
-    if (!moodTag) return;
-    searchTracks(moodTag).then(setItunesHits).catch(() => setItunesHits([]));
-  }, [moodTag]);
-
-  const similar = analysis ? soundsLike({ key: analysis.detectedKey, bpm: analysis.bpm }, briefs) : [];
-  // Real iTunes search (by mood — the only real signal we have to search text
-  // with, since iTunes has no audio-feature endpoint) minus anything already
-  // represented above via a cached vibe_brief — no showing the same track twice.
-  const cachedTitles = new Set(briefs.map((b) => (b.source_track_name || "").trim().toLowerCase()));
-  const seenFresh = new Set<string>();
-  const fresh = itunesHits.filter((t) => {
-    const key = t.trackName.trim().toLowerCase();
-    if (!key || cachedTitles.has(key) || seenFresh.has(key)) return false;
-    seenFresh.add(key);
-    return true;
-  }).slice(0, 4);
+    if (!analysis) return;
+    let cancelled = false;
+    setSoundsLike([]);
+    suggestSimilar({
+      key: analysis.detectedKey, bpm: analysis.bpm,
+      mood: analysis.moodTag, inputType: analysis.inputType,
+    })
+      .then(async (suggestions) => {
+        const resolved = await Promise.all(suggestions.map(async (s) => {
+          const hits = await searchTracks(`${s.title} ${s.artist}`).catch(() => []);
+          const hit = hits[0];
+          return hit ? { title: hit.trackName, artist: hit.artist, artworkUrl: hit.artworkUrl, previewUrl: hit.previewUrl } : null;
+        }));
+        if (!cancelled) setSoundsLike(resolved.filter((r): r is SoundsLikeEntry => r !== null));
+      })
+      .catch(() => { if (!cancelled) setSoundsLike([]); });
+    return () => { cancelled = true; };
+  }, [analysis]);
 
   const revealStats = analysis ? [
     { label: "Input", value: analysis.inputType, inf: false },
@@ -282,35 +289,27 @@ export default function Record() {
             })}
           </div>
 
-          {/* sounds like — real key+BPM match against the user's own analyzed
-              reference tracks (vibe_briefs) first, then real iTunes search hits
-              on the mood tag (no fake % — we have no audio-feature score for
-              those), skipping anything already shown as a cached match */}
-          {(similar.length > 0 || fresh.length > 0) && (
+          {/* sounds like — Gemini-suggested, iTunes-resolved, playable */}
+          {soundsLike.length > 0 && (
             <>
               <div style={cssText("margin-top:22px;display:flex;align-items:baseline;justify-content:space-between;")}>
                 <div style={cssText("font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#8a7d68;")}>Sounds like</div>
-                <div style={cssText("font-size:11.5px;font-weight:600;color:#a89a82;")}>matched on key · tempo</div>
+                <div style={cssText("font-size:11.5px;font-weight:600;color:#a89a82;")}>tap to preview</div>
               </div>
               <div style={cssText("margin-top:12px;display:flex;flex-direction:column;gap:9px;")}>
-                {similar.map((v) => (
-                  <div key={`c-${v.id}`} style={cssText("display:flex;align-items:center;gap:12px;padding:8px;border-radius:12px;background:#F7F1E3;border:1px solid rgba(46,36,24,.1);")}>
-                    <div style={cssText(`width:44px;height:44px;border-radius:9px;flex:none;background:${v.art};box-shadow:0 3px 7px rgba(46,36,24,.18);`)}></div>
-                    <div style={cssText("flex:1;min-width:0;")}>
-                      <div style={cssText("font-size:14px;font-weight:700;color:#2E2418;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;")}>{v.title}</div>
-                    </div>
-                    <span style={cssText("font-size:11px;font-weight:700;color:#0b8a3d;font-family:'Space Mono',monospace;white-space:nowrap;")}>{v.matchPct}</span>
-                  </div>
-                ))}
-                {fresh.map((t, i) => (
-                  <div key={`f-${i}`} style={cssText("display:flex;align-items:center;gap:12px;padding:8px;border-radius:12px;background:#F7F1E3;border:1px solid rgba(46,36,24,.1);")}>
+                {soundsLike.map((t, i) => (
+                  <button
+                    key={i}
+                    onClick={() => togglePreview(t.previewUrl)}
+                    style={cssText("display:flex;align-items:center;gap:12px;padding:8px;border-radius:12px;background:#F7F1E3;border:1px solid rgba(46,36,24,.1);cursor:pointer;text-align:left;width:100%;")}
+                  >
                     <div style={cssText(`width:44px;height:44px;border-radius:9px;flex:none;background-color:#e3d8c4;background-image:url(${t.artworkUrl});background-size:cover;background-position:center;box-shadow:0 3px 7px rgba(46,36,24,.18);`)}></div>
                     <div style={cssText("flex:1;min-width:0;")}>
-                      <div style={cssText("font-size:14px;font-weight:700;color:#2E2418;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;")}>{t.trackName}</div>
+                      <div style={cssText("font-size:14px;font-weight:700;color:#2E2418;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;")}>{t.title}</div>
                       <div style={cssText("font-size:11.5px;color:#8a7d68;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;")}>{t.artist}</div>
                     </div>
-                    <span style={cssText("font-size:9.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#8a7d68;white-space:nowrap;")}>iTunes</span>
-                  </div>
+                    <span style={cssText("font-size:16px;color:#B5503C;flex:none;")}>{previewPlayingUrl === t.previewUrl ? "❚❚" : "▶"}</span>
+                  </button>
                 ))}
               </div>
             </>
