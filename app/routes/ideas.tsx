@@ -67,10 +67,10 @@ export default function Ideas() {
         </button>
       </div>
 
-      <div style={cssText("margin-top:24px;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#57565E;")}>Ideas</div>
+      <div style={cssText("margin-top:16px;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#57565E;")}>Ideas</div>
       <h1 style={cssText("margin:5px 0 0;padding-top:4px;font-size:28px;font-weight:800;letter-spacing:-.035em;color:#17161B;line-height:1.2;")}>Your ideas,<br />on tape.</h1>
 
-      <div style={cssText("margin-top:20px;display:flex;align-items:center;gap:10px;padding:0 15px;height:50px;background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:15px;box-shadow:0 4px 14px rgba(0,0,0,.04);")}>
+      <div style={cssText("margin-top:16px;display:flex;align-items:center;gap:10px;padding:0 15px;height:50px;background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:15px;box-shadow:0 4px 14px rgba(0,0,0,.04);")}>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#9a99a3" strokeWidth="2"></circle><path d="M20 20l-3.5-3.5" stroke="#9a99a3" strokeWidth="2" strokeLinecap="round"></path></svg>
         <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search by mood, key, BPM..." style={cssText("flex:1;border:none;background:none;outline:none;font-size:15px;color:#17161B;font-weight:500;")} />
       </div>
@@ -93,11 +93,15 @@ export default function Ideas() {
         <div style={cssText("font-size:16px;font-weight:700;letter-spacing:-.02em;color:#2E2418;")}>All ideas</div>
         <div style={cssText("font-size:11.5px;font-weight:600;color:#8a7d68;")}>Tap a tape to pull it out</div>
       </div>
-      {/* Fixed box (border/shadow/placement never moves) — height sized to fit
-          4 full rows (4*38px rows + 3*5px gaps + 2*10px padding = 187px) before
-          it needs to scroll internally. className="m-scroll" is what scrolls,
-          not the page. */}
-      <div className="m-scroll" style={cssText("margin-top:10px;height:190px;flex:none;background:linear-gradient(180deg,#2E2318,#1B140D);border-radius:12px;padding:10px 9px;box-shadow:inset 0 2px 12px rgba(0,0,0,.55),0 8px 18px rgba(60,44,32,.16);display:flex;flex-direction:column;gap:5px;")}>
+      {/* Fixed box (border/shadow/placement never moves) — flex:1;min-height:0
+          takes exactly whatever space is left after everything above it, so
+          it can NEVER overflow the viewport (a hardcoded height here would
+          only be correct for one specific screen height and clip on shorter
+          ones, which is what happened before). Rows beyond what fits scroll
+          internally via className="m-scroll" — the page itself never scrolls.
+          4 rows = ~187px (4*38px rows + 3*5px gaps + 2*10px padding); on most
+          phone-height viewports that's comfortably within what's left here. */}
+      <div className="m-scroll" style={cssText("margin-top:10px;flex:1;min-height:0;background:linear-gradient(180deg,#2E2318,#1B140D);border-radius:12px;padding:10px 9px 90px;box-shadow:inset 0 2px 12px rgba(0,0,0,.55),0 8px 18px rgba(60,44,32,.16);display:flex;flex-direction:column;gap:5px;")}>
         {shown.map(spineRow)}
         {shown.length === 0 && (
           <div style={cssText("flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:14px;")}>
