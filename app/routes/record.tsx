@@ -5,13 +5,13 @@ import { saveIdea } from "~/lib/api/bank";
 import { searchTracks } from "~/lib/api/tracks";
 import { suggestSimilar } from "~/lib/api/suggestSimilar";
 import { usePreviewPlayer } from "~/lib/usePreviewPlayer";
+import { envelopeToPath } from "~/lib/memoVisuals";
 import { cssText } from "~/lib/cssText";
 import type { CaptureAnalysis, SoundsLikeEntry } from "~/lib/types";
 
 // Real-time waveform driven by the mic's own AnalyserNode (see startLiveWave) —
 // no decorative CSS pulse. Colour keeps the mockup's per-index hue sweep.
 const BAR_COUNT = 46;
-const barColor = (i: number) => `hsl(${16 + i * 2.2},72%,58%)`;
 const REST_BARS = Array.from({ length: BAR_COUNT }, () => 0.12);
 
 // A single "{mood} idea" template for every take felt repetitive in a
@@ -226,10 +226,10 @@ export default function Record() {
             </div>
             <div style={cssText("margin-top:22px;font-size:54px;font-weight:800;letter-spacing:-.02em;color:#fbf4e6;font-variant-numeric:tabular-nums;z-index:5;")}>{recTime}</div>
             <div style={cssText("margin-top:2px;font-size:13px;font-weight:500;color:#c3b193;z-index:5;")}>{recSub}</div>
-            <div style={cssText("margin-top:40px;display:flex;align-items:center;justify-content:center;gap:2px;height:140px;width:320px;z-index:5;")}>
-              {liveBars.map((v, i) => (
-                <div key={i} style={cssText(`width:3px;height:126px;background:${barColor(i)};border-radius:2px;transform:scaleY(${((18 + 108 * Math.max(0.06, v)) / 126).toFixed(3)});transition:transform 60ms linear;`)}></div>
-              ))}
+            <div style={cssText("margin-top:40px;display:flex;align-items:center;justify-content:center;height:140px;width:320px;z-index:5;")}>
+              <svg viewBox="0 0 100 24" preserveAspectRatio="none" style={cssText("width:100%;height:100%;display:block;")}>
+                <path d={envelopeToPath(liveBars.map((v) => Math.max(0.06, v)))} fill="#fff"></path>
+              </svg>
             </div>
           </>
         )}
