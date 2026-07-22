@@ -33,6 +33,7 @@ function suggestTitle(mood: string): string {
 export default function Record() {
   const nav = useNavigate();
   const [soundsLike, setSoundsLike] = useState<SoundsLikeEntry[]>([]);
+  const [saving, setSaving] = useState(false);
   const { playingUrl: previewPlayingUrl, toggle: togglePreview } = usePreviewPlayer();
   const rec = useRef<MediaRecorder>(undefined);
   const stream = useRef<MediaStream>(undefined);
@@ -126,9 +127,18 @@ export default function Record() {
     setRecTime("00:00.0");
   };
   async function save() {
-    if (!blobRef.current || !analysis) return;
-    await saveIdea(blobRef.current, analysis, pendingTitle, soundsLike);
-    nav("/ideas");
+    // Without this guard a double-click/double-tap fires two concurrent
+    // saveIdea() calls — each uploads its own blob and inserts its own row,
+    // so the idea gets saved twice.
+    if (saving || !blobRef.current || !analysis) return;
+    setSaving(true);
+    try {
+      await saveIdea(blobRef.current, analysis, pendingTitle, soundsLike);
+      nav("/ideas");
+    } catch (e) {
+      console.error("[record] save failed:", e);
+      setSaving(false);
+    }
   }
   async function uploadFile(f: File) {
     setPhase("analysing");
@@ -331,9 +341,9 @@ export default function Record() {
           )}
 
           <div style={cssText("margin-top:auto;display:flex;gap:10px;padding-top:22px;")}>
-            <button onClick={discard} style={cssText("flex:none;padding:15px 18px;border-radius:15px;border:1px solid rgba(46,36,24,.14);background:#F7F1E3;color:#8a7d68;font-weight:600;font-size:14px;cursor:pointer;")}>Discard</button>
-            <button onClick={start} style={cssText("flex:none;padding:15px 18px;border-radius:15px;border:1px solid rgba(46,36,24,.14);background:#F7F1E3;color:#8a7d68;font-weight:600;font-size:14px;cursor:pointer;")}>Retry</button>
-            <button onClick={save} style={cssText(saveBtnStyle)}>Save idea</button>
+            <button onClick={discard} disabled={saving} style={cssText(`flex:none;padding:15px 18px;border-radius:15px;border:1px solid rgba(46,36,24,.14);background:#F7F1E3;color:#8a7d68;font-weight:600;font-size:14px;cursor:pointer;opacity:${saving ? .5 : 1};`)}>Discard</button>
+            <button onClick={start} disabled={saving} style={cssText(`flex:none;padding:15px 18px;border-radius:15px;border:1px solid rgba(46,36,24,.14);background:#F7F1E3;color:#8a7d68;font-weight:600;font-size:14px;cursor:pointer;opacity:${saving ? .5 : 1};`)}>Retry</button>
+            <button onClick={save} disabled={saving} style={cssText(`${saveBtnStyle}opacity:${saving ? .6 : 1};`)}>{saving ? "Saving…" : "Save idea"}</button>
           </div>
         </div>
       )}

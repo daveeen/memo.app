@@ -87,7 +87,14 @@ Deno.serve(async (req) => {
   // Rewriting artworkUrl to route through our own ?image= proxy here (rather
   // than in every caller) means every screen that shows iTunes artwork gets
   // a working, COEP-safe image with zero client-side changes.
-  const selfBase = `${url.origin}${url.pathname}`;
+  //
+  // req.url's origin/path is NOT the function's public URL — Supabase Edge
+  // Functions run behind an internal gateway, so `new URL(req.url)` resolved
+  // to a bogus `http://<project>.supabase.co/track-search` (wrong protocol,
+  // missing `/functions/v1/`), silently breaking every artwork image
+  // (confirmed live 2026-07-22). SUPABASE_URL is an auto-injected env var
+  // that always reflects the real public project URL.
+  const selfBase = `${Deno.env.get("SUPABASE_URL")}/functions/v1/track-search`;
   const out = results.filter((t: any) => t.previewUrl).map((t: any) => ({
     trackName: t.trackName, artist: t.artistName,
     artworkUrl: `${selfBase}?image=${encodeURIComponent(t.artworkUrl100)}`,
