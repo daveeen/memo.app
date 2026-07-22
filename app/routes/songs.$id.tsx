@@ -24,13 +24,6 @@ export default function Builder() {
     chords: chart.filter((c) => c.section === s.label).map((c) => c.chord),
   }));
   const instrumentation: string[] = song.instrumentation_json ?? [];
-  const fmt = (a: string, b: string) => { const d = Math.max(0, (new Date(a).getTime() - new Date(b).getTime()) / 1000); return `${Math.floor(d / 60)}:${String(Math.floor(d % 60)).padStart(2, "0")}`; };
-  const stages = [
-    { label: "captured", time: "0:00" },
-    { label: "analysed", time: "0:00" },
-    { label: "brief", time: brief ? fmt(brief.created_at, idea.created_at) : "—" },
-    { label: "built", time: fmt(song.created_at, idea.created_at) },
-  ];
   async function exportMidi() {
     if (!song.midi_path) return;
     const { data } = await supabase.storage.from("midi").createSignedUrl(song.midi_path, 3600);
@@ -51,8 +44,7 @@ export default function Builder() {
           fixed tab bar (80px) below it — 120px used to let the last card hide behind them. */}
       {/* Transcribed from .memo-design/screen-07-builder.html's builderComplete branch
           (builderBuilding branch skipped — this route always loads an already-built song). */}
-      <button onClick={() => nav("/songs")} style={cssText("display:flex;align-items:center;gap:7px;border:none;background:none;cursor:pointer;color:#57565E;font-size:14px;font-weight:600;padding:0;")}>← Songs</button>
-      <div style={cssText("margin-top:14px;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#57565E;")}>Song</div>
+      <div style={cssText("font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#57565E;")}>Song</div>
       <h2 style={cssText("margin:5px 0 10px;font-size:26px;font-weight:800;letter-spacing:-.03em;color:#2E2418;")}>{idea.title} × {brief?.source_track_name}</h2>
       <div style={cssText("display:flex;align-items:center;gap:8px;flex-wrap:wrap;")}>
         <span style={cssText("font-size:11px;font-weight:800;letter-spacing:.02em;color:#2E2418;background:#F4EDDB;border:1px solid rgba(46,36,24,.14);border-radius:8px;padding:5px 10px;font-family:'Space Mono',monospace;white-space:nowrap;")}>{idea.key}</span>
@@ -90,16 +82,6 @@ export default function Builder() {
       <div style={cssText("display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;")}>
         {instrumentation.map((name, i) => (
           <span key={i} style={cssText("font-size:12.5px;font-weight:600;font-style:italic;color:#9A5A3C;background:#F1E7D3;border:1px dashed rgba(154,90,60,.4);border-radius:20px;padding:6px 12px;")}>~ {name}</span>
-        ))}
-      </div>
-
-      <div style={cssText("margin-top:20px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#57565E;")}>Built in</div>
-      <div style={cssText("margin-top:10px;background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:13px;overflow:hidden;")}>
-        {stages.map((s, i) => (
-          <div key={i} style={cssText(`display:flex;align-items:center;justify-content:space-between;padding:10px 14px;${i < stages.length - 1 ? "border-bottom:1px solid rgba(0,0,0,.06);" : ""}`)}>
-            <span style={cssText("font-size:13px;font-weight:600;color:#17161B;text-transform:capitalize;")}>{s.label}</span>
-            <span style={cssText("font-family:'Space Mono',monospace;font-size:12px;color:#8a8791;")}>{s.time}</span>
-          </div>
         ))}
       </div>
 

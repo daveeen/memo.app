@@ -32,8 +32,7 @@ export default function IdeaDetail() {
   }
   return (
     <div className="m-scroll" style={cssText("flex:1;padding:24px 22px 120px;animation:mUp .3s ease both;")}>
-      <button onClick={() => nav('/ideas')} style={cssText("display:flex;align-items:center;gap:7px;border:none;background:none;cursor:pointer;color:#57565E;font-size:14px;font-weight:600;padding:0;")}>← Ideas</button>
-      <div style={cssText("margin-top:16px;display:flex;gap:16px;align-items:flex-start;")}>
+      <div style={cssText("display:flex;gap:16px;align-items:flex-start;")}>
         <div style={cssText("width:150px;flex:none;")}><Cassette idea={d} showMeta={false} /></div>
         <div style={cssText("flex:1;padding-top:4px;")}>
           <input key={id} defaultValue={d.name} onBlur={e => renameIdea(id, e.target.value)} style={cssText("width:100%;border:none;background:none;outline:none;font-size:22px;font-weight:800;letter-spacing:-.03em;color:#17161B;padding:0;")} />
