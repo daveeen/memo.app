@@ -1,18 +1,20 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { getSong } from "~/lib/api/bank";
 import { playSong } from "~/lib/audio/playback";
 import { supabase } from "~/lib/supabase";
 import { SEC_COLORS } from "~/lib/memoVisuals";
+import { useCachedFetch } from "~/lib/useCachedFetch";
+import { Spinner } from "~/components/Spinner";
 import { cssText } from "~/lib/cssText";
 
 export default function Builder() {
   const { id } = useParams();
   const nav = useNavigate();
-  const [song, setSong] = useState<any>();
+  const { data: song, loading } = useCachedFetch(`song:${id}`, () => getSong(id!));
   const [playing, setPlaying] = useState(false);
   const [exported, setExported] = useState(false);
-  useEffect(() => { if (id) getSong(id).then(setSong); }, [id]);
+  if (loading) return <Spinner />;
   if (!song || !id) return null;
 
   const idea = song.ideas, brief = song.vibe_briefs;
@@ -44,7 +46,7 @@ export default function Builder() {
   const transportSec = (playing ? structure[playIndex] : structure[0]) ?? structure[0];
 
   return (
-    <div className="m-scroll" style={cssText("flex:1;padding:24px 22px 190px;")}>
+    <div className="m-scroll" style={cssText("flex:1;padding:24px 22px 190px;animation:mUp .3s ease both;")}>
       {/* bottom padding clears the fixed transport bar (~74px) stacked above the
           fixed tab bar (80px) below it — 120px used to let the last card hide behind them. */}
       {/* Transcribed from .memo-design/screen-07-builder.html's builderComplete branch

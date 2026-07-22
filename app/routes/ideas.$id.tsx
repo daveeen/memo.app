@@ -3,19 +3,21 @@ import { useNavigate, useParams } from "react-router";
 import { getIdea, ideaAudioUrl, renameIdea, updateIdeaNote, updateIdeaLyrics, listSongsForIdea, deleteIdea } from "~/lib/api/bank";
 import { decoIdea } from "~/lib/memoVisuals";
 import { Cassette } from "~/components/memo/Cassette";
+import { useCachedFetch } from "~/lib/useCachedFetch";
+import { Spinner } from "~/components/Spinner";
 import { cssText } from "~/lib/cssText";
 
 export default function IdeaDetail() {
   const { id } = useParams();
   const nav = useNavigate();
-  const [row, setRow] = useState<any>();
+  const { data: row, loading } = useCachedFetch(`idea:${id}`, () => getIdea(id!));
   const [songs, setSongs] = useState<any[]>([]);
   const [playing, setPlaying] = useState(false);
   useEffect(() => {
     if (!id) return;
-    getIdea(id).then(setRow);
     listSongsForIdea(id).then(setSongs);
   }, [id]);
+  if (loading) return <Spinner />;
   if (!row || !id) return null;
   const d = decoIdea(row, 0);
   async function play() {
@@ -29,7 +31,7 @@ export default function IdeaDetail() {
     nav("/ideas");
   }
   return (
-    <div className="m-scroll" style={cssText("flex:1;padding:24px 22px 120px;")}>
+    <div className="m-scroll" style={cssText("flex:1;padding:24px 22px 120px;animation:mUp .3s ease both;")}>
       <button onClick={() => nav('/ideas')} style={cssText("display:flex;align-items:center;gap:7px;border:none;background:none;cursor:pointer;color:#57565E;font-size:14px;font-weight:600;padding:0;")}>← Ideas</button>
       <div style={cssText("margin-top:16px;display:flex;gap:16px;align-items:flex-start;")}>
         <div style={cssText("width:150px;flex:none;")}><Cassette idea={d} showMeta={false} /></div>
