@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { getSong } from "~/lib/api/bank";
-import { playSong } from "~/lib/audio/playback";
+import { playSong, type SongPlayback } from "~/lib/audio/playback";
 import { supabase } from "~/lib/supabase";
-import { SEC_COLORS } from "~/lib/memoVisuals";
+import { SEC_COLORS, chordIndexToRow } from "~/lib/memoVisuals";
 import { useCachedFetch } from "~/lib/useCachedFetch";
 import { Spinner } from "~/components/Spinner";
 import { cssText } from "~/lib/cssText";
@@ -14,6 +14,22 @@ export default function Builder() {
   const { data: song, loading } = useCachedFetch(`song:${id}`, () => getSong(id!));
   const [playing, setPlaying] = useState(false);
   const [exported, setExported] = useState(false);
+  const [position, setPosition] = useState(0);
+  const controllerRef = useRef<SongPlayback | null>(null);
+  const rafRef = useRef<number>(0);
+  // Guards against a rapid double-click on the play button starting a second
+  // playSong() call before the first one's await (Tone.start()/Tone.loaded(),
+  // which can take a moment on first use) has resolved — without this, both
+  // clicks would see playing===false and each start their own playback.
+  const startingRef = useRef(false);
+
+  // Force-stop on unmount/navigation — the actual fix for "keeps playing
+  // after leaving the page."
+  useEffect(() => () => {
+    controllerRef.current?.stop();
+    cancelAnimationFrame(rafRef.current);
+  }, []);
+
   if (loading) return <Spinner />;
   if (!song || !id) return null;
 
@@ -29,14 +45,49 @@ export default function Builder() {
     const { data } = await supabase.storage.from("midi").createSignedUrl(song.midi_path, 3600);
     if (data) { window.open(data.signedUrl); setExported(true); }
   }
-  const togglePlay = () => { if (!playing) playSong(chart, idea.bpm); setPlaying((p) => !p); };
 
-  // Mockup's simplified "always section 2" playhead: with no real playback-position
-  // tracking wired up, the source markup just hardcodes the highlighted structure
-  // row / transport indicator to index 2 while playing. Kept as-is (ponytail: real
-  // position tracking is a Phase-B upgrade, not this screen's job).
-  const playIndex = 2;
-  const transportSec = (playing ? structure[playIndex] : structure[0]) ?? structure[0];
+  const beat = (60 / idea.bpm) * 2;
+  const duration = chart.length * beat;
+  const chordCountsByRow = structure.map((s: any) => s.chords.length);
+
+  function trackPosition() {
+    const controller = controllerRef.current;
+    if (!controller) return;
+    setPosition(controller.getPosition());
+    rafRef.current = requestAnimationFrame(trackPosition);
+  }
+
+  async function togglePlay() {
+    if (playing) {
+      controllerRef.current?.stop();
+      controllerRef.current = null;
+      cancelAnimationFrame(rafRef.current);
+      setPlaying(false);
+      return;
+    }
+    if (startingRef.current) return;
+    startingRef.current = true;
+    try {
+      controllerRef.current = await playSong(chart, idea.bpm);
+      setPlaying(true);
+      rafRef.current = requestAnimationFrame(trackPosition);
+    } finally {
+      startingRef.current = false;
+    }
+  }
+
+  function seek(fraction: number) {
+    if (!controllerRef.current || !duration) return;
+    const sec = Math.max(0, Math.min(1, fraction)) * duration;
+    controllerRef.current.seek(sec);
+    setPosition(sec);
+  }
+
+  const currentChordIndex = Math.min(chart.length - 1, Math.floor(position / beat));
+  const playRow = chart.length > 0 ? chordIndexToRow(chordCountsByRow, currentChordIndex) : 0;
+  const transportSec = (playing ? structure[playRow] : structure[0]) ?? structure[0];
+  const progressPct = duration > 0 ? Math.min(100, Math.round((position / duration) * 100)) : 0;
+  const positionLabel = (sec: number) => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, "0")}`;
 
   return (
     <div className="m-scroll" style={cssText("flex:1;padding:24px 22px 190px;animation:mUp .3s ease both;")}>
@@ -48,7 +99,7 @@ export default function Builder() {
       <h2 style={cssText("margin:5px 0 10px;font-size:26px;font-weight:800;letter-spacing:-.03em;color:#2E2418;")}>{idea.title} × {brief?.source_track_name}</h2>
       <div style={cssText("display:flex;align-items:center;gap:8px;flex-wrap:wrap;")}>
         <span style={cssText("font-size:11px;font-weight:800;letter-spacing:.02em;color:#2E2418;background:#F4EDDB;border:1px solid rgba(46,36,24,.14);border-radius:8px;padding:5px 10px;font-family:'Space Mono',monospace;white-space:nowrap;")}>{idea.key}</span>
-        <span style={cssText("font-size:11px;font-weight:800;letter-spacing:.02em;color:#2E2418;background:#F4EDDB;border:1px solid rgba(46,36,24,.14);border-radius:8px;padding:5px 10px;font-family:'Space Mono',monospace;white-space:nowrap;")}>{idea.bpm} BPM</span>
+        <span style={cssText("font-size:11px;font-weight:800;letter-spacing:.02em;color:#2E2418;background:#F4EDDB;border:1px solid rgba(46,36,24,.14);border-radius:8px;padding:5px 10px;font-family:'Space Mono',monospace;white-space:nowrap;")}>{Math.round(idea.bpm)} BPM</span>
         <span style={cssText("width:1px;height:16px;background:rgba(46,36,24,.14);")}></span>
         <span style={cssText("font-size:11px;font-weight:700;color:#B5503C;background:rgba(181,80,60,.14);border-radius:8px;padding:5px 10px;")}>A · {idea.title}</span>
         <span style={cssText("font-size:11px;font-weight:700;color:#7C7A3A;background:rgba(124,122,58,.16);border-radius:8px;padding:5px 10px;")}>B · {brief?.source_track_name}</span>
@@ -59,7 +110,7 @@ export default function Builder() {
         {structure.map((sec: any, i: number) => (
           <div
             key={i}
-            style={cssText(`display:flex;align-items:center;gap:10px;padding:12px 14px;${i < structure.length - 1 ? "border-bottom:1px solid rgba(46,36,24,.08);" : ""}${playing && i === playIndex ? "background:rgba(181,80,60,.08);" : ""}`)}
+            style={cssText(`display:flex;align-items:center;gap:10px;padding:12px 14px;${i < structure.length - 1 ? "border-bottom:1px solid rgba(46,36,24,.08);" : ""}${playing && i === playRow ? "background:rgba(181,80,60,.08);" : ""}`)}
           >
             <div style={cssText(`width:9px;height:9px;border-radius:3px;background:${sec.color};flex:none;`)}></div>
             <div style={cssText("width:74px;flex:none;font-size:13px;font-weight:800;color:#2E2418;text-transform:capitalize;")}>{sec.label}</div>
@@ -68,7 +119,7 @@ export default function Builder() {
                 <span key={j} style={cssText("font-size:12px;font-weight:700;color:#2E2418;background:rgba(46,36,24,.07);border-radius:6px;padding:3px 8px;font-family:'Space Mono',monospace;")}>{ch}</span>
               ))}
             </div>
-            {playing && i === playIndex && (
+            {playing && i === playRow && (
               <span style={cssText("font-size:10px;font-weight:700;color:#B5503C;flex:none;")}>▶</span>
             )}
           </div>
@@ -97,11 +148,17 @@ export default function Builder() {
         <button onClick={togglePlay} style={cssText("width:46px;height:46px;border-radius:50%;border:none;background:#17161B;color:#fff;cursor:pointer;font-size:16px;flex:none;")}>{playing ? "❚❚" : "▶"}</button>
         <div style={cssText("flex:1;")}>
           <div style={cssText("font-size:12px;font-weight:700;color:#17161B;text-transform:capitalize;")}>{transportSec?.label ?? ""}</div>
-          <div style={cssText("height:5px;border-radius:3px;background:rgba(0,0,0,.08);margin-top:6px;overflow:hidden;")}>
-            <div style={cssText(`height:100%;width:${playing ? Math.round(((playIndex + 1) / Math.max(structure.length, 1)) * 100) : 0}%;background:#B5503C;`)}></div>
+          <div
+            onPointerDown={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              seek((e.clientX - rect.left) / rect.width);
+            }}
+            style={cssText("height:5px;border-radius:3px;background:rgba(0,0,0,.08);margin-top:6px;overflow:hidden;cursor:pointer;")}
+          >
+            <div style={cssText(`height:100%;width:${progressPct}%;background:#B5503C;`)}></div>
           </div>
         </div>
-        <span style={cssText("font-family:'Space Mono',monospace;font-size:12px;color:#8a8791;")}>0:00</span>
+        <span style={cssText("font-family:'Space Mono',monospace;font-size:12px;color:#8a8791;")}>{positionLabel(position)} / {positionLabel(duration)}</span>
       </div>
     </div>
   );
