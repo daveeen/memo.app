@@ -162,7 +162,6 @@ export default function Record() {
   }, [analysis]);
 
   const revealStats = analysis ? [
-    { label: "Input", value: analysis.inputType, inf: false },
     { label: "Tempo", value: `${Math.round(analysis.bpm)} BPM`, inf: false },
     { label: "Key", value: analysis.detectedKey, inf: false },
     { label: "Mood", value: analysis.moodTag, inf: true },
@@ -286,7 +285,7 @@ export default function Record() {
           </div>
 
           {/* compact stat grid, no tags */}
-          <div style={cssText("margin-top:16px;display:grid;grid-template-columns:1fr 1fr;background:#F7F1E3;border:1px solid rgba(46,36,24,.12);border-radius:14px;overflow:hidden;box-shadow:0 4px 14px rgba(60,44,32,.07);")}>
+          <div style={cssText("margin-top:16px;display:grid;grid-template-columns:1fr 1fr 1fr;background:#F7F1E3;border:1px solid rgba(46,36,24,.12);border-radius:14px;overflow:hidden;box-shadow:0 4px 14px rgba(60,44,32,.07);")}>
             {revealStats.map((s, i) => {
               // Staggered entrance via a self-completing CSS animation (fill-mode both),
               // not a setTimeout chain — a JS timer chain stalls if the tab gets
