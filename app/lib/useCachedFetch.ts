@@ -13,13 +13,22 @@ export function useCachedFetch<T>(key: string, fetcher: () => Promise<T>) {
   const [loading, setLoading] = useState(!cache.has(key));
   useEffect(() => {
     let cancelled = false;
-    fetcher().then((fresh) => {
-      if (cancelled) return;
-      cache.set(key, fresh);
-      setData(fresh);
-      setLoading(false);
-    });
+    fetcher()
+      .then((fresh) => {
+        if (cancelled) return;
+        cache.set(key, fresh);
+        setData(fresh);
+        setLoading(false);
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        console.error(`useCachedFetch("${key}") failed:`, error);
+        setLoading(false);
+      });
     return () => { cancelled = true; };
+    // fetcher is intentionally excluded from dependencies — callers pass a fresh inline
+    // function on every render, so including it would cause a refetch on every render,
+    // defeating the entire point of the cache. Keying only on `key` is correct.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
   return { data, loading };
