@@ -22,9 +22,17 @@ const RESPONSE_SCHEMA = {
         required: ["chord", "section"],
       },
     },
+    structure: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: { label: { type: "string" } },
+        required: ["label"],
+      },
+    },
     instrumentation: { type: "array", items: { type: "string" } },
   },
-  required: ["chordChart", "instrumentation"],
+  required: ["chordChart", "structure", "instrumentation"],
 };
 
 // The Interactions API returns a chronological `steps` array (model thoughts, tool
@@ -67,10 +75,14 @@ Deno.serve(async (req) => {
   }
 
   const sys = "You are a music arranger. Stay strictly in the given key and tempo. " +
-    "Use only diatonic chords of that key unless a chord is already in the provided reference progression.";
+    "Use only diatonic chords of that key unless a chord is already in the provided reference progression. " +
+    "Always return a structure array in your output, listing the song's sections in order (e.g. Intro, Verse, " +
+    "Chorus, Verse, Chorus, Outro). If a reference structure was given below, echo it back exactly. If none " +
+    "was given (it's null), invent a natural one that fits the key, tempo, and melody contour, then generate " +
+    "a chord progression to match it.";
   const user = `Key: ${key}\nTempo: ${tempo}\nReference progression: ${JSON.stringify(ref_progression)}\n` +
     `Melody contour: ${JSON.stringify(melody_contour)}\nStructure: ${JSON.stringify(structure)}\n` +
-    `Generate a chord chart ordered to follow the structure.`;
+    `Generate a chord chart ordered to follow the structure (inventing one first if none was given above).`;
 
   let parsed: any;
   try {
