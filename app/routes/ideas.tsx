@@ -1,16 +1,17 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router";
 import { listIdeas } from "~/lib/api/bank";
 import { decoIdea } from "~/lib/memoVisuals";
+import { useCachedFetch } from "~/lib/useCachedFetch";
+import { Spinner } from "~/components/Spinner";
 import { cssText } from "~/lib/cssText";
 
 export default function Ideas() {
   const nav = useNavigate();
-  const [rows, setRows] = useState<any[]>([]);
+  const { data: rows = [], loading } = useCachedFetch("ideas", listIdeas);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("All");
   const [pullingId, setPullingId] = useState<string | null>(null);
-  useEffect(() => { listIdeas().then(setRows); }, []);
 
   const ideas = rows.map((r, i) => decoIdea(r, i));
   const q = query.trim().toLowerCase();
@@ -28,13 +29,15 @@ export default function Ideas() {
   const chip = (label: string) => { const active = filter === label; return cssText(`flex:none;padding:9px 15px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;border:1px solid ${active ? "transparent" : "rgba(0,0,0,.1)"};background:${active ? "#17161B" : "#fff"};color:${active ? "#fff" : "#57565E"};`); };
   const clearFilters = () => { setQuery(""); setFilter("All"); };
   const noResultsMsg = q
-    ? `No ideas match “${query}”.`
+    ? `No ideas match "${query}".`
     : filter !== "All"
-      ? `No ideas match the “${filter}” filter.`
+      ? `No ideas match the "${filter}" filter.`
       : "No ideas yet.";
 
+  if (loading) return <Spinner />;
+
   return (
-    <div className="m-scroll" style={cssText("flex:1;padding:24px 22px 120px;")}>
+    <div className="m-scroll" style={cssText("flex:1;padding:24px 22px 120px;animation:mUp .3s ease both;")}>
       <div style={cssText("display:flex;align-items:center;justify-content:space-between;")}>
         <div style={cssText("display:flex;align-items:center;gap:9px;")}>
           <div style={cssText("width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#17161B,#39373f);display:flex;align-items:center;justify-content:center;")}>
@@ -52,7 +55,7 @@ export default function Ideas() {
 
       <div style={cssText("margin-top:20px;display:flex;align-items:center;gap:10px;padding:0 15px;height:50px;background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:15px;box-shadow:0 4px 14px rgba(0,0,0,.04);")}>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#9a99a3" strokeWidth="2"></circle><path d="M20 20l-3.5-3.5" stroke="#9a99a3" strokeWidth="2" strokeLinecap="round"></path></svg>
-        <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search by mood, key, BPM…" style={cssText("flex:1;border:none;background:none;outline:none;font-size:15px;color:#17161B;font-weight:500;")} />
+        <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search by mood, key, BPM..." style={cssText("flex:1;border:none;background:none;outline:none;font-size:15px;color:#17161B;font-weight:500;")} />
       </div>
       <div style={cssText("display:flex;gap:8px;margin-top:11px;overflow-x:auto;")}>
         {filters.map(f => (

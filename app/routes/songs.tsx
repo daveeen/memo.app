@@ -1,22 +1,25 @@
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { listSongs } from "~/lib/api/bank";
+import { useCachedFetch } from "~/lib/useCachedFetch";
+import { Spinner } from "~/components/Spinner";
 import { cssText } from "~/lib/cssText";
 
 export default function Songs() {
   const nav = useNavigate();
-  const [songs, setSongs] = useState<any[]>([]);
-  useEffect(() => { listSongs().then(setSongs); }, []);
+  const { data: songs = [], loading } = useCachedFetch("songs", listSongs);
   const view = songs.map((s) => ({
     id: s.id,
     idea: s.ideas?.title ?? "Idea",
     brief: s.vibe_briefs?.source_track_name ?? "Brief",
     title: `${s.ideas?.title ?? "Idea"} × ${s.vibe_briefs?.source_track_name ?? "Brief"}`,
   }));
+
+  if (loading) return <Spinner />;
+
   return (
-    <div className="m-scroll" style={cssText("flex:1;padding:24px 22px 120px;")}>
+    <div className="m-scroll" style={cssText("flex:1;padding:24px 22px 120px;animation:mUp .3s ease both;")}>
       <div style={cssText("font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#57565E;")}>Songs</div>
-      <h1 style={cssText("margin:5px 0 4px;font-size:32px;font-weight:800;letter-spacing:-.035em;color:#17161B;")}>What you’ve built.</h1>
+      <h1 style={cssText("margin:5px 0 4px;font-size:32px;font-weight:800;letter-spacing:-.035em;color:#17161B;")}>What you've built.</h1>
       <p style={cssText("font-size:14px;color:#57565E;margin:0 0 18px;")}>An idea plus a brief makes a song.</p>
       <button onClick={() => nav("/songs/new")} style={cssText("width:100%;padding:15px;border-radius:16px;border:none;background:#17161B;color:#fff;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 10px 24px rgba(20,15,40,.2);")}>+ New song</button>
       <div style={cssText("margin-top:20px;display:flex;flex-direction:column;gap:12px;")}>
