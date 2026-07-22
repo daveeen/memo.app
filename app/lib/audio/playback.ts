@@ -21,13 +21,26 @@ function transposeNote(pitchClass: string, octave: number, interval: number): st
   return `${PITCH_CLASSES[newIndex]}${octave + octaveShift}`;
 }
 
+export interface SongPlayback {
+  stop(): void;
+  seek(sec: number): void;
+  getPosition(): number;
+  getDuration(): number;
+}
+
 // ponytail: Salamander piano samples over the network = "sampled instruments"
 // with zero asset work; swap to bundled soundfont if offline demo needed.
+//
+// Schedules chords onto Tone.Transport via a Tone.Part instead of raw
+// Tone.now()-offset one-shots — the previous version returned nothing to
+// control, so there was no way to stop, seek, or query position at all.
+// Transport natively tracks position and supports start/stop/seek, which is
+// what makes a real progress bar and scrubbing possible.
 export async function playSong(
   chordChart: { chord: string }[],
   bpm: number,
   analyser?: AnalyserNode,
-) {
+): Promise<SongPlayback> {
   await Tone.start();
   // Tone.Sampler is used directly (not wrapped in Tone.PolySynth): v15's
   // `PolySynth<Voice extends Monophonic<any>>` constraint rejects Sampler
@@ -44,9 +57,12 @@ export async function playSong(
   // resolves once every scheduled buffer load (including this Sampler's)
   // has finished (confirmed via node_modules/tone/build/esm/index.d.ts).
   await Tone.loaded();
+
   const beat = (60 / bpm) * 2;
-  let t = Tone.now();
-  for (const c of chordChart) {
+  const duration = chordChart.length * beat;
+
+  const events: [number, { chord: string }][] = chordChart.map((c, i) => [i * beat, c]);
+  const part = new Tone.Part((time, value) => {
     // chords.ts's nearestChord only ever emits a bare pitch class ("C") or
     // pitch class + "m" ("C#m") — never "maj"/"dim"/"7" — so a trailing "m"
     // unambiguously means minor (no pitch-class letter ends in "m").
@@ -54,21 +70,42 @@ export async function playSong(
     // (stripping leaves the root untouched, e.g. "C#m" -> "C#"). Mirrors
     // chords.ts's triad(root, minor): [0, minor ? 3 : 4, 7] and the same
     // fix applied in midi.ts's triadNotes().
-    const isMinor = c.chord.endsWith("m");
-    const root = c.chord.replace(/m|maj|dim|7/g, "");
+    const isMinor = value.chord.endsWith("m");
+    const root = value.chord.replace(/m|maj|dim|7/g, "");
     const third = isMinor ? 3 : 4;
     // Real triad (root + third + fifth) instead of a root-only octave
-    // unison, kept within the existing octave 3-4 register.
+    // unison, kept within the existing octave 3-4 register. `time` is the
+    // Part callback's own scheduled time, not Tone.now() — required for
+    // sample-accurate playback under Transport.
     synth.triggerAttackRelease(
-      [
-        `${root}3`,
-        transposeNote(root, 3, third),
-        transposeNote(root, 3, 7),
-        `${root}4`,
-      ],
+      [`${root}3`, transposeNote(root, 3, third), transposeNote(root, 3, 7), `${root}4`],
       beat,
-      t,
+      time,
     );
-    t += beat;
-  }
+  }, events);
+  part.start(0);
+
+  Tone.Transport.stop();
+  Tone.Transport.seconds = 0;
+  Tone.Transport.start();
+
+  let disposed = false;
+  return {
+    stop() {
+      if (disposed) return;
+      disposed = true;
+      Tone.Transport.stop();
+      part.dispose();
+      synth.dispose();
+    },
+    seek(sec: number) {
+      Tone.Transport.seconds = Math.max(0, Math.min(sec, duration));
+    },
+    getPosition() {
+      return Tone.Transport.seconds;
+    },
+    getDuration() {
+      return duration;
+    },
+  };
 }
