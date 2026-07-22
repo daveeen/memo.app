@@ -121,7 +121,7 @@ export default function Chooser() {
               <button
                 onClick={(e) => { e.stopPropagation(); toggleIdeaPreview(i); }}
                 aria-label="Preview idea"
-                style={cssText("position:absolute;bottom:9px;right:9px;width:30px;height:30px;border-radius:50%;border:none;background:#fff;color:#B5503C;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(0,0,0,.22);")}
+                style={cssText("position:absolute;top:39px;left:50%;transform:translate(-50%,-50%);width:30px;height:30px;border-radius:50%;border:none;background:#fff;color:#B5503C;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(0,0,0,.22);")}
               >
                 {playingUrl != null && playingUrl === ideaAudioUrls[i.id] ? "❚❚" : "▶"}
               </button>
