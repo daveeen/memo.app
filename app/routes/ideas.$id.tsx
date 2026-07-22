@@ -1,4 +1,4 @@
-import { useEffect, useState, Fragment } from "react";
+import { useEffect, useRef, useState, Fragment } from "react";
 import { useNavigate, useParams } from "react-router";
 import { getIdea, ideaAudioUrl, renameIdea, updateIdeaNote, updateIdeaLyrics, listSongsForIdea, deleteIdea } from "~/lib/api/bank";
 import { decoIdea } from "~/lib/memoVisuals";
@@ -13,16 +13,36 @@ export default function IdeaDetail() {
   const { data: row, loading } = useCachedFetch(`idea:${id}`, () => getIdea(id!));
   const [songs, setSongs] = useState<any[]>([]);
   const [playing, setPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const audioRef = useRef<HTMLAudioElement>(undefined);
   useEffect(() => {
     if (!id) return;
     listSongsForIdea(id).then(setSongs);
   }, [id]);
+  // Force-stop on unmount/navigation — this, plus reusing one <audio>
+  // element below instead of a fresh one per click, is the actual fix for
+  // "keeps playing after leaving the page."
+  useEffect(() => () => { audioRef.current?.pause(); }, []);
   if (loading) return <Spinner />;
   if (!row || !id) return null;
   const d = decoIdea(row, 0);
-  async function play() {
-    const u = await ideaAudioUrl(row.raw_path);
-    if (u) { new Audio(u).play(); setPlaying(true); }
+  async function togglePlay() {
+    if (!audioRef.current) {
+      const u = await ideaAudioUrl(row.raw_path);
+      if (!u) return;
+      const el = new Audio(u);
+      el.addEventListener("loadedmetadata", () => setDuration(el.duration));
+      el.addEventListener("timeupdate", () => setCurrentTime(el.currentTime));
+      el.addEventListener("ended", () => setPlaying(false));
+      audioRef.current = el;
+    }
+    if (playing) { audioRef.current.pause(); setPlaying(false); }
+    else { audioRef.current.play(); setPlaying(true); }
+  }
+  function seek(fraction: number) {
+    if (!audioRef.current || !duration) return;
+    audioRef.current.currentTime = Math.max(0, Math.min(1, fraction)) * duration;
   }
   async function handleDelete() {
     if (!id) return;
@@ -36,13 +56,24 @@ export default function IdeaDetail() {
         <div style={cssText("width:150px;flex:none;")}><Cassette idea={d} showMeta={false} /></div>
         <div style={cssText("flex:1;padding-top:4px;")}>
           <input key={id} defaultValue={d.name} onBlur={e => renameIdea(id, e.target.value)} style={cssText("width:100%;border:none;background:none;outline:none;font-size:22px;font-weight:800;letter-spacing:-.03em;color:#17161B;padding:0;")} />
-          <button onClick={play} style={cssText("margin-top:12px;display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:22px;border:none;background:#17161B;color:#fff;font-weight:600;font-size:13px;cursor:pointer;")}>{playing ? '❚❚' : '▶'} {playing ? 'Playing' : 'Play take'}</button>
+          <button onClick={togglePlay} style={cssText("margin-top:12px;display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:22px;border:none;background:#17161B;color:#fff;font-weight:600;font-size:13px;cursor:pointer;")}>{playing ? '❚❚' : '▶'} {playing ? 'Playing' : 'Play take'}</button>
         </div>
       </div>
 
-      {/* full angular waveform */}
-      <div style={cssText("margin-top:20px;background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:16px;padding:16px;box-shadow:0 4px 14px rgba(0,0,0,.04);")}>
-        <svg viewBox="0 0 100 26" preserveAspectRatio="none" style={cssText("width:100%;height:70px;display:block;")}><path d={d.wavePoints} fill={d.stripe}></path></svg>
+      {/* full angular waveform — real decoded peaks when available (from
+          decoIdea's realWavePoints), falls back to the synthetic per-id
+          fingerprint for ideas recorded before waveform_json existed */}
+      <div
+        onPointerDown={(e) => {
+          const rect = e.currentTarget.getBoundingClientRect();
+          seek((e.clientX - rect.left) / rect.width);
+        }}
+        style={cssText("position:relative;margin-top:20px;background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:16px;padding:16px;box-shadow:0 4px 14px rgba(0,0,0,.04);cursor:pointer;")}
+      >
+        <svg viewBox="0 0 100 26" preserveAspectRatio="none" style={cssText("width:100%;height:70px;display:block;")}><path d={d.realWavePoints ?? d.wavePoints} fill={d.stripe}></path></svg>
+        {duration > 0 && (
+          <div style={cssText(`position:absolute;top:16px;bottom:16px;left:${16 + (currentTime / duration) * (100 - 3.2)}%;width:2px;background:#17161B;box-shadow:0 0 4px rgba(0,0,0,.4);pointer-events:none;`)}></div>
+        )}
       </div>
 
       <div style={cssText("margin-top:18px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#57565E;")}>Detected · measured</div>
