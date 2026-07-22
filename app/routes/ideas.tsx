@@ -34,10 +34,26 @@ export default function Ideas() {
       ? `No ideas match the "${filter}" filter.`
       : "No ideas yet.";
 
+  const spineRow = (d: any) => (
+    <button key={d.id} className="m-spine" onClick={() => pull(d.id)} style={spineStyle(d)}>
+      <div style={cssText(`width:7px;align-self:stretch;background:${d.stripe};border-radius:3px 0 0 3px;flex:none;`)}></div>
+      <div style={cssText("position:absolute;top:0;left:7px;right:0;height:46%;background:linear-gradient(180deg,rgba(255,255,255,.26),transparent);pointer-events:none;border-radius:0 3px 0 0;")}></div>
+      <div style={cssText("flex:1;min-width:0;margin:0 9px;padding:4px 10px;background:linear-gradient(180deg,#F4EDDB,#E6D8BC);border-radius:2px;box-shadow:0 1px 2px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.55);display:flex;align-items:center;")}>
+        <span style={cssText("font-size:19px;font-weight:700;line-height:1.3;color:#2E2418;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;")}>{d.name}</span>
+      </div>
+      <div style={cssText(`flex:none;display:flex;align-items:center;gap:9px;padding-right:12px;color:${d.ink};`)}>
+        <span style={cssText("font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;opacity:.8;white-space:nowrap;")}>{d.type}</span>
+        <span style={cssText("font-family:'Space Mono',monospace;font-size:9px;opacity:.82;white-space:nowrap;")}>{d.spineMeta}</span>
+        <div style={cssText("display:flex;gap:2px;opacity:.5;")}><div style={cssText("width:2px;height:12px;background:currentColor;border-radius:1px;")}></div><div style={cssText("width:2px;height:12px;background:currentColor;border-radius:1px;")}></div></div>
+      </div>
+    </button>
+  );
+  const recent = ideas.slice(0, 3);
+
   if (loading) return <Spinner />;
 
   return (
-    <div className="m-scroll" style={cssText("flex:1;padding:24px 22px 120px;animation:mUp .3s ease both;")}>
+    <div style={cssText("height:100dvh;overflow:hidden;display:flex;flex-direction:column;padding:24px 22px 0;animation:mUp .3s ease both;")}>
       <div style={cssText("display:flex;align-items:center;justify-content:space-between;")}>
         <div style={cssText("display:flex;align-items:center;gap:9px;")}>
           <div style={cssText("width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#17161B,#39373f);display:flex;align-items:center;justify-content:center;")}>
@@ -63,32 +79,30 @@ export default function Ideas() {
         ))}
       </div>
 
-      <div style={cssText("margin-top:24px;display:flex;align-items:baseline;justify-content:space-between;")}>
+      {recent.length > 0 && (
+        <>
+          <div style={cssText("margin-top:24px;font-size:16px;font-weight:700;letter-spacing:-.02em;color:#2E2418;")}>Recent</div>
+          <div style={cssText("margin-top:12px;background:linear-gradient(180deg,#2E2318,#1B140D);border-radius:12px;padding:10px 9px;box-shadow:inset 0 2px 12px rgba(0,0,0,.55),0 8px 18px rgba(60,44,32,.16);display:flex;flex-direction:column;gap:5px;overflow:visible;flex:none;")}>
+            {recent.map(spineRow)}
+          </div>
+        </>
+      )}
+
+      <div style={cssText("margin-top:24px;display:flex;align-items:baseline;justify-content:space-between;flex:none;")}>
         <div style={cssText("font-size:16px;font-weight:700;letter-spacing:-.02em;color:#2E2418;")}>All ideas</div>
         <div style={cssText("font-size:11.5px;font-weight:600;color:#8a7d68;")}>Tap a tape to pull it out</div>
       </div>
-      <div style={cssText("margin-top:12px;background:linear-gradient(180deg,#2E2318,#1B140D);border-radius:12px;padding:10px 9px;box-shadow:inset 0 2px 12px rgba(0,0,0,.55),0 8px 18px rgba(60,44,32,.16);display:flex;flex-direction:column;gap:5px;overflow:visible;")}>
-        {shown.map(d => (
-          <button key={d.id} className="m-spine" onClick={() => pull(d.id)} style={spineStyle(d)}>
-            <div style={cssText(`width:7px;align-self:stretch;background:${d.stripe};border-radius:3px 0 0 3px;flex:none;`)}></div>
-            <div style={cssText("position:absolute;top:0;left:7px;right:0;height:46%;background:linear-gradient(180deg,rgba(255,255,255,.26),transparent);pointer-events:none;border-radius:0 3px 0 0;")}></div>
-            <div style={cssText("flex:1;min-width:0;margin:0 9px;padding:4px 10px;background:linear-gradient(180deg,#F4EDDB,#E6D8BC);border-radius:2px;box-shadow:0 1px 2px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.55);display:flex;align-items:center;")}>
-              <span style={cssText("font-size:19px;font-weight:700;line-height:1.3;color:#2E2418;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;")}>{d.name}</span>
-            </div>
-            <div style={cssText(`flex:none;display:flex;align-items:center;gap:9px;padding-right:12px;color:${d.ink};`)}>
-              <span style={cssText("font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;opacity:.8;white-space:nowrap;")}>{d.type}</span>
-              <span style={cssText("font-family:'Space Mono',monospace;font-size:9px;opacity:.82;white-space:nowrap;")}>{d.spineMeta}</span>
-              <div style={cssText("display:flex;gap:2px;opacity:.5;")}><div style={cssText("width:2px;height:12px;background:currentColor;border-radius:1px;")}></div><div style={cssText("width:2px;height:12px;background:currentColor;border-radius:1px;")}></div></div>
-            </div>
-          </button>
-        ))}
-      </div>
-      {shown.length === 0 && (
-        <div style={cssText("text-align:center;padding:36px 14px;")}>
-          <div style={cssText("font-size:14px;font-weight:600;color:#57565E;")}>{noResultsMsg}</div>
-          <button onClick={clearFilters} style={cssText("margin-top:12px;padding:9px 18px;border-radius:20px;border:none;background:#2E2418;color:#fff;font-weight:600;font-size:13px;cursor:pointer;")}>Clear filters</button>
+      <div className="m-scroll" style={cssText("flex:1;min-height:0;margin-top:12px;padding-bottom:120px;")}>
+        <div style={cssText("background:linear-gradient(180deg,#2E2318,#1B140D);border-radius:12px;padding:10px 9px;box-shadow:inset 0 2px 12px rgba(0,0,0,.55),0 8px 18px rgba(60,44,32,.16);display:flex;flex-direction:column;gap:5px;overflow:visible;")}>
+          {shown.map(spineRow)}
         </div>
-      )}
+        {shown.length === 0 && (
+          <div style={cssText("text-align:center;padding:36px 14px;")}>
+            <div style={cssText("font-size:14px;font-weight:600;color:#57565E;")}>{noResultsMsg}</div>
+            <button onClick={clearFilters} style={cssText("margin-top:12px;padding:9px 18px;border-radius:20px;border:none;background:#2E2418;color:#fff;font-weight:600;font-size:13px;cursor:pointer;")}>Clear filters</button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
