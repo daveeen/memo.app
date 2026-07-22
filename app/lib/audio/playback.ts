@@ -28,6 +28,16 @@ export interface SongPlayback {
   getDuration(): number;
 }
 
+// Tone.Transport is a global singleton — only one playSong() can genuinely be
+// "active" at a time. If a new playSong() call arrives while a previous one
+// is still playing (e.g. a caller forgot to call stop() first, or a rapid
+// double-click race started a second call before the first finished
+// awaiting Tone.start()/Tone.loaded()), stopping/disposing the old one here
+// makes this module self-protecting regardless of caller discipline —
+// otherwise both the old and new Tone.Part would end up scheduled on the
+// same Transport simultaneously (overlapping audio + a leaked Part/Sampler).
+let activeStop: (() => void) | null = null;
+
 // ponytail: Salamander piano samples over the network = "sampled instruments"
 // with zero asset work; swap to bundled soundfont if offline demo needed.
 //
@@ -36,11 +46,14 @@ export interface SongPlayback {
 // control, so there was no way to stop, seek, or query position at all.
 // Transport natively tracks position and supports start/stop/seek, which is
 // what makes a real progress bar and scrubbing possible.
+// Only one song plays at a time (Tone.Transport is a global singleton) — see
+// `activeStop` above for how a new call safely displaces a still-active one.
 export async function playSong(
   chordChart: { chord: string }[],
   bpm: number,
   analyser?: AnalyserNode,
 ): Promise<SongPlayback> {
+  activeStop?.();
   await Tone.start();
   // Tone.Sampler is used directly (not wrapped in Tone.PolySynth): v15's
   // `PolySynth<Voice extends Monophonic<any>>` constraint rejects Sampler
@@ -90,22 +103,27 @@ export async function playSong(
   Tone.Transport.start();
 
   let disposed = false;
-  return {
+  const controller: SongPlayback = {
     stop() {
       if (disposed) return;
       disposed = true;
+      if (activeStop === controller.stop) activeStop = null;
       Tone.Transport.stop();
       part.dispose();
       synth.dispose();
     },
     seek(sec: number) {
+      if (disposed) return;
       Tone.Transport.seconds = Math.max(0, Math.min(sec, duration));
     },
     getPosition() {
+      if (disposed) return 0;
       return Tone.Transport.seconds;
     },
     getDuration() {
       return duration;
     },
   };
+  activeStop = controller.stop;
+  return controller;
 }
