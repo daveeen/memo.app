@@ -14,6 +14,22 @@ const BAR_COUNT = 46;
 const barColor = (i: number) => `hsl(${16 + i * 2.2},72%,58%)`;
 const REST_BARS = Array.from({ length: BAR_COUNT }, () => 0.12);
 
+// A single "{mood} idea" template for every take felt repetitive in a
+// library of many ideas — vary the shape, keep the mood word as the payload.
+const TITLE_TEMPLATES = [
+  (m: string) => `${m} idea`,
+  (m: string) => `${m} sketch`,
+  (m: string) => `${m} take`,
+  (m: string) => `Untitled ${m}`,
+  (m: string) => `${m} spark`,
+  (m: string) => `A ${m} thing`,
+  (m: string) => `${m} fragment`,
+];
+function suggestTitle(mood: string): string {
+  const template = TITLE_TEMPLATES[Math.floor(Math.random() * TITLE_TEMPLATES.length)];
+  return template(mood);
+}
+
 export default function Record() {
   const nav = useNavigate();
   const [soundsLike, setSoundsLike] = useState<SoundsLikeEntry[]>([]);
@@ -66,7 +82,7 @@ export default function Record() {
     blobRef.current = blob;
     const a = await analyzeCapture(blob);
     setAnalysis(a);
-    setPendingTitle(a.moodTag ? `${a.moodTag} idea` : "Untitled idea");
+    setPendingTitle(a.moodTag ? suggestTitle(a.moodTag) : "Untitled idea");
     setPhase("reveal");
   }
 
@@ -139,7 +155,7 @@ export default function Record() {
           const hit = hits[0];
           return hit ? { title: hit.trackName, artist: hit.artist, artworkUrl: hit.artworkUrl, previewUrl: hit.previewUrl } : null;
         }));
-        if (!cancelled) setSoundsLike(resolved.filter((r): r is SoundsLikeEntry => r !== null));
+        if (!cancelled) setSoundsLike(resolved.filter((r): r is SoundsLikeEntry => r !== null).slice(0, 4));
       })
       .catch(() => { if (!cancelled) setSoundsLike([]); });
     return () => { cancelled = true; };

@@ -22,7 +22,7 @@ export function Cassette({ idea, showMeta = true }: { idea: CassetteIdea; showMe
             <div style={cssText("flex:1;display:flex;align-items:center;padding:2px 8px;")}>
               <svg viewBox="0 0 100 24" preserveAspectRatio="none" style={cssText("width:100%;height:78%;display:block;")}><path d={idea.wavePoints} fill={idea.stripe}></path></svg>
             </div>
-            <div style={cssText(`flex:none;display:flex;align-items:center;gap:5px;padding:0 8px 4px;font-size:8px;font-weight:700;letter-spacing:.02em;color:${idea.stripe};`)}>{idea.key}<span style={cssText("opacity:.5;")}>·</span>{idea.bpm}</div>
+            <div style={cssText(`flex:none;display:flex;align-items:center;gap:5px;padding:0 8px 4px;font-size:8px;font-weight:700;letter-spacing:.02em;color:${idea.stripe};opacity:.62;`)}>{idea.key}<span style={cssText("opacity:.5;")}>·</span>{idea.bpm}</div>
           </div>
           <div style={cssText("position:absolute;bottom:10%;left:16%;right:16%;height:33%;border-radius:8px;background:radial-gradient(circle at 50% 40%,#2a2836,#0c0b14);box-shadow:inset 0 2px 5px rgba(0,0,0,.6);display:flex;align-items:center;justify-content:space-between;padding:0 13%;")}>
             <div style={cssText("width:32%;aspect-ratio:1;border-radius:50%;background:conic-gradient(from 0deg,#e8dcc4 0 30deg,#c4b291 30deg 60deg,#e8dcc4 60deg 90deg,#c4b291 90deg 120deg,#e8dcc4 120deg 150deg,#c4b291 150deg 180deg,#e8dcc4 180deg 210deg,#c4b291 210deg 240deg,#e8dcc4 240deg 270deg,#c4b291 270deg 300deg,#e8dcc4 300deg 330deg,#c4b291 330deg 360deg);display:flex;align-items:center;justify-content:center;animation:casReel 5s linear infinite;")}><div style={cssText("width:34%;aspect-ratio:1;border-radius:50%;background:#0c0b14;")}></div></div>

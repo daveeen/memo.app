@@ -265,7 +265,7 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "api_bank_renameidea",
-      "community": 8,
+      "community": 0,
       "norm_label": "renameidea()"
     },
     {
@@ -305,7 +305,7 @@
       "source_location": "L79",
       "_origin": "ast",
       "id": "api_bank_updateideanote",
-      "community": 8,
+      "community": 0,
       "norm_label": "updateideanote()"
     },
     {
@@ -765,7 +765,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "audio_playback",
-      "community": 0,
+      "community": 50,
       "norm_label": "playback.ts"
     },
     {
@@ -775,7 +775,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "audio_playback_pitch_classes",
-      "community": 0,
+      "community": 50,
       "norm_label": "pitch_classes"
     },
     {
@@ -785,7 +785,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "audio_playback_transposenote",
-      "community": 0,
+      "community": 50,
       "norm_label": "transposenote()"
     },
     {
@@ -795,7 +795,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "audio_playback_songplayback",
-      "community": 0,
+      "community": 50,
       "norm_label": "songplayback"
     },
     {
@@ -805,7 +805,7 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "audio_playback_playsong",
-      "community": 0,
+      "community": 50,
       "norm_label": "playsong()"
     },
     {
@@ -902,7 +902,7 @@
       "label": "SEC_COLORS",
       "file_type": "code",
       "source_file": "app/lib/memoVisuals.ts",
-      "source_location": "L15",
+      "source_location": "L16",
       "_origin": "ast",
       "id": "lib_memovisuals_sec_colors",
       "community": 0,
@@ -912,7 +912,7 @@
       "label": "envelopeToPath()",
       "file_type": "code",
       "source_file": "app/lib/memoVisuals.ts",
-      "source_location": "L22",
+      "source_location": "L23",
       "_origin": "ast",
       "id": "lib_memovisuals_envelopetopath",
       "community": 0,
@@ -922,7 +922,7 @@
       "label": "wavePoints()",
       "file_type": "code",
       "source_file": "app/lib/memoVisuals.ts",
-      "source_location": "L44",
+      "source_location": "L45",
       "_origin": "ast",
       "id": "lib_memovisuals_wavepoints",
       "community": 0,
@@ -932,7 +932,7 @@
       "label": "realWavePath()",
       "file_type": "code",
       "source_file": "app/lib/memoVisuals.ts",
-      "source_location": "L61",
+      "source_location": "L62",
       "_origin": "ast",
       "id": "lib_memovisuals_realwavepath",
       "community": 0,
@@ -942,7 +942,7 @@
       "label": "bucketPeaks()",
       "file_type": "code",
       "source_file": "app/lib/memoVisuals.ts",
-      "source_location": "L73",
+      "source_location": "L74",
       "_origin": "ast",
       "id": "lib_memovisuals_bucketpeaks",
       "community": 0,
@@ -952,7 +952,7 @@
       "label": "chordIndexToRow()",
       "file_type": "code",
       "source_file": "app/lib/memoVisuals.ts",
-      "source_location": "L97",
+      "source_location": "L98",
       "_origin": "ast",
       "id": "lib_memovisuals_chordindextorow",
       "community": 0,
@@ -962,7 +962,7 @@
       "label": "seedFromId()",
       "file_type": "code",
       "source_file": "app/lib/memoVisuals.ts",
-      "source_location": "L107",
+      "source_location": "L108",
       "_origin": "ast",
       "id": "lib_memovisuals_seedfromid",
       "community": 0,
@@ -972,7 +972,7 @@
       "label": "formatDuration()",
       "file_type": "code",
       "source_file": "app/lib/memoVisuals.ts",
-      "source_location": "L113",
+      "source_location": "L114",
       "_origin": "ast",
       "id": "lib_memovisuals_formatduration",
       "community": 0,
@@ -982,7 +982,7 @@
       "label": "paletteIndexFromId()",
       "file_type": "code",
       "source_file": "app/lib/memoVisuals.ts",
-      "source_location": "L125",
+      "source_location": "L126",
       "_origin": "ast",
       "id": "lib_memovisuals_paletteindexfromid",
       "community": 0,
@@ -992,7 +992,7 @@
       "label": "decoIdea()",
       "file_type": "code",
       "source_file": "app/lib/memoVisuals.ts",
-      "source_location": "L131",
+      "source_location": "L132",
       "_origin": "ast",
       "id": "lib_memovisuals_decoidea",
       "community": 0,
@@ -1095,7 +1095,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "opendaw_importmidi",
-      "community": 32,
+      "community": 36,
       "norm_label": "importmidi.ts"
     },
     {
@@ -1105,7 +1105,7 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "opendaw_importmidi_decodednote",
-      "community": 32,
+      "community": 36,
       "norm_label": "decodednote"
     },
     {
@@ -1115,7 +1115,7 @@
       "source_location": "L58",
       "_origin": "ast",
       "id": "opendaw_importmidi_pairnotes",
-      "community": 32,
+      "community": 36,
       "norm_label": "pairnotes()"
     },
     {
@@ -1579,10 +1579,30 @@
       "norm_label": "rest_bars"
     },
     {
+      "label": "TITLE_TEMPLATES",
+      "file_type": "code",
+      "source_file": "app/routes/record.tsx",
+      "source_location": "L19",
+      "_origin": "ast",
+      "id": "routes_record_title_templates",
+      "community": 0,
+      "norm_label": "title_templates"
+    },
+    {
+      "label": "suggestTitle()",
+      "file_type": "code",
+      "source_file": "app/routes/record.tsx",
+      "source_location": "L28",
+      "_origin": "ast",
+      "id": "routes_record_suggesttitle",
+      "community": 29,
+      "norm_label": "suggesttitle()"
+    },
+    {
       "label": "Record()",
       "file_type": "code",
       "source_file": "app/routes/record.tsx",
-      "source_location": "L17",
+      "source_location": "L33",
       "_origin": "ast",
       "id": "routes_record_record",
       "community": 0,
@@ -1632,7 +1652,7 @@
       "label": "Chooser()",
       "file_type": "code",
       "source_file": "app/routes/songs.new.tsx",
-      "source_location": "L15",
+      "source_location": "L16",
       "_origin": "ast",
       "id": "routes_songs_new_chooser",
       "community": 0,
@@ -2839,10 +2859,20 @@
       "norm_label": "@types/react-dom"
     },
     {
-      "label": "tailwindcss",
+      "label": "playwright",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L33",
+      "_origin": "ast",
+      "id": "package_devdependencies_playwright",
+      "community": 4,
+      "norm_label": "playwright"
+    },
+    {
+      "label": "tailwindcss",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L34",
       "_origin": "ast",
       "id": "package_devdependencies_tailwindcss",
       "community": 4,
@@ -2852,7 +2882,7 @@
       "label": "typescript",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L34",
+      "source_location": "L35",
       "_origin": "ast",
       "id": "package_devdependencies_typescript",
       "community": 4,
@@ -2862,7 +2892,7 @@
       "label": "vite",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L35",
+      "source_location": "L36",
       "_origin": "ast",
       "id": "package_devdependencies_vite",
       "community": 4,
@@ -2872,7 +2902,7 @@
       "label": "vite-plugin-pwa",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L36",
+      "source_location": "L37",
       "_origin": "ast",
       "id": "package_devdependencies_vite_plugin_pwa",
       "community": 4,
@@ -3635,7 +3665,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "checkpoint_checkpoint_2026_07_21",
-      "community": 36,
+      "community": 8,
       "norm_label": "checkpoint \u2014 2026-07-21"
     },
     {
@@ -3645,7 +3675,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "checkpoint_update_opendaw_integration_complete",
-      "community": 36,
+      "community": 8,
       "norm_label": "update: opendaw integration complete"
     },
     {
@@ -3655,7 +3685,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "checkpoint_resume_instructions_fresh_session",
-      "community": 36,
+      "community": 8,
       "norm_label": "resume instructions (fresh session)"
     },
     {
@@ -3665,7 +3695,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "checkpoint_done_this_session",
-      "community": 36,
+      "community": 8,
       "norm_label": "done this session"
     },
     {
@@ -3675,7 +3705,7 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "checkpoint_not_started_opendaw_integration",
-      "community": 36,
+      "community": 8,
       "norm_label": "not started: opendaw integration"
     },
     {
@@ -3685,7 +3715,7 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "checkpoint_manual_steps_still_pending_user_doing_separately",
-      "community": 36,
+      "community": 8,
       "norm_label": "manual steps still pending (user doing separately)"
     },
     {
@@ -3695,7 +3725,7 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "checkpoint_known_open_item",
-      "community": 36,
+      "community": 8,
       "norm_label": "known open item"
     },
     {
@@ -6529,7 +6559,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 36,
+      "community": 8,
       "norm_label": "supabase backend (postgres/storage/auth/edge functions under rls)",
       "id": "memo_claude_supabase_backend"
     },
@@ -6542,7 +6572,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 36,
+      "community": 8,
       "norm_label": "/arrange edge function (gemini-grounded arrangement, jwt-verified)",
       "id": "memo_claude_arrange_edge_function"
     },
@@ -6555,7 +6585,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 36,
+      "community": 8,
       "norm_label": "/track-search edge function (public, keyless itunes proxy)",
       "id": "memo_claude_track_search_edge_function"
     },
@@ -6568,7 +6598,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 36,
+      "community": 8,
       "norm_label": "decision: gemini gemini-3.1-flash-lite (interactions api) over anthropic for /arrange",
       "id": "memo_claude_gemini_arrange_decision"
     },
@@ -6607,7 +6637,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 36,
+      "community": 8,
       "norm_label": "decision: track-search public/no-verify-jwt with ssrf allowlist (*.mzstatic.com)",
       "id": "memo_claude_track_search_ssrf_decision"
     },
@@ -6672,7 +6702,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 28,
+      "community": 32,
       "norm_label": "gotcha: tone.js v15 polysynth cannot wrap sampler (sampler already polyphonic)",
       "id": "memo_claude_tone_polysynth_sampler_gotcha"
     },
@@ -6776,7 +6806,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 36,
+      "community": 8,
       "norm_label": "idea notes feature \u2014 fully done this session (all 6 tasks)",
       "id": "memo_checkpoint_idea_notes_done"
     },
@@ -6802,7 +6832,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 36,
+      "community": 8,
       "norm_label": "constraint: no live browser in build environment (only typecheck/build/node-level checks)",
       "id": "memo_checkpoint_no_live_browser_constraint"
     },
@@ -6815,7 +6845,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 36,
+      "community": 8,
       "norm_label": "manual setup steps pending (supabase link/db push, rls check, .env, secrets+deploy, first smoke test)",
       "id": "memo_checkpoint_manual_setup_steps"
     },
@@ -6906,7 +6936,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 28,
+      "community": 32,
       "norm_label": "task 1: confirm real opendaw api (spike) \u2014 blocking gate for later tasks",
       "id": "plans_2026_07_21_opendaw_integration_task1_spike"
     },
@@ -6919,7 +6949,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 28,
+      "community": 32,
       "norm_label": "@opendaw/lib-box (underlying data-model / box handles/ids)",
       "id": "opendaw_lib_box"
     },
@@ -6997,7 +7027,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 28,
+      "community": 32,
       "norm_label": "@opendaw/studio-core \u2014 projectapi + enginefacade",
       "id": "opendaw_studio_core"
     },
@@ -7010,7 +7040,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 28,
+      "community": 32,
       "norm_label": "@opendaw/studio-core-wasm \u2014 prebuilt wasm audio engine (no rust toolchain needed to consume)",
       "id": "opendaw_studio_core_wasm"
     },
@@ -7139,9 +7169,9 @@
       "source_file": "app/components/Spinner.tsx",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_spinner",
-      "target": "components_spinner_spinner",
-      "confidence_score": 1.0
+      "target": "components_spinner_spinner"
     },
     {
       "relation": "imports_from",
@@ -7150,9 +7180,9 @@
       "source_file": "app/components/Spinner.tsx",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_spinner",
-      "target": "lib_csstext",
-      "confidence_score": 1.0
+      "target": "lib_csstext"
     },
     {
       "relation": "imports",
@@ -7161,9 +7191,9 @@
       "source_file": "app/components/Spinner.tsx",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "components_spinner",
-      "target": "lib_csstext_csstext",
-      "confidence_score": 1.0
+      "target": "lib_csstext_csstext"
     },
     {
       "relation": "imports_from",
@@ -7172,9 +7202,9 @@
       "source_file": "app/routes/ideas.tsx",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_ideas",
-      "target": "components_spinner",
-      "confidence_score": 1.0
+      "target": "components_spinner"
     },
     {
       "relation": "imports_from",
@@ -7183,9 +7213,9 @@
       "source_file": "app/routes/ideas.$id.tsx",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_ideas_id",
-      "target": "components_spinner",
-      "confidence_score": 1.0
+      "target": "components_spinner"
     },
     {
       "relation": "imports_from",
@@ -7194,9 +7224,9 @@
       "source_file": "app/routes/songs.tsx",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_songs",
-      "target": "components_spinner",
-      "confidence_score": 1.0
+      "target": "components_spinner"
     },
     {
       "relation": "imports_from",
@@ -7205,9 +7235,9 @@
       "source_file": "app/routes/songs.$id.tsx",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_songs_id",
-      "target": "components_spinner",
-      "confidence_score": 1.0
+      "target": "components_spinner"
     },
     {
       "relation": "calls",
@@ -7227,9 +7257,9 @@
       "source_file": "app/routes/ideas.tsx",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_ideas",
-      "target": "components_spinner_spinner",
-      "confidence_score": 1.0
+      "target": "components_spinner_spinner"
     },
     {
       "relation": "imports",
@@ -7238,9 +7268,9 @@
       "source_file": "app/routes/ideas.$id.tsx",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_ideas_id",
-      "target": "components_spinner_spinner",
-      "confidence_score": 1.0
+      "target": "components_spinner_spinner"
     },
     {
       "relation": "imports",
@@ -7249,9 +7279,9 @@
       "source_file": "app/routes/songs.tsx",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_songs",
-      "target": "components_spinner_spinner",
-      "confidence_score": 1.0
+      "target": "components_spinner_spinner"
     },
     {
       "relation": "imports",
@@ -7260,9 +7290,9 @@
       "source_file": "app/routes/songs.$id.tsx",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_songs_id",
-      "target": "components_spinner_spinner",
-      "confidence_score": 1.0
+      "target": "components_spinner_spinner"
     },
     {
       "relation": "imports_from",
@@ -7863,9 +7893,9 @@
       "source_file": "app/lib/api/bank.ts",
       "source_location": "L140",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "api_bank",
-      "target": "api_bank_updatesonglyrics",
-      "confidence_score": 1.0
+      "target": "api_bank_updatesonglyrics"
     },
     {
       "relation": "contains",
@@ -7873,9 +7903,9 @@
       "source_file": "app/lib/api/bank.ts",
       "source_location": "L136",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "api_bank",
-      "target": "api_bank_updatesongnote",
-      "confidence_score": 1.0
+      "target": "api_bank_updatesongnote"
     },
     {
       "relation": "imports_from",
@@ -7939,9 +7969,9 @@
       "source_file": "app/lib/api/bank.ts",
       "source_location": "L2",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "api_bank",
-      "target": "lib_types_soundslikeentry",
-      "confidence_score": 1.0
+      "target": "lib_types_soundslikeentry"
     },
     {
       "relation": "imports",
@@ -8114,9 +8144,9 @@
       "source_file": "app/routes/songs.new.tsx",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_songs_new",
-      "target": "api_bank_savebrief",
-      "confidence_score": 1.0
+      "target": "api_bank_savebrief"
     },
     {
       "relation": "imports",
@@ -8265,9 +8295,9 @@
       "source_file": "app/routes/songs.$id.tsx",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_songs_id",
-      "target": "api_bank_updatesongnote",
-      "confidence_score": 1.0
+      "target": "api_bank_updatesongnote"
     },
     {
       "relation": "imports",
@@ -8276,9 +8306,9 @@
       "source_file": "app/routes/songs.$id.tsx",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_songs_id",
-      "target": "api_bank_updatesonglyrics",
-      "confidence_score": 1.0
+      "target": "api_bank_updatesonglyrics"
     },
     {
       "relation": "contains",
@@ -8286,9 +8316,9 @@
       "source_file": "app/lib/api/suggestSimilar.ts",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "api_suggestsimilar",
-      "target": "api_suggestsimilar_suggestsimilar",
-      "confidence_score": 1.0
+      "target": "api_suggestsimilar_suggestsimilar"
     },
     {
       "relation": "imports_from",
@@ -8297,9 +8327,9 @@
       "source_file": "app/lib/api/suggestSimilar.ts",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "api_suggestsimilar",
-      "target": "lib_supabase",
-      "confidence_score": 1.0
+      "target": "lib_supabase"
     },
     {
       "relation": "imports",
@@ -8308,9 +8338,9 @@
       "source_file": "app/lib/api/suggestSimilar.ts",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "api_suggestsimilar",
-      "target": "lib_supabase_supabase",
-      "confidence_score": 1.0
+      "target": "lib_supabase_supabase"
     },
     {
       "relation": "imports_from",
@@ -8319,9 +8349,9 @@
       "source_file": "app/routes/record.tsx",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_record",
-      "target": "api_suggestsimilar",
-      "confidence_score": 1.0
+      "target": "api_suggestsimilar"
     },
     {
       "relation": "imports",
@@ -8330,9 +8360,9 @@
       "source_file": "app/routes/record.tsx",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_record",
-      "target": "api_suggestsimilar_suggestsimilar",
-      "confidence_score": 1.0
+      "target": "api_suggestsimilar_suggestsimilar"
     },
     {
       "relation": "contains",
@@ -8383,9 +8413,9 @@
       "source_file": "app/routes/songs.new.tsx",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_songs_new",
-      "target": "api_tracks",
-      "confidence_score": 1.0
+      "target": "api_tracks"
     },
     {
       "relation": "imports",
@@ -8416,9 +8446,9 @@
       "source_file": "app/routes/songs.new.tsx",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_songs_new",
-      "target": "api_tracks_searchtracks",
-      "confidence_score": 1.0
+      "target": "api_tracks_searchtracks"
     },
     {
       "relation": "imports",
@@ -8438,9 +8468,9 @@
       "source_file": "app/routes/songs.new.tsx",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_songs_new",
-      "target": "api_tracks_fetchpreviewblob",
-      "confidence_score": 1.0
+      "target": "api_tracks_fetchpreviewblob"
     },
     {
       "relation": "contains",
@@ -8629,9 +8659,9 @@
       "source_file": "app/lib/audio/analyze.ts",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "audio_analyze",
-      "target": "lib_memovisuals",
-      "confidence_score": 1.0
+      "target": "lib_memovisuals"
     },
     {
       "relation": "imports",
@@ -8640,9 +8670,9 @@
       "source_file": "app/lib/audio/analyze.ts",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "audio_analyze",
-      "target": "lib_memovisuals_bucketpeaks",
-      "confidence_score": 1.0
+      "target": "lib_memovisuals_bucketpeaks"
     },
     {
       "relation": "imports_from",
@@ -8706,9 +8736,9 @@
       "source_file": "app/routes/songs.new.tsx",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_songs_new",
-      "target": "audio_analyze",
-      "confidence_score": 1.0
+      "target": "audio_analyze"
     },
     {
       "relation": "calls",
@@ -8860,9 +8890,9 @@
       "source_file": "app/routes/songs.new.tsx",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_songs_new",
-      "target": "audio_analyze_analyzereference",
-      "confidence_score": 1.0
+      "target": "audio_analyze_analyzereference"
     },
     {
       "relation": "contains",
@@ -9332,9 +9362,9 @@
       "source_file": "app/lib/audio/playback.ts",
       "source_location": "L24",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "audio_playback",
-      "target": "audio_playback_songplayback",
-      "confidence_score": 1.0
+      "target": "audio_playback_songplayback"
     },
     {
       "relation": "contains",
@@ -9375,9 +9405,9 @@
       "source_file": "app/routes/songs.$id.tsx",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_songs_id",
-      "target": "audio_playback_songplayback",
-      "confidence_score": 1.0
+      "target": "audio_playback_songplayback"
     },
     {
       "relation": "imports",
@@ -9821,9 +9851,9 @@
       "source_file": "app/lib/memoVisuals.ts",
       "source_location": "L73",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_memovisuals",
-      "target": "lib_memovisuals_bucketpeaks",
-      "confidence_score": 1.0
+      "target": "lib_memovisuals_bucketpeaks"
     },
     {
       "relation": "contains",
@@ -9831,9 +9861,9 @@
       "source_file": "app/lib/memoVisuals.ts",
       "source_location": "L97",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_memovisuals",
-      "target": "lib_memovisuals_chordindextorow",
-      "confidence_score": 1.0
+      "target": "lib_memovisuals_chordindextorow"
     },
     {
       "relation": "contains",
@@ -9851,9 +9881,9 @@
       "source_file": "app/lib/memoVisuals.ts",
       "source_location": "L22",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_memovisuals",
-      "target": "lib_memovisuals_envelopetopath",
-      "confidence_score": 1.0
+      "target": "lib_memovisuals_envelopetopath"
     },
     {
       "relation": "contains",
@@ -9881,9 +9911,9 @@
       "source_file": "app/lib/memoVisuals.ts",
       "source_location": "L125",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_memovisuals",
-      "target": "lib_memovisuals_paletteindexfromid",
-      "confidence_score": 1.0
+      "target": "lib_memovisuals_paletteindexfromid"
     },
     {
       "relation": "contains",
@@ -9891,9 +9921,9 @@
       "source_file": "app/lib/memoVisuals.ts",
       "source_location": "L61",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_memovisuals",
-      "target": "lib_memovisuals_realwavepath",
-      "confidence_score": 1.0
+      "target": "lib_memovisuals_realwavepath"
     },
     {
       "relation": "contains",
@@ -9998,9 +10028,9 @@
       "source_file": "scripts/check-memoVisuals.mjs",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "scripts_check_memovisuals",
-      "target": "lib_memovisuals",
-      "confidence_score": 1.0
+      "target": "lib_memovisuals"
     },
     {
       "relation": "imports",
@@ -10042,9 +10072,9 @@
       "source_file": "app/lib/memoVisuals.ts",
       "source_location": "L62",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_memovisuals_realwavepath",
-      "target": "lib_memovisuals_envelopetopath",
-      "confidence_score": 1.0
+      "target": "lib_memovisuals_envelopetopath"
     },
     {
       "relation": "calls",
@@ -10053,9 +10083,9 @@
       "source_file": "app/lib/memoVisuals.ts",
       "source_location": "L56",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_memovisuals_wavepoints",
-      "target": "lib_memovisuals_envelopetopath",
-      "confidence_score": 1.0
+      "target": "lib_memovisuals_envelopetopath"
     },
     {
       "relation": "calls",
@@ -10075,9 +10105,9 @@
       "source_file": "scripts/check-memoVisuals.mjs",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "scripts_check_memovisuals",
-      "target": "lib_memovisuals_wavepoints",
-      "confidence_score": 1.0
+      "target": "lib_memovisuals_wavepoints"
     },
     {
       "relation": "calls",
@@ -10086,9 +10116,9 @@
       "source_file": "app/lib/memoVisuals.ts",
       "source_location": "L143",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_memovisuals_decoidea",
-      "target": "lib_memovisuals_realwavepath",
-      "confidence_score": 1.0
+      "target": "lib_memovisuals_realwavepath"
     },
     {
       "relation": "imports",
@@ -10097,9 +10127,9 @@
       "source_file": "scripts/check-memoVisuals.mjs",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "scripts_check_memovisuals",
-      "target": "lib_memovisuals_realwavepath",
-      "confidence_score": 1.0
+      "target": "lib_memovisuals_realwavepath"
     },
     {
       "relation": "imports",
@@ -10108,9 +10138,9 @@
       "source_file": "scripts/check-memoVisuals.mjs",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "scripts_check_memovisuals",
-      "target": "lib_memovisuals_bucketpeaks",
-      "confidence_score": 1.0
+      "target": "lib_memovisuals_bucketpeaks"
     },
     {
       "relation": "imports",
@@ -10119,9 +10149,9 @@
       "source_file": "app/routes/songs.$id.tsx",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_songs_id",
-      "target": "lib_memovisuals_chordindextorow",
-      "confidence_score": 1.0
+      "target": "lib_memovisuals_chordindextorow"
     },
     {
       "relation": "calls",
@@ -10141,9 +10171,9 @@
       "source_file": "scripts/check-memoVisuals.mjs",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "scripts_check_memovisuals",
-      "target": "lib_memovisuals_chordindextorow",
-      "confidence_score": 1.0
+      "target": "lib_memovisuals_chordindextorow"
     },
     {
       "relation": "calls",
@@ -10174,9 +10204,9 @@
       "source_file": "app/lib/memoVisuals.ts",
       "source_location": "L132",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_memovisuals_decoidea",
-      "target": "lib_memovisuals_paletteindexfromid",
-      "confidence_score": 1.0
+      "target": "lib_memovisuals_paletteindexfromid"
     },
     {
       "relation": "imports",
@@ -10686,9 +10716,9 @@
       "source_file": "app/lib/types.ts",
       "source_location": "L20",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_types",
-      "target": "lib_types_soundslikeentry",
-      "confidence_score": 1.0
+      "target": "lib_types_soundslikeentry"
     },
     {
       "relation": "contains",
@@ -10740,9 +10770,9 @@
       "source_file": "app/routes/record.tsx",
       "source_location": "L9",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_record",
-      "target": "lib_types_soundslikeentry",
-      "confidence_score": 1.0
+      "target": "lib_types_soundslikeentry"
     },
     {
       "relation": "contains",
@@ -10750,9 +10780,9 @@
       "source_file": "app/lib/useCachedFetch.ts",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_usecachedfetch",
-      "target": "lib_usecachedfetch_cache",
-      "confidence_score": 1.0
+      "target": "lib_usecachedfetch_cache"
     },
     {
       "relation": "contains",
@@ -10760,9 +10790,9 @@
       "source_file": "app/lib/useCachedFetch.ts",
       "source_location": "L11",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_usecachedfetch",
-      "target": "lib_usecachedfetch_usecachedfetch",
-      "confidence_score": 1.0
+      "target": "lib_usecachedfetch_usecachedfetch"
     },
     {
       "relation": "imports_from",
@@ -10771,9 +10801,9 @@
       "source_file": "app/routes/ideas.tsx",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_ideas",
-      "target": "lib_usecachedfetch",
-      "confidence_score": 1.0
+      "target": "lib_usecachedfetch"
     },
     {
       "relation": "imports_from",
@@ -10782,9 +10812,9 @@
       "source_file": "app/routes/ideas.$id.tsx",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_ideas_id",
-      "target": "lib_usecachedfetch",
-      "confidence_score": 1.0
+      "target": "lib_usecachedfetch"
     },
     {
       "relation": "imports_from",
@@ -10793,9 +10823,9 @@
       "source_file": "app/routes/songs.tsx",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_songs",
-      "target": "lib_usecachedfetch",
-      "confidence_score": 1.0
+      "target": "lib_usecachedfetch"
     },
     {
       "relation": "imports_from",
@@ -10804,9 +10834,9 @@
       "source_file": "app/routes/songs.$id.tsx",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_songs_id",
-      "target": "lib_usecachedfetch",
-      "confidence_score": 1.0
+      "target": "lib_usecachedfetch"
     },
     {
       "relation": "imports",
@@ -10815,9 +10845,9 @@
       "source_file": "app/routes/ideas.tsx",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_ideas",
-      "target": "lib_usecachedfetch_usecachedfetch",
-      "confidence_score": 1.0
+      "target": "lib_usecachedfetch_usecachedfetch"
     },
     {
       "relation": "imports",
@@ -10826,9 +10856,9 @@
       "source_file": "app/routes/ideas.$id.tsx",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_ideas_id",
-      "target": "lib_usecachedfetch_usecachedfetch",
-      "confidence_score": 1.0
+      "target": "lib_usecachedfetch_usecachedfetch"
     },
     {
       "relation": "calls",
@@ -10859,9 +10889,9 @@
       "source_file": "app/routes/songs.tsx",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_songs",
-      "target": "lib_usecachedfetch_usecachedfetch",
-      "confidence_score": 1.0
+      "target": "lib_usecachedfetch_usecachedfetch"
     },
     {
       "relation": "imports",
@@ -10870,9 +10900,9 @@
       "source_file": "app/routes/songs.$id.tsx",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_songs_id",
-      "target": "lib_usecachedfetch_usecachedfetch",
-      "confidence_score": 1.0
+      "target": "lib_usecachedfetch_usecachedfetch"
     },
     {
       "relation": "calls",
@@ -10902,9 +10932,9 @@
       "source_file": "app/lib/usePreviewPlayer.ts",
       "source_location": "L15",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_usepreviewplayer",
-      "target": "lib_usepreviewplayer_usepreviewplayer",
-      "confidence_score": 1.0
+      "target": "lib_usepreviewplayer_usepreviewplayer"
     },
     {
       "relation": "imports_from",
@@ -10913,9 +10943,9 @@
       "source_file": "app/routes/ideas.$id.tsx",
       "source_location": "L2",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_ideas_id",
-      "target": "lib_usepreviewplayer",
-      "confidence_score": 1.0
+      "target": "lib_usepreviewplayer"
     },
     {
       "relation": "imports_from",
@@ -10924,9 +10954,9 @@
       "source_file": "app/routes/record.tsx",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_record",
-      "target": "lib_usepreviewplayer",
-      "confidence_score": 1.0
+      "target": "lib_usepreviewplayer"
     },
     {
       "relation": "imports_from",
@@ -10935,9 +10965,9 @@
       "source_file": "app/routes/songs.new.tsx",
       "source_location": "L10",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_songs_new",
-      "target": "lib_usepreviewplayer",
-      "confidence_score": 1.0
+      "target": "lib_usepreviewplayer"
     },
     {
       "relation": "imports",
@@ -10946,9 +10976,9 @@
       "source_file": "app/routes/ideas.$id.tsx",
       "source_location": "L2",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_ideas_id",
-      "target": "lib_usepreviewplayer_usepreviewplayer",
-      "confidence_score": 1.0
+      "target": "lib_usepreviewplayer_usepreviewplayer"
     },
     {
       "relation": "calls",
@@ -10968,9 +10998,9 @@
       "source_file": "app/routes/record.tsx",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_record",
-      "target": "lib_usepreviewplayer_usepreviewplayer",
-      "confidence_score": 1.0
+      "target": "lib_usepreviewplayer_usepreviewplayer"
     },
     {
       "relation": "calls",
@@ -10990,9 +11020,9 @@
       "source_file": "app/routes/songs.new.tsx",
       "source_location": "L10",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_songs_new",
-      "target": "lib_usepreviewplayer_usepreviewplayer",
-      "confidence_score": 1.0
+      "target": "lib_usepreviewplayer_usepreviewplayer"
     },
     {
       "relation": "calls",
@@ -11268,6 +11298,37 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "app/routes/record.tsx",
+      "source_location": "L28",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_record",
+      "target": "routes_record_suggesttitle"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/routes/record.tsx",
+      "source_location": "L19",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_record",
+      "target": "routes_record_title_templates"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "app/routes/record.tsx",
+      "source_location": "L30",
+      "weight": 1.0,
+      "source": "routes_record_suggesttitle",
+      "target": "scripts_extract_memo_screens_template"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "app/routes/songs.$id.tsx",
       "source_location": "L2",
       "weight": 1.0,
@@ -11291,9 +11352,9 @@
       "source_file": "app/routes/songs.new.tsx",
       "source_location": "L13",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "routes_songs_new",
-      "target": "routes_songs_new_searchtrack",
-      "confidence_score": 1.0
+      "target": "routes_songs_new_searchtrack"
     },
     {
       "relation": "contains",
@@ -13279,6 +13340,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "package.json",
+      "source_location": "L33",
+      "weight": 1.0,
+      "source": "package_devdependencies",
+      "target": "package_devdependencies_playwright",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
       "source_location": "L26",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -13501,9 +13572,9 @@
       "source_file": "supabase/functions/suggest-similar/index.ts",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "suggest_similar_index",
-      "target": "suggest_similar_index_cors",
-      "confidence_score": 1.0
+      "target": "suggest_similar_index_cors"
     },
     {
       "relation": "contains",
@@ -13511,9 +13582,9 @@
       "source_file": "supabase/functions/suggest-similar/index.ts",
       "source_location": "L25",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "suggest_similar_index",
-      "target": "suggest_similar_index_extractoutputtext",
-      "confidence_score": 1.0
+      "target": "suggest_similar_index_extractoutputtext"
     },
     {
       "relation": "contains",
@@ -13521,9 +13592,9 @@
       "source_file": "supabase/functions/suggest-similar/index.ts",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "suggest_similar_index",
-      "target": "suggest_similar_index_response_schema",
-      "confidence_score": 1.0
+      "target": "suggest_similar_index_response_schema"
     },
     {
       "relation": "contains",
@@ -15511,9 +15582,9 @@
       "source_file": "docs/superpowers/plans/2026-07-22-ideas-songs-playback-polish.md",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_07_22_ideas_songs_playback_polish",
-      "target": "plans_2026_07_22_ideas_songs_playback_polish_ideas_songs_polish_real_playback_engine_implementation_plan",
-      "confidence_score": 1.0
+      "target": "plans_2026_07_22_ideas_songs_playback_polish_ideas_songs_polish_real_playback_engine_implementation_plan"
     },
     {
       "relation": "contains",
@@ -15521,9 +15592,9 @@
       "source_file": "docs/superpowers/plans/2026-07-22-ideas-songs-playback-polish.md",
       "source_location": "L13",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_07_22_ideas_songs_playback_polish_ideas_songs_polish_real_playback_engine_implementation_plan",
-      "target": "plans_2026_07_22_ideas_songs_playback_polish_file_structure",
-      "confidence_score": 1.0
+      "target": "plans_2026_07_22_ideas_songs_playback_polish_file_structure"
     },
     {
       "relation": "contains",
@@ -15531,9 +15602,9 @@
       "source_file": "docs/superpowers/plans/2026-07-22-ideas-songs-playback-polish.md",
       "source_location": "L1718",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_07_22_ideas_songs_playback_polish_ideas_songs_polish_real_playback_engine_implementation_plan",
-      "target": "plans_2026_07_22_ideas_songs_playback_polish_self_review",
-      "confidence_score": 1.0
+      "target": "plans_2026_07_22_ideas_songs_playback_polish_self_review"
     },
     {
       "relation": "contains",
@@ -15541,9 +15612,9 @@
       "source_file": "docs/superpowers/plans/2026-07-22-ideas-songs-playback-polish.md",
       "source_location": "L1231",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_07_22_ideas_songs_playback_polish_file_structure",
-      "target": "plans_2026_07_22_ideas_songs_playback_polish_task_10_playback_ts_rewrite_tone_transport_based_songplayback",
-      "confidence_score": 1.0
+      "target": "plans_2026_07_22_ideas_songs_playback_polish_task_10_playback_ts_rewrite_tone_transport_based_songplayback"
     },
     {
       "relation": "contains",
@@ -15551,9 +15622,9 @@
       "source_file": "docs/superpowers/plans/2026-07-22-ideas-songs-playback-polish.md",
       "source_location": "L1462",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_07_22_ideas_songs_playback_polish_file_structure",
-      "target": "plans_2026_07_22_ideas_songs_playback_polish_task_11_song_builder_wire_real_playback_integer_bpm_scrubbable_progress_bar",
-      "confidence_score": 1.0
+      "target": "plans_2026_07_22_ideas_songs_playback_polish_task_11_song_builder_wire_real_playback_integer_bpm_scrubbable_progress_bar"
     },
     {
       "relation": "contains",
@@ -15561,9 +15632,9 @@
       "source_file": "docs/superpowers/plans/2026-07-22-ideas-songs-playback-polish.md",
       "source_location": "L34",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_07_22_ideas_songs_playback_polish_file_structure",
-      "target": "plans_2026_07_22_ideas_songs_playback_polish_task_1_migration_ideas_waveform_json",
-      "confidence_score": 1.0
+      "target": "plans_2026_07_22_ideas_songs_playback_polish_task_1_migration_ideas_waveform_json"
     },
     {
       "relation": "contains",
@@ -15571,9 +15642,9 @@
       "source_file": "docs/superpowers/plans/2026-07-22-ideas-songs-playback-polish.md",
       "source_location": "L62",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_07_22_ideas_songs_playback_polish_file_structure",
-      "target": "plans_2026_07_22_ideas_songs_playback_polish_task_2_usecachedfetch_hook_spinner_component",
-      "confidence_score": 1.0
+      "target": "plans_2026_07_22_ideas_songs_playback_polish_task_2_usecachedfetch_hook_spinner_component"
     },
     {
       "relation": "contains",
@@ -15581,9 +15652,9 @@
       "source_file": "docs/superpowers/plans/2026-07-22-ideas-songs-playback-polish.md",
       "source_location": "L138",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_07_22_ideas_songs_playback_polish_file_structure",
-      "target": "plans_2026_07_22_ideas_songs_playback_polish_task_3_wire_cache_spinner_into_ideas_and_songs_lists",
-      "confidence_score": 1.0
+      "target": "plans_2026_07_22_ideas_songs_playback_polish_task_3_wire_cache_spinner_into_ideas_and_songs_lists"
     },
     {
       "relation": "contains",
@@ -15591,9 +15662,9 @@
       "source_file": "docs/superpowers/plans/2026-07-22-ideas-songs-playback-polish.md",
       "source_location": "L259",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_07_22_ideas_songs_playback_polish_file_structure",
-      "target": "plans_2026_07_22_ideas_songs_playback_polish_task_4_wire_cache_spinner_into_idea_detail_and_song_builder",
-      "confidence_score": 1.0
+      "target": "plans_2026_07_22_ideas_songs_playback_polish_task_4_wire_cache_spinner_into_idea_detail_and_song_builder"
     },
     {
       "relation": "contains",
@@ -15601,9 +15672,9 @@
       "source_file": "docs/superpowers/plans/2026-07-22-ideas-songs-playback-polish.md",
       "source_location": "L399",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_07_22_ideas_songs_playback_polish_file_structure",
-      "target": "plans_2026_07_22_ideas_songs_playback_polish_task_5_ideas_page_recent_3_rack_scoped_scrolling",
-      "confidence_score": 1.0
+      "target": "plans_2026_07_22_ideas_songs_playback_polish_task_5_ideas_page_recent_3_rack_scoped_scrolling"
     },
     {
       "relation": "contains",
@@ -15611,9 +15682,9 @@
       "source_file": "docs/superpowers/plans/2026-07-22-ideas-songs-playback-polish.md",
       "source_location": "L586",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_07_22_ideas_songs_playback_polish_file_structure",
-      "target": "plans_2026_07_22_ideas_songs_playback_polish_task_6_detail_page_cleanup_remove_back_buttons_built_in_stages",
-      "confidence_score": 1.0
+      "target": "plans_2026_07_22_ideas_songs_playback_polish_task_6_detail_page_cleanup_remove_back_buttons_built_in_stages"
     },
     {
       "relation": "contains",
@@ -15621,9 +15692,9 @@
       "source_file": "docs/superpowers/plans/2026-07-22-ideas-songs-playback-polish.md",
       "source_location": "L686",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_07_22_ideas_songs_playback_polish_file_structure",
-      "target": "plans_2026_07_22_ideas_songs_playback_polish_task_7_memovisuals_ts_waveform_section_mapping_pure_logic",
-      "confidence_score": 1.0
+      "target": "plans_2026_07_22_ideas_songs_playback_polish_task_7_memovisuals_ts_waveform_section_mapping_pure_logic"
     },
     {
       "relation": "contains",
@@ -15631,9 +15702,9 @@
       "source_file": "docs/superpowers/plans/2026-07-22-ideas-songs-playback-polish.md",
       "source_location": "L946",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_07_22_ideas_songs_playback_polish_file_structure",
-      "target": "plans_2026_07_22_ideas_songs_playback_polish_task_8_thread_waveform_capture_through_types_analyze_save",
-      "confidence_score": 1.0
+      "target": "plans_2026_07_22_ideas_songs_playback_polish_task_8_thread_waveform_capture_through_types_analyze_save"
     },
     {
       "relation": "contains",
@@ -15641,9 +15712,9 @@
       "source_file": "docs/superpowers/plans/2026-07-22-ideas-songs-playback-polish.md",
       "source_location": "L1077",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_07_22_ideas_songs_playback_polish_file_structure",
-      "target": "plans_2026_07_22_ideas_songs_playback_polish_task_9_idea_detail_real_playback_ref_based_real_waveform_scrub",
-      "confidence_score": 1.0
+      "target": "plans_2026_07_22_ideas_songs_playback_polish_task_9_idea_detail_real_playback_ref_based_real_waveform_scrub"
     },
     {
       "relation": "contains",
@@ -15651,9 +15722,9 @@
       "source_file": "docs/superpowers/plans/2026-07-22-reference-song-discovery.md",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_07_22_reference_song_discovery",
-      "target": "plans_2026_07_22_reference_song_discovery_real_reference_song_discovery_implementation_plan",
-      "confidence_score": 1.0
+      "target": "plans_2026_07_22_reference_song_discovery_real_reference_song_discovery_implementation_plan"
     },
     {
       "relation": "contains",
@@ -15661,9 +15732,9 @@
       "source_file": "docs/superpowers/plans/2026-07-22-reference-song-discovery.md",
       "source_location": "L13",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_07_22_reference_song_discovery_real_reference_song_discovery_implementation_plan",
-      "target": "plans_2026_07_22_reference_song_discovery_file_structure",
-      "confidence_score": 1.0
+      "target": "plans_2026_07_22_reference_song_discovery_file_structure"
     },
     {
       "relation": "contains",
@@ -15671,9 +15742,9 @@
       "source_file": "docs/superpowers/plans/2026-07-22-reference-song-discovery.md",
       "source_location": "L969",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_07_22_reference_song_discovery_real_reference_song_discovery_implementation_plan",
-      "target": "plans_2026_07_22_reference_song_discovery_self_review",
-      "confidence_score": 1.0
+      "target": "plans_2026_07_22_reference_song_discovery_self_review"
     },
     {
       "relation": "contains",
@@ -15681,9 +15752,9 @@
       "source_file": "docs/superpowers/plans/2026-07-22-reference-song-discovery.md",
       "source_location": "L31",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_07_22_reference_song_discovery_file_structure",
-      "target": "plans_2026_07_22_reference_song_discovery_task_1_migration_shared_type",
-      "confidence_score": 1.0
+      "target": "plans_2026_07_22_reference_song_discovery_task_1_migration_shared_type"
     },
     {
       "relation": "contains",
@@ -15691,9 +15762,9 @@
       "source_file": "docs/superpowers/plans/2026-07-22-reference-song-discovery.md",
       "source_location": "L72",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_07_22_reference_song_discovery_file_structure",
-      "target": "plans_2026_07_22_reference_song_discovery_task_2_usepreviewplayer_hook",
-      "confidence_score": 1.0
+      "target": "plans_2026_07_22_reference_song_discovery_task_2_usepreviewplayer_hook"
     },
     {
       "relation": "contains",
@@ -15701,9 +15772,9 @@
       "source_file": "docs/superpowers/plans/2026-07-22-reference-song-discovery.md",
       "source_location": "L136",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_07_22_reference_song_discovery_file_structure",
-      "target": "plans_2026_07_22_reference_song_discovery_task_3_suggest_similar_gemini_edge_function_client",
-      "confidence_score": 1.0
+      "target": "plans_2026_07_22_reference_song_discovery_task_3_suggest_similar_gemini_edge_function_client"
     },
     {
       "relation": "contains",
@@ -15711,9 +15782,9 @@
       "source_file": "docs/superpowers/plans/2026-07-22-reference-song-discovery.md",
       "source_location": "L299",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_07_22_reference_song_discovery_file_structure",
-      "target": "plans_2026_07_22_reference_song_discovery_task_4_bank_ts_thread_soundslike_through_saveidea",
-      "confidence_score": 1.0
+      "target": "plans_2026_07_22_reference_song_discovery_task_4_bank_ts_thread_soundslike_through_saveidea"
     },
     {
       "relation": "contains",
@@ -15721,9 +15792,9 @@
       "source_file": "docs/superpowers/plans/2026-07-22-reference-song-discovery.md",
       "source_location": "L376",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_07_22_reference_song_discovery_file_structure",
-      "target": "plans_2026_07_22_reference_song_discovery_task_5_record_wire_real_sounds_like_remove_the_old_fake_matching",
-      "confidence_score": 1.0
+      "target": "plans_2026_07_22_reference_song_discovery_task_5_record_wire_real_sounds_like_remove_the_old_fake_matching"
     },
     {
       "relation": "contains",
@@ -15731,9 +15802,9 @@
       "source_file": "docs/superpowers/plans/2026-07-22-reference-song-discovery.md",
       "source_location": "L643",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_07_22_reference_song_discovery_file_structure",
-      "target": "plans_2026_07_22_reference_song_discovery_task_6_idea_detail_sounds_like_display",
-      "confidence_score": 1.0
+      "target": "plans_2026_07_22_reference_song_discovery_task_6_idea_detail_sounds_like_display"
     },
     {
       "relation": "contains",
@@ -15741,9 +15812,9 @@
       "source_file": "docs/superpowers/plans/2026-07-22-reference-song-discovery.md",
       "source_location": "L756",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "plans_2026_07_22_reference_song_discovery_file_structure",
-      "target": "plans_2026_07_22_reference_song_discovery_task_7_chooser_side_b_search_build_button_state_fix",
-      "confidence_score": 1.0
+      "target": "plans_2026_07_22_reference_song_discovery_task_7_chooser_side_b_search_build_button_state_fix"
     },
     {
       "relation": "contains",
@@ -16211,9 +16282,9 @@
       "source_file": "docs/superpowers/specs/2026-07-22-reference-song-discovery-design.md",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "specs_2026_07_22_reference_song_discovery_design",
-      "target": "specs_2026_07_22_reference_song_discovery_design_real_reference_song_discovery_design",
-      "confidence_score": 1.0
+      "target": "specs_2026_07_22_reference_song_discovery_design_real_reference_song_discovery_design"
     },
     {
       "relation": "contains",
@@ -16221,9 +16292,9 @@
       "source_file": "docs/superpowers/specs/2026-07-22-reference-song-discovery-design.md",
       "source_location": "L44",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "specs_2026_07_22_reference_song_discovery_design_real_reference_song_discovery_design",
-      "target": "specs_2026_07_22_reference_song_discovery_design_1_shared_usepreviewplayer",
-      "confidence_score": 1.0
+      "target": "specs_2026_07_22_reference_song_discovery_design_1_shared_usepreviewplayer"
     },
     {
       "relation": "contains",
@@ -16231,9 +16302,9 @@
       "source_file": "docs/superpowers/specs/2026-07-22-reference-song-discovery-design.md",
       "source_location": "L92",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "specs_2026_07_22_reference_song_discovery_design_real_reference_song_discovery_design",
-      "target": "specs_2026_07_22_reference_song_discovery_design_2_suggest_similar_gemini_edge_function",
-      "confidence_score": 1.0
+      "target": "specs_2026_07_22_reference_song_discovery_design_2_suggest_similar_gemini_edge_function"
     },
     {
       "relation": "contains",
@@ -16241,9 +16312,9 @@
       "source_file": "docs/superpowers/specs/2026-07-22-reference-song-discovery-design.md",
       "source_location": "L147",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "specs_2026_07_22_reference_song_discovery_design_real_reference_song_discovery_design",
-      "target": "specs_2026_07_22_reference_song_discovery_design_3_record_real_sounds_like",
-      "confidence_score": 1.0
+      "target": "specs_2026_07_22_reference_song_discovery_design_3_record_real_sounds_like"
     },
     {
       "relation": "contains",
@@ -16251,9 +16322,9 @@
       "source_file": "docs/superpowers/specs/2026-07-22-reference-song-discovery-design.md",
       "source_location": "L185",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "specs_2026_07_22_reference_song_discovery_design_real_reference_song_discovery_design",
-      "target": "specs_2026_07_22_reference_song_discovery_design_4_chooser_side_b_search",
-      "confidence_score": 1.0
+      "target": "specs_2026_07_22_reference_song_discovery_design_4_chooser_side_b_search"
     },
     {
       "relation": "contains",
@@ -16261,9 +16332,9 @@
       "source_file": "docs/superpowers/specs/2026-07-22-reference-song-discovery-design.md",
       "source_location": "L209",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "specs_2026_07_22_reference_song_discovery_design_real_reference_song_discovery_design",
-      "target": "specs_2026_07_22_reference_song_discovery_design_5_build_button_state_fix",
-      "confidence_score": 1.0
+      "target": "specs_2026_07_22_reference_song_discovery_design_5_build_button_state_fix"
     },
     {
       "relation": "contains",
@@ -16271,9 +16342,9 @@
       "source_file": "docs/superpowers/specs/2026-07-22-reference-song-discovery-design.md",
       "source_location": "L225",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "specs_2026_07_22_reference_song_discovery_design_real_reference_song_discovery_design",
-      "target": "specs_2026_07_22_reference_song_discovery_design_error_handling",
-      "confidence_score": 1.0
+      "target": "specs_2026_07_22_reference_song_discovery_design_error_handling"
     },
     {
       "relation": "contains",
@@ -16281,9 +16352,9 @@
       "source_file": "docs/superpowers/specs/2026-07-22-reference-song-discovery-design.md",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "specs_2026_07_22_reference_song_discovery_design_real_reference_song_discovery_design",
-      "target": "specs_2026_07_22_reference_song_discovery_design_purpose",
-      "confidence_score": 1.0
+      "target": "specs_2026_07_22_reference_song_discovery_design_purpose"
     },
     {
       "relation": "contains",
@@ -16291,9 +16362,9 @@
       "source_file": "docs/superpowers/specs/2026-07-22-reference-song-discovery-design.md",
       "source_location": "L22",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "specs_2026_07_22_reference_song_discovery_design_real_reference_song_discovery_design",
-      "target": "specs_2026_07_22_reference_song_discovery_design_scope",
-      "confidence_score": 1.0
+      "target": "specs_2026_07_22_reference_song_discovery_design_scope"
     },
     {
       "relation": "contains",
@@ -16301,9 +16372,9 @@
       "source_file": "docs/superpowers/specs/2026-07-22-reference-song-discovery-design.md",
       "source_location": "L243",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "specs_2026_07_22_reference_song_discovery_design_real_reference_song_discovery_design",
-      "target": "specs_2026_07_22_reference_song_discovery_design_self_review",
-      "confidence_score": 1.0
+      "target": "specs_2026_07_22_reference_song_discovery_design_self_review"
     },
     {
       "relation": "contains",
@@ -16311,9 +16382,9 @@
       "source_file": "docs/superpowers/specs/2026-07-22-reference-song-discovery-design.md",
       "source_location": "L235",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "specs_2026_07_22_reference_song_discovery_design_real_reference_song_discovery_design",
-      "target": "specs_2026_07_22_reference_song_discovery_design_testing_verification",
-      "confidence_score": 1.0
+      "target": "specs_2026_07_22_reference_song_discovery_design_testing_verification"
     },
     {
       "relation": "contains",
@@ -17520,5 +17591,5 @@
       "source_file": "docs/superpowers/plans/2026-07-21-opendaw-integration.md"
     }
   ],
-  "built_at_commit": "d72a7e492dc6b16099f6f6d0ae8e396f5d3dbd30"
+  "built_at_commit": "72e1c26787b6b26d29067f6bf188242c787b7005"
 }

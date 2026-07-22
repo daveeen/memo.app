@@ -136,7 +136,7 @@ export default function IdeaDetail() {
           <div style={cssText("display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;")}>
             {songs.map((s, i) => (
               <Fragment key={i}>
-                <span style={cssText("font-size:12.5px;font-weight:600;color:#17161B;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:20px;padding:7px 13px;")}>♪ {s.vibe_briefs?.source_track_name}</span>
+                <button onClick={() => nav(`/songs/${s.id}`)} style={cssText("font-size:12.5px;font-weight:600;color:#17161B;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:20px;padding:7px 13px;cursor:pointer;")}>♪ {s.vibe_briefs?.source_track_name}</button>
               </Fragment>
             ))}
           </div>

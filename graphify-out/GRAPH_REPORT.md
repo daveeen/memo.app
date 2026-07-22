@@ -1,16 +1,16 @@
 # Graph Report - memo  (2026-07-22)
 
 ## Corpus Check
-- 79 files · ~245,387 words
+- 79 files · ~245,563 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 693 nodes · 1002 edges · 50 communities (45 shown, 5 thin omitted)
-- Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 3 edges (avg confidence: 0.68)
+- 696 nodes · 1006 edges · 51 communities (45 shown, 6 thin omitted)
+- Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 4 edges (avg confidence: 0.71)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `d72a7e49`
+- Built from commit: `72e1c267`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -61,6 +61,7 @@
 - [[_COMMUNITY_Community 47|Community 47]]
 - [[_COMMUNITY_Community 48|Community 48]]
 - [[_COMMUNITY_Community 49|Community 49]]
+- [[_COMMUNITY_Community 50|Community 50]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `cssText()` - 28 edges
@@ -94,11 +95,11 @@
 - **openDAW Headless SDK Stack (ProjectApi/EngineFacade + WASM engine + MIDI decoder + data model)** — opendaw_studio_core, opendaw_studio_core_wasm, opendaw_lib_midi, opendaw_lib_box [EXTRACTED 1.00]
 - **openDAW Produce Editor UI Components (route + transport + piano roll + instrument picker)** — routes_produce_produce, opendaw_transportcontrols_transportcontrols, opendaw_pianoroll_pianoroll, opendaw_instrumentpicker_instrumentpicker [EXTRACTED 1.00]
 
-## Communities (50 total, 5 thin omitted)
+## Communities (51 total, 6 thin omitted)
 
 ### Community 0 - "Bank & Tracks API Layer"
 Cohesion: 0.06
-Nodes (61): buildSong(), deleteIdea(), getIdea(), getSong(), ideaAudioUrl(), listBriefs(), listIdeas(), listSongs() (+53 more)
+Nodes (60): buildSong(), deleteIdea(), getIdea(), getSong(), ideaAudioUrl(), listBriefs(), listIdeas(), listSongs() (+52 more)
 
 ### Community 1 - "openDAW Integration Decisions"
 Cohesion: 0.29
@@ -114,7 +115,7 @@ Nodes (13): Cloudflare Pages Deploy via Wrangler (build/client), Gotcha: create-
 
 ### Community 4 - "Vite Dev Dependencies"
 Cohesion: 0.06
-Nodes (34): @opendaw/studio-sdk — dependency-aggregator meta-package, no real API of its own, dependencies, essentia.js, isbot, @opendaw/studio-sdk, react, react-dom, react-router (+26 more)
+Nodes (35): @opendaw/studio-sdk — dependency-aggregator meta-package, no real API of its own, dependencies, essentia.js, isbot, @opendaw/studio-sdk, react, react-dom, react-router (+27 more)
 
 ### Community 5 - "TypeScript Config"
 Cohesion: 0.11
@@ -129,8 +130,8 @@ Cohesion: 0.06
 Nodes (47): boot(), cdnScriptFor(), collectProps(), compileAttr(), compileTemplate(), contentKey(), createComponentFactory(), createExternalModules() (+39 more)
 
 ### Community 8 - "Idea Notes Feature"
-Cohesion: 0.09
-Nodes (26): renameIdea(), updateIdeaNote(), BankList note textarea + justCreatedId auto-focus-once mechanism, RecordPanel onSaved callback — extended to pass new idea id, Migration 0002: alter table ideas add column note text, superpowers:executing-plans (alternate sub-skill), Idea Notes Implementation Plan, superpowers:subagent-driven-development (required sub-skill) (+18 more)
+Cohesion: 0.06
+Nodes (39): Checkpoint — 2026-07-21, Done this session, Known open item, Manual steps still pending (user doing separately), Not started: openDAW integration, Resume instructions (fresh session), Update: openDAW integration complete, BankList note textarea + justCreatedId auto-focus-once mechanism (+31 more)
 
 ### Community 16 - "Community 16"
 Cohesion: 0.17
@@ -177,12 +178,12 @@ Cohesion: 0.13
 Nodes (15): 3.10 openDAW handoff, 3.11 Multi-track upload, 3.1 Record, 3.2 Analysis reveal, 3.3 Ideas (library), 3.4 Brief, 3.5 Song Builder, 3.6 Auth (+7 more)
 
 ### Community 28 - "Community 28"
-Cohesion: 0.16
-Nodes (13): Gotcha: chord quality (major/minor trailing "m") silently dropped if not branched on, Gotcha: essentia.js real import path differs from its README (sync core, .es.js vs .umd.js), Essentia.js WASM DSP Engine (client-side), Gotcha: HPCP bin 0 is pitch class A, not C (toCChroma rotation fix), Gotcha: Tone.js v15 PolySynth cannot wrap Sampler (Sampler already polyphonic), createOpenDawProject(), ensureOpenDawEngine(), rejectingSampleProvider (+5 more)
+Cohesion: 0.25
+Nodes (8): Gotcha: chord quality (major/minor trailing "m") silently dropped if not branched on, Gotcha: essentia.js real import path differs from its README (sync core, .es.js vs .umd.js), Essentia.js WASM DSP Engine (client-side), Gotcha: HPCP bin 0 is pitch class A, not C (toCChroma rotation fix), createOpenDawProject(), ensureOpenDawEngine(), rejectingSampleProvider, rejectingSoundfontProvider
 
 ### Community 29 - "Community 29"
-Cohesion: 0.33
-Nodes (4): manifest, markers, raw, template
+Cohesion: 0.29
+Nodes (5): suggestTitle(), manifest, markers, raw, template
 
 ### Community 30 - "Community 30"
 Cohesion: 0.15
@@ -193,8 +194,8 @@ Cohesion: 0.17
 Nodes (11): Data flow, Error handling (deliberate deviation from this codebase's usual silent-fail convention), Known unresolved risk — flagged, not solved here, New files, openDAW Integration — Design, Purpose, Research summary (full findings in prior conversation turn — condensed here), Routing change (+3 more)
 
 ### Community 32 - "Community 32"
-Cohesion: 0.18
-Nodes (12): openDAW AGPL v3 licensing blocker resolved by user, proceeding on that basis, Decision: openDAW (Task 8.2) shipped as an honest stub, not a real mount, ProducePanel signed-URL .mid download — the always-works fallback, andremichelle/opendaw-headless — official minimal headless-integration template, DecodedNote, importMidiIntoProject(), @opendaw/lib-jsx — openDAW's own JSX runtime (not React), powers its unpublished studio UI, @opendaw/lib-midi — MidiFileDecoder.decode(), no turnkey SMF import/export helper (+4 more)
+Cohesion: 0.17
+Nodes (16): openDAW AGPL v3 licensing blocker resolved by user, proceeding on that basis, Decision: openDAW (Task 8.2) shipped as an honest stub, not a real mount, ProducePanel signed-URL .mid download — the always-works fallback, Gotcha: Tone.js v15 PolySynth cannot wrap Sampler (Sampler already polyphonic), andremichelle/opendaw-headless — official minimal headless-integration template, importMidiIntoProject(), @opendaw/lib-box (underlying data-model / box handles/ids), @opendaw/lib-jsx — openDAW's own JSX runtime (not React), powers its unpublished studio UI (+8 more)
 
 ### Community 33 - "Community 33"
 Cohesion: 0.29
@@ -207,10 +208,6 @@ Nodes (6): 4.1 Recording and analysis lifecycle, 4.2 Playback transport, 4.3 Con
 ### Community 35 - "Community 35"
 Cohesion: 0.29
 Nodes (7): 5.1 Latency policy, 5.2 Error taxonomy, 5.3 Permissions and dead ends, 5.4 Offline behaviour, 5.5 Honesty rules, 5.6 Accessibility floor, Part 5 — Cross-cutting rules
-
-### Community 36 - "Community 36"
-Cohesion: 0.13
-Nodes (15): Checkpoint — 2026-07-21, Done this session, Known open item, Manual steps still pending (user doing separately), Not started: openDAW integration, Resume instructions (fresh session), Update: openDAW integration complete, Idea Notes feature — fully done this session (all 6 tasks) (+7 more)
 
 ### Community 37 - "Community 37"
 Cohesion: 0.29
@@ -260,25 +257,29 @@ Nodes (11): 1. Shared: `usePreviewPlayer()`, 2. `suggest-similar` Gemini edge fu
 Cohesion: 0.18
 Nodes (10): File Structure, Real Reference-Song Discovery Implementation Plan, Self-Review, Task 1: Migration + shared type, Task 2: `usePreviewPlayer()` hook, Task 3: `suggest-similar` Gemini edge function + client, Task 4: `bank.ts` — thread `soundsLike` through `saveIdea`, Task 5: Record — wire real sounds-like, remove the old fake matching (+2 more)
 
+### Community 50 - "Community 50"
+Cohesion: 0.50
+Nodes (4): PITCH_CLASSES, playSong(), SongPlayback, transposeNote()
+
 ## Knowledge Gaps
-- **350 isolated node(s):** `CassetteIdea`, `INSTRUMENT_OPTIONS`, `TRACK_COLORS`, `NOTE_NAMES`, `PC` (+345 more)
+- **351 isolated node(s):** `CassetteIdea`, `INSTRUMENT_OPTIONS`, `TRACK_COLORS`, `NOTE_NAMES`, `PC` (+346 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **5 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **6 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `openDAW Integration — Design Spec` connect `Community 32` to `CLAUDE.md Gotchas & Decisions`, `Community 36`, `Vite Dev Dependencies`, `MIDI Build & Playback`, `Community 40`, `Community 28`, `Community 30`?**
-  _High betweenness centrality (0.071) - this node is a cross-community bridge._
-- **Why does `Checkpoint — 2026-07-21` connect `Community 36` to `Community 32`, `CLAUDE.md Gotchas & Decisions`, `Idea Notes Feature`, `Community 19`, `Community 30`?**
-  _High betweenness centrality (0.055) - this node is a cross-community bridge._
+- **Why does `openDAW Integration — Design Spec` connect `Community 32` to `CLAUDE.md Gotchas & Decisions`, `Vite Dev Dependencies`, `MIDI Build & Playback`, `Idea Notes Feature`, `Community 40`, `Community 28`, `Community 30`?**
+  _High betweenness centrality (0.074) - this node is a cross-community bridge._
 - **Why does `cssText()` connect `Bank & Tracks API Layer` to `Community 40`?**
-  _High betweenness centrality (0.051) - this node is a cross-community bridge._
+  _High betweenness centrality (0.057) - this node is a cross-community bridge._
+- **Why does `Checkpoint — 2026-07-21` connect `Idea Notes Feature` to `Community 32`, `CLAUDE.md Gotchas & Decisions`, `Community 19`, `Community 30`?**
+  _High betweenness centrality (0.056) - this node is a cross-community bridge._
 - **What connects `CassetteIdea`, `INSTRUMENT_OPTIONS`, `TRACK_COLORS` to the rest of the system?**
-  _360 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _361 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Bank & Tracks API Layer` be split into smaller, more focused modules?**
-  _Cohesion score 0.05956112852664577 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.06183310533515732 - nodes in this community are weakly interconnected._
 - **Should `Vite Dev Dependencies` be split into smaller, more focused modules?**
-  _Cohesion score 0.05714285714285714 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.05555555555555555 - nodes in this community are weakly interconnected._
 - **Should `TypeScript Config` be split into smaller, more focused modules?**
   _Cohesion score 0.10526315789473684 - nodes in this community are weakly interconnected._

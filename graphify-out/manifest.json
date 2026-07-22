@@ -1,7 +1,7 @@
 {
   ".impeccable/hook.cache.json": {
-    "mtime": 1784687924.1709814,
-    "ast_hash": "c8a0e94bfc03529da715e99729957837",
+    "mtime": 1784693623.5063825,
+    "ast_hash": "d6d0069f7e3c4fa34c9473dfc6abf370",
     "semantic_hash": ""
   },
   "app/lib/api/arrange.ts": {
@@ -85,8 +85,8 @@
     "semantic_hash": ""
   },
   "package.json": {
-    "mtime": 1784600909.847389,
-    "ast_hash": "2db16db777b64032121f9375d714ea25",
+    "mtime": 1784693500.1116283,
+    "ast_hash": "c9df027e04caba7095037ad529528942",
     "semantic_hash": ""
   },
   "react-router.config.ts": {
@@ -225,8 +225,8 @@
     "semantic_hash": ""
   },
   "app/components/memo/Cassette.tsx": {
-    "mtime": 1784682041.2328842,
-    "ast_hash": "e5e077f01d29f2d1329e11b8246a7c77",
+    "mtime": 1784689429.4299545,
+    "ast_hash": "ac5da37b118e9d10793f1f3d0324bd6f",
     "semantic_hash": ""
   },
   "app/lib/cssText.test.mjs": {
@@ -240,17 +240,17 @@
     "semantic_hash": ""
   },
   "app/lib/memoVisuals.ts": {
-    "mtime": 1784688262.7220826,
-    "ast_hash": "d8e021ee2b3bb30df3cb670cdfb8f4a2",
+    "mtime": 1784689352.0941296,
+    "ast_hash": "7f6fdf05dd919efb50873a259e4117a0",
     "semantic_hash": ""
   },
   "app/routes/_shell.tsx": {
-    "mtime": 1784682041.2488751,
+    "mtime": 1784692812.6756673,
     "ast_hash": "964940eac23f8719e1fdcb5032728e94",
     "semantic_hash": ""
   },
   "app/routes/auth.tsx": {
-    "mtime": 1784682041.2488751,
+    "mtime": 1784692860.3752782,
     "ast_hash": "872dd55e085c8e18bbd31fe67462c214",
     "semantic_hash": ""
   },
@@ -260,18 +260,18 @@
     "semantic_hash": ""
   },
   "app/routes/ideas.$id.tsx": {
-    "mtime": 1784688262.7220826,
-    "ast_hash": "5622751790b1eb6c51b6f66376b7fb5f",
+    "mtime": 1784692176.4077868,
+    "ast_hash": "b510ca559ed9fbbd961dbb7f7525b527",
     "semantic_hash": ""
   },
   "app/routes/ideas.tsx": {
-    "mtime": 1784688185.6452615,
-    "ast_hash": "cabea5e027d4dba6a489c4aafbb89ea1",
+    "mtime": 1784688452.8717873,
+    "ast_hash": "2480589bcc33bc1ff7c59387e5fc0c12",
     "semantic_hash": ""
   },
   "app/routes/record.tsx": {
-    "mtime": 1784688262.7220826,
-    "ast_hash": "6b243d8fa48ea2fff59d870683af2d7c",
+    "mtime": 1784692855.9094954,
+    "ast_hash": "2b742eacc96f684319dfdd53781dc221",
     "semantic_hash": ""
   },
   "app/routes/songs.$id.tsx": {
@@ -280,8 +280,8 @@
     "semantic_hash": ""
   },
   "app/routes/songs.new.tsx": {
-    "mtime": 1784688262.7268875,
-    "ast_hash": "f6ec0f4cd2fa2588a71fb8247267f986",
+    "mtime": 1784708105.848811,
+    "ast_hash": "0f081d39cf47fc8d0570eeed9f38a1a1",
     "semantic_hash": ""
   },
   "app/routes/songs.tsx": {
@@ -290,7 +290,7 @@
     "semantic_hash": ""
   },
   "app/routes/splash.tsx": {
-    "mtime": 1784682041.2557645,
+    "mtime": 1784692868.1265194,
     "ast_hash": "d00136137732eb70a4b6321a02fcd7a8",
     "semantic_hash": ""
   },

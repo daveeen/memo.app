@@ -14,4 +14,4 @@ textarea { resize: none; }
 @keyframes mReel { to { transform: rotate(360deg); } }
 @keyframes casReel { to { transform: rotate(360deg); } }
 ::-webkit-scrollbar { width: 0; }
-.m-scroll { overflow-y: auto; }
+.m-scroll { overflow-y: auto; min-height: 0; }

@@ -2,15 +2,16 @@
 // from the mockup's renderVals(). Backend-independent. ponytail: synthetic
 // waveform is intentional for Phase A — real decoded peaks are Phase B.
 export const PAL = [
-  {shell:'linear-gradient(150deg,#D98C96,#C06E7B)',glow:'radial-gradient(circle,rgba(217,140,150,.4),transparent 70%)',stripe:'#CB7C87',ink:'#3A1E22'},
-  {shell:'linear-gradient(150deg,#9DB88A,#82A06C)',glow:'radial-gradient(circle,rgba(157,184,138,.4),transparent 70%)',stripe:'#8FAC7C',ink:'#1E2A16'},
-  {shell:'linear-gradient(150deg,#8FB0C4,#6F94AC)',glow:'radial-gradient(circle,rgba(143,176,196,.4),transparent 70%)',stripe:'#7FA0B6',ink:'#1A242C'},
-  {shell:'linear-gradient(150deg,#B79BC7,#9C7EAE)',glow:'radial-gradient(circle,rgba(183,155,199,.4),transparent 70%)',stripe:'#A88CB9',ink:'#2A1E30'},
-  {shell:'linear-gradient(150deg,#DCC97A,#C4AE58)',glow:'radial-gradient(circle,rgba(220,201,122,.4),transparent 70%)',stripe:'#D0BC68',ink:'#302A12'},
-  {shell:'linear-gradient(150deg,#8FC0A9,#6EA48C)',glow:'radial-gradient(circle,rgba(143,192,169,.4),transparent 70%)',stripe:'#7FAF98',ink:'#16241E'},
-  {shell:'linear-gradient(150deg,#7FAFAE,#5F9291)',glow:'radial-gradient(circle,rgba(127,175,174,.4),transparent 70%)',stripe:'#6F9F9E',ink:'#122624'},
-  {shell:'linear-gradient(150deg,#E094A0,#C6748A)',glow:'radial-gradient(circle,rgba(224,148,160,.4),transparent 70%)',stripe:'#D48490',ink:'#301820'},
-  {shell:'linear-gradient(150deg,#95A6C9,#7688AC)',glow:'radial-gradient(circle,rgba(149,166,201,.4),transparent 70%)',stripe:'#8696BA',ink:'#1C2036'},
+  {shell:'linear-gradient(150deg,#F4080C,#A60508)',glow:'radial-gradient(circle,rgba(244,8,12,.4),transparent 70%)',stripe:'#CD060A',ink:'#220101'},
+  {shell:'linear-gradient(150deg,#D9540C,#943908)',glow:'radial-gradient(circle,rgba(217,84,12,.4),transparent 70%)',stripe:'#B6470A',ink:'#220B02'},
+  {shell:'linear-gradient(150deg,#D87A07,#935305)',glow:'radial-gradient(circle,rgba(216,122,7,.4),transparent 70%)',stripe:'#B56606',ink:'#221001'},
+  {shell:'linear-gradient(150deg,#F75A0B,#A83D08)',glow:'radial-gradient(circle,rgba(247,90,11,.4),transparent 70%)',stripe:'#CF4B0A',ink:'#220A01'},
+  {shell:'linear-gradient(150deg,#F7B310,#A87A0B)',glow:'radial-gradient(circle,rgba(247,179,16,.4),transparent 70%)',stripe:'#CF960D',ink:'#221402'},
+  {shell:'linear-gradient(150deg,#71A64A,#4D7132)',glow:'radial-gradient(circle,rgba(113,166,74,.4),transparent 70%)',stripe:'#5F8B3E',ink:'#13220C'},
+  {shell:'linear-gradient(150deg,#36886F,#245C4C)',glow:'radial-gradient(circle,rgba(54,136,111,.4),transparent 70%)',stripe:'#2D725D',ink:'#0B2217'},
+  {shell:'linear-gradient(150deg,#3E7372,#2A4E4D)',glow:'radial-gradient(circle,rgba(62,115,114,.4),transparent 70%)',stripe:'#34615F',ink:'#0F221B'},
+  {shell:'linear-gradient(150deg,#465E73,#2F404E)',glow:'radial-gradient(circle,rgba(70,94,115,.4),transparent 70%)',stripe:'#3A4F61',ink:'#111722'},
+  {shell:'linear-gradient(150deg,#1F6481,#154458)',glow:'radial-gradient(circle,rgba(31,100,129,.4),transparent 70%)',stripe:'#1A546C',ink:'#071622'},
 ];
 export const SEC_COLORS = ['#C4593E','#7E7E3E','#D08A44','#C9A84C','#5E8577'];
 
