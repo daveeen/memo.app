@@ -72,7 +72,7 @@ export default function IdeaDetail() {
       >
         <svg viewBox="0 0 100 26" preserveAspectRatio="none" style={cssText("width:100%;height:70px;display:block;")}><path d={d.realWavePoints ?? d.wavePoints} fill={d.stripe}></path></svg>
         {duration > 0 && (
-          <div style={cssText(`position:absolute;top:16px;bottom:16px;left:${16 + (currentTime / duration) * (100 - 3.2)}%;width:2px;background:#17161B;box-shadow:0 0 4px rgba(0,0,0,.4);pointer-events:none;`)}></div>
+          <div style={cssText(`position:absolute;top:16px;bottom:16px;left:calc(16px + ${(currentTime / duration).toFixed(4)} * (100% - 32px));width:2px;background:#17161B;box-shadow:0 0 4px rgba(0,0,0,.4);pointer-events:none;`)}></div>
         )}
       </div>
 
