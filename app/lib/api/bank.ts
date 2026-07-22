@@ -14,7 +14,7 @@ export async function saveIdea(
   if (uploadError) throw uploadError;
   const { data, error } = await supabase.from("ideas").insert({
     title, raw_path: path, duration: a.durationSec, key: a.detectedKey,
-    bpm: a.bpm, notes_json: a.notes, input_type: a.inputType, mood: a.moodTag,
+    bpm: a.bpm, notes_json: a.notes, mood: a.moodTag,
     waveform_json: a.waveformPeaks, sounds_like_json: soundsLike,
   }).select().single();
   if (error) throw error;

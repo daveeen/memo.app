@@ -129,7 +129,7 @@ function paletteIndexFromId(id: string): number {
 }
 
 // Cassette-shape decoration for one idea row/card.
-export function decoIdea(d: {id:string; key?:string|null; bpm?:number|null; input_type?:string|null; mood?:string|null; title?:string; duration?:number|null; keyLow?:boolean; waveform_json?: number[] | null}) {
+export function decoIdea(d: {id:string; key?:string|null; bpm?:number|null; mood?:string|null; title?:string; duration?:number|null; keyLow?:boolean; waveform_json?: number[] | null}) {
   const p = PAL[paletteIndexFromId(d.id)];
   const keyShort = (d.key||'').split(' ')[0];
   const bpmShort = d.bpm != null ? `${Math.round(d.bpm)}` : '—';
@@ -138,7 +138,7 @@ export function decoIdea(d: {id:string; key?:string|null; bpm?:number|null; inpu
     id: d.id, ...p,
     name: d.title || 'Untitled',
     key: d.key || '—', bpm: d.bpm != null ? `${Math.round(d.bpm)} BPM` : '— BPM',
-    type: d.input_type || 'other', mood: d.mood || '—',
+    mood: d.mood || '—',
     duration: d.duration != null ? formatDuration(d.duration) : '0:00',
     wavePoints: wavePoints(seedFromId(d.id)),
     realWavePoints: realPeaks ? realWavePath(realPeaks) : null,

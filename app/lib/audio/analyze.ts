@@ -1,6 +1,5 @@
 import { getEssentia } from "./essentia";
 import { decodeAndClean } from "./decode";
-import { classifyInput } from "./classify";
 import { detectChords } from "./chords";
 import { segment } from "./segment";
 import { bucketPeaks } from "~/lib/memoVisuals";
@@ -39,12 +38,6 @@ export async function analyzeCapture(blob: Blob): Promise<Omit<CaptureAnalysis, 
     console.log("[analyzeCapture] PercivalBpmEstimator ok", bpm);
   } catch (err) { console.error("[analyzeCapture] PercivalBpmEstimator threw", err); throw err; }
 
-  let inputType: "hum" | "vocal" | "guitar" | "other";
-  try {
-    inputType = classifyInput(e, vec);
-    console.log("[analyzeCapture] classifyInput ok", inputType);
-  } catch (err) { console.error("[analyzeCapture] classifyInput threw", err); throw err; }
-
   let py: any;
   try {
     py = e.PitchYinProbabilistic(vec, 4096, HOP_SIZE, 0.1, "zero", false, sampleRate);
@@ -61,7 +54,7 @@ export async function analyzeCapture(blob: Blob): Promise<Omit<CaptureAnalysis, 
 
   const moodTag = moodFrom(scale, bpm);
   const waveformPeaks = bucketPeaks(pcm);
-  return { durationSec, detectedKey: `${key} ${scale}`, bpm, inputType, moodTag, notes, waveformPeaks };
+  return { durationSec, detectedKey: `${key} ${scale}`, bpm, moodTag, notes, waveformPeaks };
 }
 
 // Reference tracks (iTunes previews / uploads) are polyphonic songs, unlike a

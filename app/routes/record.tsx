@@ -157,7 +157,7 @@ export default function Record() {
     setSoundsLike([]);
     suggestSimilar({
       key: analysis.detectedKey, bpm: analysis.bpm,
-      mood: analysis.moodTag, inputType: analysis.inputType,
+      mood: analysis.moodTag,
     })
       .then(async (suggestions) => {
         const resolved = await Promise.all(suggestions.map(async (s) => {
@@ -333,7 +333,7 @@ export default function Record() {
                       <div style={cssText("font-size:14px;font-weight:700;color:#2E2418;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;")}>{t.title}</div>
                       <div style={cssText("font-size:11.5px;color:#8a7d68;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;")}>{t.artist}</div>
                     </div>
-                    <span style={cssText("font-size:16px;color:#B5503C;flex:none;")}>{previewPlayingUrl === t.previewUrl ? "❚❚" : "▶"}</span>
+                    <span style={cssText("flex:none;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;color:#B5503C;background:#fff;box-shadow:0 3px 8px rgba(154,90,60,.22),inset 0 1px 1px rgba(255,255,255,.6);")}>{previewPlayingUrl === t.previewUrl ? "❚❚" : "▶"}</span>
                   </button>
                 ))}
               </div>

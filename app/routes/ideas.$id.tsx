@@ -79,7 +79,7 @@ export default function IdeaDetail() {
       </div>
 
       <div style={cssText("margin-top:18px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#57565E;")}>Detected · measured</div>
-      <div style={cssText("display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:10px;")}>
+      <div style={cssText("display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;")}>
         <div style={cssText("background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:13px;padding:12px;")}>
           <div style={cssText("font-size:10.5px;color:#8a8791;font-weight:600;")}>Key</div>
           <div style={cssText("font-size:15px;font-weight:800;color:#17161B;margin-top:3px;")}>{d.key}</div>
@@ -90,10 +90,6 @@ export default function IdeaDetail() {
         <div style={cssText("background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:13px;padding:12px;")}>
           <div style={cssText("font-size:10.5px;color:#8a8791;font-weight:600;")}>Tempo</div>
           <div style={cssText("font-size:15px;font-weight:800;color:#17161B;margin-top:3px;")}>{d.bpm}</div>
-        </div>
-        <div style={cssText("background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:13px;padding:12px;")}>
-          <div style={cssText("font-size:10.5px;color:#8a8791;font-weight:600;")}>Input</div>
-          <div style={cssText("font-size:15px;font-weight:800;color:#17161B;margin-top:3px;text-transform:capitalize;")}>{d.type}</div>
         </div>
       </div>
       <div style={cssText("margin-top:10px;display:flex;align-items:center;gap:8px;background:#F1E7D3;border:1px dashed rgba(154,90,60,.4);border-radius:13px;padding:11px 13px;")}>
@@ -123,7 +119,7 @@ export default function IdeaDetail() {
                   <div style={cssText("font-size:14px;font-weight:700;color:#17161B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;")}>{t.title}</div>
                   <div style={cssText("font-size:11.5px;color:#8a8791;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;")}>{t.artist}</div>
                 </div>
-                <span style={cssText("font-size:16px;color:#B5503C;flex:none;")}>{previewPlayingUrl === t.previewUrl ? "❚❚" : "▶"}</span>
+                <span style={cssText("flex:none;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;color:#B5503C;background:#F7F1E3;box-shadow:0 3px 8px rgba(0,0,0,.1),inset 0 1px 1px rgba(255,255,255,.6);")}>{previewPlayingUrl === t.previewUrl ? "❚❚" : "▶"}</span>
               </button>
             ))}
           </div>

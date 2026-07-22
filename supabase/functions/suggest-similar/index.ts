@@ -1,4 +1,4 @@
-// POST { key, bpm, mood, inputType } → { suggestions: {title, artist}[] }
+// POST { key, bpm, mood } → { suggestions: {title, artist}[] }
 // Deployed WITH Supabase JWT verification on, same reasoning as arrange:
 // it spends the project's GEMINI_API_KEY budget per call.
 const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "*" };
@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
       headers: { ...cors, "content-type": "application/json" },
     });
   }
-  const { key, bpm, mood, inputType } = body ?? {};
+  const { key, bpm, mood } = body ?? {};
 
   const apiKey = Deno.env.get("GEMINI_API_KEY");
   if (!apiKey) {
@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
   const sys = "You suggest real, existing, released songs that share the musical " +
     "character described. Never invent a title or artist — only suggest songs you " +
     "are confident actually exist and were commercially released.";
-  const user = `Key: ${key}\nTempo: ${bpm} BPM\nMood: ${mood}\nSource type: ${inputType}\n` +
+  const user = `Key: ${key}\nTempo: ${bpm} BPM\nMood: ${mood}\n` +
     `Suggest 5 real songs (title + artist) that share this musical character.`;
 
   let parsed: any;

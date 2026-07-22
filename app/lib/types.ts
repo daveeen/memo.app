@@ -1,6 +1,6 @@
 export interface CaptureAnalysis {
   id: string; durationSec: number; detectedKey: string; bpm: number;
-  inputType: "hum" | "vocal" | "guitar" | "other"; moodTag: string;
+  moodTag: string;
   notes: { pitch: string; startSec: number; durSec: number }[];
   cleanedAudioPath: string;
   waveformPeaks: number[];

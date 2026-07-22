@@ -13,8 +13,8 @@ export async function decodeAndClean(blob: Blob): Promise<{ pcm: Float32Array; s
   const thr = 0.02; let s = 0, e = len - 1;
   while (s < len && Math.abs(mono[s]) < thr) s++;
   while (e > s && Math.abs(mono[e]) < thr) e--;
-  // Essentia's FFT-based algorithms (Spectrum, used inside classify.ts's
-  // classifyInput) require an EVEN-length input signal — confirmed straight out
+  // Essentia's FFT-based algorithms (Spectrum, used inside chords.ts's
+  // detectChords) require an EVEN-length input signal — confirmed straight out
   // of the essentia.js WASM binary's own error string: "FFT can only be computed
   // on frames which size is even and non zero, otherwise an exception is thrown."
   // Real recordings trim to an arbitrary length (odd about half the time); the

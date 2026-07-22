@@ -16,8 +16,8 @@ export default function Ideas() {
   const ideas = rows.map((r) => decoIdea(r));
   const q = query.trim().toLowerCase();
   const match = (d: any) =>
-    (!q || [d.name, d.key, d.bpm, d.type, d.mood].join(" ").toLowerCase().includes(q)) &&
-    (filter === "All" || d.type === filter.toLowerCase() || d.mood === filter.toLowerCase());
+    (!q || [d.name, d.key, d.bpm, d.mood].join(" ").toLowerCase().includes(q)) &&
+    (filter === "All" || d.mood === filter.toLowerCase());
   const shown = ideas.filter(match);
 
   const pull = (id: string) => { setPullingId(id); setTimeout(() => nav(`/ideas/${id}`), 440); };
@@ -25,7 +25,7 @@ export default function Ideas() {
     `position:relative;display:flex;align-items:center;width:100%;height:38px;flex:none;border:none;padding:0;cursor:pointer;text-align:left;border-radius:3px;background:${d.shell};box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 -2px 4px rgba(0,0,0,.25),0 2px 5px rgba(0,0,0,.35);` +
     (pullingId === d.id ? "transform:translateX(54px) scale(1.04);box-shadow:-16px 14px 32px rgba(0,0,0,.5);z-index:9;filter:brightness(1.07);" : "transform:translateX(0);")
   );
-  const filters = ["All", "Vocal", "Guitar", "Bright", "Warm"];
+  const filters = ["All", "Bright", "Warm"];
   const chip = (label: string) => { const active = filter === label; return cssText(`flex:none;padding:9px 15px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;border:1px solid ${active ? "transparent" : "rgba(0,0,0,.1)"};background:${active ? "#17161B" : "#fff"};color:${active ? "#fff" : "#57565E"};`); };
   const clearFilters = () => { setQuery(""); setFilter("All"); };
   const noResultsMsg = q
@@ -41,7 +41,6 @@ export default function Ideas() {
         <span style={cssText("font-size:19px;font-weight:700;line-height:1.3;color:#2E2418;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;")}>{d.name}</span>
       </div>
       <div style={cssText(`flex:none;display:flex;align-items:center;gap:9px;padding-right:12px;color:${d.ink};`)}>
-        <span style={cssText("font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;opacity:.8;white-space:nowrap;")}>{d.type}</span>
         <span style={cssText("font-family:'Space Mono',monospace;font-size:9px;opacity:.82;white-space:nowrap;")}>{d.spineMeta}</span>
         <div style={cssText("display:flex;gap:2px;opacity:.5;")}><div style={cssText("width:2px;height:12px;background:currentColor;border-radius:1px;")}></div><div style={cssText("width:2px;height:12px;background:currentColor;border-radius:1px;")}></div></div>
       </div>

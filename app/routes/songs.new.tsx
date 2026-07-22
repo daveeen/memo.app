@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
-import { listIdeas, listBriefs, saveBrief, saveSong } from "~/lib/api/bank";
+import { listIdeas, listBriefs, saveBrief, saveSong, ideaAudioUrl } from "~/lib/api/bank";
 import { buildSong } from "~/lib/api/arrange";
 import { buildMidi } from "~/lib/audio/midi";
 import { analyzeReference } from "~/lib/audio/analyze";
@@ -25,8 +25,25 @@ export default function Chooser() {
   const [briefResults, setBriefResults] = useState<SearchTrack[]>([]);
   const [analyzingUrl, setAnalyzingUrl] = useState<string | null>(null);
   const { playingUrl, toggle: togglePreview } = usePreviewPlayer();
+  const [ideaAudioUrls, setIdeaAudioUrls] = useState<Record<string, string>>({});
   useEffect(() => { listIdeas().then(setIdeas); listBriefs().then(setBriefs); }, []);
   const ready = !!ideaId && !busy;
+
+  // Idea audio is a private storage object, not a plain public URL like an
+  // iTunes preview — resolve to a signed URL once per idea and cache it, so
+  // a second tap toggles pause/resume against the SAME url (a fresh signed
+  // URL every tap would have a different token each time, breaking
+  // usePreviewPlayer's url-equality-based toggle).
+  async function toggleIdeaPreview(i: any) {
+    let url = ideaAudioUrls[i.id];
+    if (!url) {
+      const resolved = await ideaAudioUrl(i.raw_path);
+      if (!resolved) return;
+      url = resolved;
+      setIdeaAudioUrls((prev) => ({ ...prev, [i.id]: url }));
+    }
+    togglePreview(url);
+  }
 
   function runSearch(q: string) {
     if (!q) { setBriefResults([]); return; }
@@ -93,13 +110,22 @@ export default function Chooser() {
         {ideas.map((i) => {
           const d = decoIdea(i);
           return (
-            <button
+            <div
               key={i.id}
               onClick={() => setIdeaId(i.id)}
-              style={cssText(`border:none;background:none;padding:5px;cursor:pointer;border-radius:16px;flex:none;outline:${ideaId === i.id ? "3px solid #B5503C" : "3px solid transparent"};outline-offset:2px;`)}
+              role="button"
+              tabIndex={0}
+              style={cssText(`position:relative;padding:5px;cursor:pointer;border-radius:16px;flex:none;outline:${ideaId === i.id ? "3px solid #B5503C" : "3px solid transparent"};outline-offset:2px;`)}
             >
               <div style={cssText("width:110px;")}><Cassette idea={d} /></div>
-            </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); toggleIdeaPreview(i); }}
+                aria-label="Preview idea"
+                style={cssText("position:absolute;bottom:9px;right:9px;width:30px;height:30px;border-radius:50%;border:none;background:#fff;color:#B5503C;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(0,0,0,.22);")}
+              >
+                {playingUrl != null && playingUrl === ideaAudioUrls[i.id] ? "❚❚" : "▶"}
+              </button>
+            </div>
           );
         })}
       </div>
