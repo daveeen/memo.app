@@ -116,9 +116,45 @@ export function addNotesToTrack(track: Track, notes: PlayableNote[]): void {
   }
 }
 
+// General MIDI percussion note numbers (channel 10, i.e. Track.channel = 9
+// zero-indexed) — standard across GM-compatible players/synths.
+const DRUM = { kick: 36, snare: 38, hihat: 42 };
+
+// Each chordChart slot is a fixed 2-beat window (mirrors buildMidi's own
+// chord loop below — beatSec = (60/bpm)*2 is one slot). Intro/Outro get a
+// sparse kick+hihat pattern; everything else (Verse/Chorus/Bridge, or any
+// section label this loose match doesn't recognize — e.g. Gemini-invented
+// labels when there's no reference brief) gets a basic full kick/snare/hihat
+// beat. Substring match, not exact equality, since section labels aren't a
+// fixed enum.
+function buildDrumTrack(
+  chordChart: { chord: string; section: string }[],
+  bpm: number,
+): { pitch: number; startSec: number; durSec: number }[] {
+  const beatSec = (60 / bpm) * 2;
+  const beat = beatSec / 2;
+  const hitDur = Math.min(0.15, beat / 4);
+  const hits: { pitch: number; startSec: number; durSec: number }[] = [];
+  let t = 0;
+  for (const c of chordChart) {
+    const isEdge = /intro|outro/i.test(c.section);
+    if (isEdge) {
+      hits.push({ pitch: DRUM.kick, startSec: t, durSec: hitDur });
+      hits.push({ pitch: DRUM.hihat, startSec: t, durSec: hitDur });
+      hits.push({ pitch: DRUM.hihat, startSec: t + beat, durSec: hitDur });
+    } else {
+      hits.push({ pitch: DRUM.kick, startSec: t, durSec: hitDur });
+      hits.push({ pitch: DRUM.snare, startSec: t + beat, durSec: hitDur });
+      for (let i = 0; i < 4; i++) hits.push({ pitch: DRUM.hihat, startSec: t + i * (beat / 2), durSec: hitDur });
+    }
+    t += beatSec;
+  }
+  return hits;
+}
+
 export function buildMidi(
   notes: { pitch: string; startSec: number; durSec: number }[],
-  chordChart: { chord: string }[],
+  chordChart: { chord: string; section: string }[],
   bpm: number,
   key: string,
 ): Uint8Array {
@@ -149,6 +185,11 @@ export function buildMidi(
     }
     t += beatSec;
   }
+
+  const drums = midi.addTrack();
+  drums.name = "drums";
+  drums.channel = 9;
+  addNotesToTrack(drums, buildDrumTrack(chordChart, bpm));
 
   return midi.toArray();
 }
