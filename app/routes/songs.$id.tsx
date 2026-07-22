@@ -122,13 +122,15 @@ export default function Builder() {
       {/* Transcribed from .memo-design/screen-07-builder.html's builderComplete branch
           (builderBuilding branch skipped — this route always loads an already-built song). */}
       <div style={cssText("font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#57565E;")}>Song</div>
-      <h2 style={cssText("margin:5px 0 10px;font-size:26px;font-weight:800;letter-spacing:-.03em;color:#2E2418;")}>{idea.title} × {brief?.source_track_name}</h2>
+      <h2 style={cssText("margin:5px 0 10px;font-size:26px;font-weight:800;letter-spacing:-.03em;color:#2E2418;")}>{idea.title}{brief?.source_track_name ? ` × ${brief.source_track_name}` : ""}</h2>
       <div style={cssText("display:flex;align-items:center;gap:8px;flex-wrap:wrap;")}>
         <span style={cssText("font-size:11px;font-weight:800;letter-spacing:.02em;color:#2E2418;background:#F4EDDB;border:1px solid rgba(46,36,24,.14);border-radius:8px;padding:5px 10px;font-family:'Space Mono',monospace;white-space:nowrap;")}>{idea.key}</span>
         <span style={cssText("font-size:11px;font-weight:800;letter-spacing:.02em;color:#2E2418;background:#F4EDDB;border:1px solid rgba(46,36,24,.14);border-radius:8px;padding:5px 10px;font-family:'Space Mono',monospace;white-space:nowrap;")}>{Math.round(idea.bpm)} BPM</span>
         <span style={cssText("width:1px;height:16px;background:rgba(46,36,24,.14);")}></span>
         <span style={cssText("font-size:11px;font-weight:700;color:#B5503C;background:rgba(181,80,60,.14);border-radius:8px;padding:5px 10px;")}>A · {idea.title}</span>
-        <span style={cssText("font-size:11px;font-weight:700;color:#7C7A3A;background:rgba(124,122,58,.16);border-radius:8px;padding:5px 10px;")}>B · {brief?.source_track_name}</span>
+        {brief?.source_track_name && (
+          <span style={cssText("font-size:11px;font-weight:700;color:#7C7A3A;background:rgba(124,122,58,.16);border-radius:8px;padding:5px 10px;")}>B · {brief.source_track_name}</span>
+        )}
       </div>
 
       <div style={cssText("margin-top:20px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#8a7d68;")}>Structure</div>
