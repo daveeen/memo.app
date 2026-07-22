@@ -33,6 +33,7 @@ export default function Ideas() {
     : filter !== "All"
       ? `No ideas match the "${filter}" filter.`
       : "No ideas yet.";
+  const searching = !!q || filter !== "All";
 
   const spineRow = (d: any) => (
     <button key={d.id} className="m-spine" onClick={() => pull(d.id)} style={spineStyle(d)}>
@@ -79,27 +80,29 @@ export default function Ideas() {
         ))}
       </div>
 
-      {recent.length > 0 && (
+      {!searching && recent.length > 0 && (
         <>
-          <div style={cssText("margin-top:24px;font-size:16px;font-weight:700;letter-spacing:-.02em;color:#2E2418;")}>Recent</div>
-          <div style={cssText("margin-top:12px;background:linear-gradient(180deg,#2E2318,#1B140D);border-radius:12px;padding:10px 9px;box-shadow:inset 0 2px 12px rgba(0,0,0,.55),0 8px 18px rgba(60,44,32,.16);display:flex;flex-direction:column;gap:5px;overflow:visible;flex:none;")}>
+          <div style={cssText("margin-top:16px;font-size:16px;font-weight:700;letter-spacing:-.02em;color:#2E2418;")}>Recent</div>
+          <div style={cssText("margin-top:10px;background:linear-gradient(180deg,#2E2318,#1B140D);border-radius:12px;padding:10px 9px;box-shadow:inset 0 2px 12px rgba(0,0,0,.55),0 8px 18px rgba(60,44,32,.16);display:flex;flex-direction:column;gap:5px;overflow:visible;flex:none;")}>
             {recent.map(spineRow)}
           </div>
         </>
       )}
 
-      <div style={cssText("margin-top:24px;display:flex;align-items:baseline;justify-content:space-between;flex:none;")}>
+      <div style={cssText("margin-top:16px;display:flex;align-items:baseline;justify-content:space-between;flex:none;")}>
         <div style={cssText("font-size:16px;font-weight:700;letter-spacing:-.02em;color:#2E2418;")}>All ideas</div>
         <div style={cssText("font-size:11.5px;font-weight:600;color:#8a7d68;")}>Tap a tape to pull it out</div>
       </div>
-      <div className="m-scroll" style={cssText("flex:1;min-height:0;margin-top:12px;padding-bottom:120px;")}>
-        <div style={cssText("background:linear-gradient(180deg,#2E2318,#1B140D);border-radius:12px;padding:10px 9px;box-shadow:inset 0 2px 12px rgba(0,0,0,.55),0 8px 18px rgba(60,44,32,.16);display:flex;flex-direction:column;gap:5px;overflow:visible;")}>
-          {shown.map(spineRow)}
-        </div>
+      {/* Fixed box (border/shadow/placement never moves) — height sized to fit
+          4 full rows (4*38px rows + 3*5px gaps + 2*10px padding = 187px) before
+          it needs to scroll internally. className="m-scroll" is what scrolls,
+          not the page. */}
+      <div className="m-scroll" style={cssText("margin-top:10px;height:190px;flex:none;background:linear-gradient(180deg,#2E2318,#1B140D);border-radius:12px;padding:10px 9px;box-shadow:inset 0 2px 12px rgba(0,0,0,.55),0 8px 18px rgba(60,44,32,.16);display:flex;flex-direction:column;gap:5px;")}>
+        {shown.map(spineRow)}
         {shown.length === 0 && (
-          <div style={cssText("text-align:center;padding:36px 14px;")}>
-            <div style={cssText("font-size:14px;font-weight:600;color:#57565E;")}>{noResultsMsg}</div>
-            <button onClick={clearFilters} style={cssText("margin-top:12px;padding:9px 18px;border-radius:20px;border:none;background:#2E2418;color:#fff;font-weight:600;font-size:13px;cursor:pointer;")}>Clear filters</button>
+          <div style={cssText("flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:14px;")}>
+            <div style={cssText("font-size:14px;font-weight:600;color:#c9b79a;")}>{noResultsMsg}</div>
+            <button onClick={clearFilters} style={cssText("margin-top:12px;padding:9px 18px;border-radius:20px;border:none;background:#F4EDDB;color:#2E2418;font-weight:600;font-size:13px;cursor:pointer;")}>Clear filters</button>
           </div>
         )}
       </div>
