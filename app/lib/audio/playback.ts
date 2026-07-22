@@ -55,6 +55,22 @@ export async function playSong(
 ): Promise<SongPlayback> {
   activeStop?.();
   await Tone.start();
+  // Tone.start() calls context.resume() and waits, but some mobile browsers
+  // (notably iOS Safari) have been seen leaving the raw AudioContext in
+  // "suspended" even after that promise resolves, especially the first time
+  // in a session — the Transport still schedules/advances normally (it's
+  // just JS timing), which is exactly the "runs but silent" symptom. Belt
+  // and suspenders: force it and note if it's still stuck, since a silently
+  // suspended context is otherwise very hard to tell apart from "no audio
+  // graph issue at all" from a bug report alone.
+  const rawContext = Tone.getContext().rawContext as AudioContext;
+  if (rawContext.state !== "running") {
+    await rawContext.resume().catch(() => {});
+    const stateAfter = rawContext.state as string;
+    if (stateAfter !== "running") {
+      console.warn("[playback] AudioContext still", stateAfter, "after resume — audio will likely be silent");
+    }
+  }
   // Tone.Sampler is used directly (not wrapped in Tone.PolySynth): v15's
   // `PolySynth<Voice extends Monophonic<any>>` constraint rejects Sampler
   // (it extends Instrument, not Monophonic — confirmed via tsc, see report).

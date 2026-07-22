@@ -97,7 +97,13 @@ export default function Record() {
       stream.current?.getTracks().forEach((t) => t.stop());
       clearInterval(timer.current);
       setPhase("analysing");
-      await finishAnalysis(new Blob(chunks.current, { type: "audio/webm" }));
+      // Blob type must match what the browser actually recorded, not a
+      // hardcoded guess — Safari (iOS included) doesn't support webm at all
+      // and records mp4/aac instead. Mislabeling the blob as audio/webm made
+      // the stored file's declared type disagree with its real bytes, so
+      // playback failed outright on every browser that isn't Chrome.
+      const mimeType = rec.current?.mimeType || "audio/webm";
+      await finishAnalysis(new Blob(chunks.current, { type: mimeType }));
     };
     rec.current.start();
     setPhase("recording");

@@ -57,5 +57,13 @@ export function usePreviewPlayer() {
     setPlayingUrl(url);
   }
 
-  return { playingUrl, toggle };
+  // Exposed so a page can stop preview playback when it starts a DIFFERENT
+  // audio source of its own (e.g. Idea Detail's raw "Play take" element) —
+  // otherwise the two overlap, since they're independent <audio> elements.
+  function stop() {
+    audioRef.current?.pause();
+    setPlayingUrl(null);
+  }
+
+  return { playingUrl, toggle, stop };
 }

@@ -1,6 +1,17 @@
 import { supabase } from "~/lib/supabase";
 import type { CaptureAnalysis, BankEntry, VibeBrief, SoundsLikeEntry } from "~/lib/types";
 
+// The extension is cosmetic (browsers trust the HTTP Content-Type header for
+// <audio src> playback, not the URL), but a name matching the real format
+// avoids confusion. mp4 covers Safari/iOS's actual MediaRecorder output;
+// webm covers Chrome/Firefox; anything else falls back to a generic name.
+function extFromMimeType(mime: string): string {
+  if (mime.includes("mp4")) return "mp4";
+  if (mime.includes("ogg")) return "ogg";
+  if (mime.includes("webm")) return "webm";
+  return "audio";
+}
+
 export async function saveIdea(
   blob: Blob,
   a: Omit<CaptureAnalysis, "id" | "cleanedAudioPath">,
@@ -9,8 +20,14 @@ export async function saveIdea(
 ) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("not authenticated");
-  const path = `${user.id}/${crypto.randomUUID()}.webm`;
-  const { error: uploadError } = await supabase.storage.from("raw-audio").upload(path, blob);
+  const mimeType = blob.type || "audio/webm";
+  const path = `${user.id}/${crypto.randomUUID()}.${extFromMimeType(mimeType)}`;
+  // contentType must be passed explicitly — the stored object's Content-Type
+  // is what <audio> playback actually trusts, and it was previously always
+  // audio/webm regardless of what the browser really recorded (Safari/iOS
+  // records mp4/aac, not webm), which silently broke playback on those
+  // browsers even though the file's bytes were perfectly valid audio.
+  const { error: uploadError } = await supabase.storage.from("raw-audio").upload(path, blob, { contentType: mimeType });
   if (uploadError) throw uploadError;
   const { data, error } = await supabase.from("ideas").insert({
     title, raw_path: path, duration: a.durationSec, key: a.detectedKey,

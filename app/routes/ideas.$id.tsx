@@ -17,7 +17,7 @@ export default function IdeaDetail() {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(undefined);
-  const { playingUrl: previewPlayingUrl, toggle: togglePreview } = usePreviewPlayer();
+  const { playingUrl: previewPlayingUrl, toggle: togglePreview, stop: stopPreview } = usePreviewPlayer();
   useEffect(() => {
     if (!id) return;
     listSongsForIdea(id).then(setSongs);
@@ -40,7 +40,7 @@ export default function IdeaDetail() {
       audioRef.current = el;
     }
     if (playing) { audioRef.current.pause(); setPlaying(false); }
-    else { audioRef.current.play(); setPlaying(true); }
+    else { stopPreview(); audioRef.current.play(); setPlaying(true); }
   }
   function seek(fraction: number) {
     if (!audioRef.current || !duration) return;
@@ -111,7 +111,7 @@ export default function IdeaDetail() {
             {row.sounds_like_json.map((t: { title: string; artist: string; artworkUrl: string; previewUrl: string }, i: number) => (
               <button
                 key={i}
-                onClick={() => togglePreview(t.previewUrl)}
+                onClick={() => { if (playing) { audioRef.current?.pause(); setPlaying(false); } togglePreview(t.previewUrl); }}
                 style={cssText("display:flex;align-items:center;gap:12px;padding:8px;border-radius:12px;background:#fff;border:1px solid rgba(0,0,0,.07);cursor:pointer;text-align:left;width:100%;")}
               >
                 <div style={cssText(`width:44px;height:44px;border-radius:9px;flex:none;background-color:#e3d8c4;background-image:url(${t.artworkUrl});background-size:cover;background-position:center;box-shadow:0 3px 7px rgba(0,0,0,.12);`)}></div>
