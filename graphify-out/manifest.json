@@ -1,7 +1,7 @@
 {
   ".impeccable/hook.cache.json": {
-    "mtime": 1784693623.5063825,
-    "ast_hash": "d6d0069f7e3c4fa34c9473dfc6abf370",
+    "mtime": 1784708320.434836,
+    "ast_hash": "dafbf56862825ace9573978bf50f71d9",
     "semantic_hash": ""
   },
   "app/lib/api/arrange.ts": {
