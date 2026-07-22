@@ -112,7 +112,12 @@ export type PlayableNote = { pitch: number; startSec: number; durSec: number };
 
 export function addNotesToTrack(track: Track, notes: PlayableNote[]): void {
   for (const n of notes) {
-    track.addNote({ midi: n.pitch, time: n.startSec, duration: Math.max(0.1, n.durSec) });
+    // A near-zero floor, not a musical one — every caller already computes its
+    // own correct minimum duration (quantizeMelody's grid floor, buildDrumTrack's
+    // hitDur). A 0.1s floor here used to silently override those at high BPM
+    // (grid/hitDur can be well under 0.1s past ~150 BPM), reintroducing note
+    // overlap that quantizeMelody's own anti-overlap clip had just removed.
+    track.addNote({ midi: n.pitch, time: n.startSec, duration: Math.max(0.01, n.durSec) });
   }
 }
 

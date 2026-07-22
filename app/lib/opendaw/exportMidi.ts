@@ -68,7 +68,7 @@ import pkg from "@tonejs/midi";
 import { addNotesToTrack, type PlayableNote } from "~/lib/audio/midi";
 const { Midi } = pkg;
 
-const POSITIONAL_TRACK_NAMES = ["melody", "chords"];
+const POSITIONAL_TRACK_NAMES = ["melody", "chords", "drums"];
 
 // Walks every note track in the project (via the adapters chain documented
 // above) and returns one array of playable notes per note-bearing track, in

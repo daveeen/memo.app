@@ -1,4 +1,4 @@
-// POST { key, tempo, chords, melody_contour, ref_progression, structure } → { chordChart, instrumentation }
+// POST { key, tempo, chords, melody_contour, ref_progression, structure } → { chordChart, structure, instrumentation }
 // Deployed WITH Supabase JWT verification on (no --no-verify-jwt), unlike track-search which is
 // intentionally public. The platform checks the caller's Supabase session token before this code
 // runs, so auth is not this file's job — it only needs to not fall over on bad input or a bad
@@ -24,6 +24,7 @@ const RESPONSE_SCHEMA = {
     },
     structure: {
       type: "array",
+      minItems: 1,
       items: {
         type: "object",
         properties: { label: { type: "string" } },
