@@ -28,7 +28,9 @@ app/
       midi.ts                      # buildMidi: notes+chordChart -> .mid bytes (@tonejs/midi); also exports
                                     # addNotesToTrack/PlayableNote (raw-MIDI-pitch helper, reused by
                                     # opendaw/exportMidi.ts so the write-loop isn't duplicated)
-      playback.ts                  # playSong: Tone.Sampler playback of a chord chart
+      playback.ts                  # playSong: Tone.Transport+Tone.Part playback of a chord chart, returns a
+                                    # SongPlayback controller (stop/seek/getPosition/getDuration) — real
+                                    # position tracking, not fire-and-forget (2026-07-22)
     opendaw/
       engine.ts                    # ensureOpenDawEngine: WASM engine singleton (AudioWorklets + WasmEngine
                                     # install/ensureReady); createOpenDawProject: hand-assembles ProjectEnv,
@@ -45,10 +47,17 @@ app/
       arrange.ts                   # client for /arrange edge fn (sends user's session JWT, not anon key)
     cssText.ts                     # parses the Memo.html mockup's inline CSS-declaration strings into React
                                     # style objects (kebab->camel, first-colon split so gradients/urls survive)
-    memoVisuals.ts                 # deterministic presentation helpers ported verbatim from the mockup's
-                                    # renderVals(): PAL/SEC_COLORS palettes, wavePoints/seedFromId (synthetic
-                                    # per-idea waveform), decoIdea (raw ideas row -> cassette display props)
+    memoVisuals.ts                 # presentation + pure-math helpers: PAL/SEC_COLORS palettes, wavePoints
+                                    # (synthetic per-id waveform, still what Cassette's thumbnail always uses),
+                                    # realWavePath+bucketPeaks (real decoded-audio waveform, Idea Detail's big
+                                    # waveform only, 2026-07-22), chordIndexToRow (playback position -> Builder
+                                    # structure row, positional not label-matched), decoIdea (raw ideas row ->
+                                    # cassette display props)
+    useCachedFetch.ts               # stale-while-revalidate fetch hook (module-level Map cache, session-lived);
+                                    # Ideas/Songs list + detail pages all use this instead of raw useEffect
+                                    # fetches (2026-07-22)
   components/
+    Spinner.tsx                    # shared loading spinner (used by useCachedFetch's cold-start loading state)
     memo/
       Cassette.tsx                 # the mockup's cassette-tape visual, ported 1:1; takes one decoIdea()-shaped prop
     opendaw/
@@ -76,7 +85,13 @@ app/
                                     # mockup's PRODUCE chrome in the Phase A port, engine/SDK logic untouched
 supabase/
   migrations/0001_init.sql         # tables (ideas, vibe_briefs, songs) + RLS + storage buckets (raw-audio, midi)
+  migrations/0002_add_idea_note.sql # adds ideas.note text column
   migrations/0003_add_idea_lyrics.sql # adds ideas.lyrics text column (Idea Detail's lyrics textarea)
+  migrations/0004_dedupe_vibe_briefs.sql # one-time cleanup of duplicate vibe_briefs rows (saveBrief now
+                                    # dedupes by source_track_name+source before insert) + a unique index so
+                                    # it can't recur
+  migrations/0005_add_idea_waveform.sql # adds ideas.waveform_json jsonb — real decoded-audio peaks, see
+                                    # memoVisuals.ts's bucketPeaks (2026-07-22)
   functions/arrange/index.ts       # Deno edge fn, Gemini Interactions API, JWT-verified
   functions/track-search/index.ts  # Deno edge fn, public/no-verify-jwt, SSRF-guarded preview proxy
 scripts/
@@ -125,7 +140,7 @@ Runnable checks: `npm run typecheck`, `npm run build`, `npm run check-midi`.
 ## Decisions
 
 - **2026-07-21 — Frontend port (Phase A): all 11 screens of the approved `docs/design/Memo.html` mockup ported onto real RR7 route components, wired to the existing Supabase/Essentia/Gemini/openDAW backend.** Markup/CSS/copy/animation ported verbatim (pixel-faithful, not a redesign) via a small `cssText()` inline-style parser; fixture data replaced with real API calls; the mockup's fake `setTimeout`/`setInterval` state simulations (most notably Record's hardcoded analysis result) replaced with real async flows (`analyzeCapture`, `analyzeReference`, `buildSong`). The old unstyled dashboard (`_index.tsx`, `login.tsx`, and the panel components under `components/`) is retired — the same backend calls now live behind the ported routes. Full plan: `docs/superpowers/plans/2026-07-21-frontend-port-backend-wiring.md`; design rationale: `docs/superpowers/specs/2026-07-21-frontend-port-backend-wiring-design.md`.
-  - Deferred to Phase B (deliberately out of scope, not oversights): the Ideas screen's "crate"/folders feature (no backend); Record's "similar vibes" reference list (static fixture, no similarity backend); analysis-failure/too-short/mic-permission-denied visual states (mockup has none); real decoded waveform peaks (current waveform is a deterministic synthetic fingerprint keyed off each idea's id, see `memoVisuals.ts`); the Builder's playhead-follows-real-position tracking (mockup's simplified "always highlight section 2 while playing" kept as-is); PWA install/offline/delete flows.
+  - Deferred to Phase B (deliberately out of scope, not oversights): the Ideas screen's "crate"/folders feature (no backend); Record's "similar vibes" reference list (static fixture, no similarity backend); analysis-failure/too-short/mic-permission-denied visual states (mockup has none); PWA install/offline/delete flows. (Real decoded waveform peaks and the Builder's real-position playhead — both listed here originally — shipped 2026-07-22, see below.)
   - The Chooser (`songs.new.tsx`), not the Builder, performs the actual arrangement build (`buildSong`+`buildMidi`+`saveSong`) — the Builder is a pure viewer of an already-existing song. This wasn't literally spelled out by the mockup (which has no real backend) and was a Phase A implementation decision.
   - `ideas.lyrics` is a new column (`migrations/0003_add_idea_lyrics.sql`) backing Idea Detail's lyrics textarea — needs `npx supabase db push` before that field persists live.
 
@@ -136,6 +151,11 @@ Runnable checks: `npm run typecheck`, `npm run build`, `npm run check-midi`.
   - `ProducePanel.tsx`'s signed-URL `.mid` download remains as the always-works fallback link alongside the new "Open in openDAW →" link (only rendered once a real `songId` exists).
 - **Segmentation ships as labeled even-quarters, not real self-similarity DSP** (`segment.ts`, `ponytail:`-marked). Upgrade path: true self-similarity boundary detection, if it ever matters more than the current placeholder.
 - **`track-search` is public/no-verify-jwt with an SSRF allowlist** (`*.mzstatic.com` only on the `?preview=` param); `/arrange` requires Supabase JWT verification instead of its own auth code, since it spends a paid API budget per call.
+
+- **2026-07-22 — Real playback engine + real waveforms, closing two of Phase A's deferred items.** `playback.ts`'s `playSong` was fire-and-forget (raw `Tone.now()`-offset one-shot scheduling, no reference returned, no way to stop/seek/track position) — rewritten onto `Tone.Transport`+`Tone.Part`, returning a `SongPlayback` controller (`stop`/`seek`/`getPosition`/`getDuration`). Song Builder (`songs.$id.tsx`) now derives its structure-row highlight and progress bar from real position via `memoVisuals.ts`'s `chordIndexToRow` (purely positional — deliberately does NOT fix `structure`'s pre-existing label-match filter, which still silently merges rows sharing a label; out of scope, not a regression). Idea Detail's waveform switches from the synthetic per-id fingerprint to real decoded-audio peaks (`bucketPeaks`, computed once at record time in `analyzeCapture` off the PCM `decodeAndClean()` already produces, stored in a new `ideas.waveform_json` column) with a scrubbable playhead; `Cassette`'s own thumbnail waveform deliberately keeps using the synthetic fingerprint everywhere else (a tiny decorative thumbnail doesn't need to be literal). Also added: a stale-while-revalidate fetch cache (`useCachedFetch.ts`) killing the empty-then-populated flash on Ideas/Songs list + detail pages; a "Recent" rack on Ideas; both detail pages' redundant back buttons and Builder's broken "Built in" stages timeline removed. Full plan: `docs/superpowers/plans/2026-07-22-ideas-songs-playback-polish.md`; design rationale: `docs/superpowers/specs/2026-07-22-ideas-songs-playback-polish-design.md`.
+  - **Not verified live.** No browser was available in this build environment — real audio playback, `Tone.Transport` start/stop/seek behavior, `timeupdate`/scrub accuracy, and repeated play/stop/play cycles (confirming no leaked `Tone.Part`/`Sampler` instances) were never exercised live. Typecheck + build passing confirms the code compiles, not that it sounds or feels right — re-run a live-browser pass before trusting this in production, same caveat as the openDAW integration above.
+  - `ideas.waveform_json` (`migrations/0005_add_idea_waveform.sql`) needs `npx supabase db push` before it exists on the live table — until then, every `saveIdea` insert (which now always sends `waveform_json`) will fail. This must land before/at deploy, not after.
+  - `playback.ts` guards against overlapping playback at the module level (an `activeStop` singleton disposes any still-active `Tone.Part`/`Sampler` before a new `playSong()` call schedules its own) — added after code review caught that two rapid `playSong()` calls without an intervening `stop()` would otherwise leak the old Part and play both simultaneously. Callers should still call `stop()` when done; this is defense-in-depth, not a substitute.
 
 ## For future Claude
 
