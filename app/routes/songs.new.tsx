@@ -26,8 +26,7 @@ export default function Chooser() {
   const [analyzingUrl, setAnalyzingUrl] = useState<string | null>(null);
   const { playingUrl, toggle: togglePreview } = usePreviewPlayer();
   useEffect(() => { listIdeas().then(setIdeas); listBriefs().then(setBriefs); }, []);
-  const picked = !!ideaId && !!briefId;
-  const ready = picked && !busy;
+  const ready = !!ideaId && !busy;
 
   function runSearch(q: string) {
     if (!q) { setBriefResults([]); return; }
@@ -62,8 +61,8 @@ export default function Chooser() {
 
   async function build() {
     const idea = ideas.find((i) => i.id === ideaId);
-    const brief = briefs.find((b) => b.id === briefId);
-    if (!idea || !brief) return;
+    if (!idea) return;
+    const brief = briefId ? briefs.find((b) => b.id === briefId) ?? null : null;
     setBusy(true);
     try {
       const s = await buildSong(idea, brief);
@@ -106,7 +105,7 @@ export default function Chooser() {
       </div>
 
       <div style={cssText("flex:none;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#7C7A3A;")}>
-        Side B · reference brief
+        Side B · reference brief <span style={cssText("color:#a8a68a;font-weight:600;text-transform:none;letter-spacing:0;")}>· optional</span>
       </div>
       <div style={cssText("flex:none;margin-top:10px;display:flex;align-items:center;gap:10px;padding:0 15px;height:48px;background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.04);")}>
         <button onClick={() => runSearch(briefQuery.trim())} aria-label="Search" style={cssText("display:flex;align-items:center;border:none;background:none;padding:0;cursor:pointer;")}>
@@ -172,12 +171,12 @@ export default function Chooser() {
       <button
         onClick={build}
         disabled={!ready}
-        style={cssText(`flex:none;margin:12px 0 20px;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:16px;border-radius:16px;border:none;font-size:15px;font-weight:700;cursor:pointer;background:#17161B;color:#fff;opacity:${!picked ? .4 : 1};pointer-events:${ready ? "auto" : "none"};box-shadow:0 10px 24px rgba(20,15,40,.2);`)}
+        style={cssText(`flex:none;margin:12px 0 20px;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:16px;border-radius:16px;border:none;font-size:15px;font-weight:700;cursor:pointer;background:#17161B;color:#fff;opacity:${!ideaId ? .4 : 1};pointer-events:${ready ? "auto" : "none"};box-shadow:0 10px 24px rgba(20,15,40,.2);`)}
       >
         {busy && (
           <span style={cssText("width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;animation:mSpin .8s linear infinite;display:inline-block;")}></span>
         )}
-        {busy ? "Building..." : !picked ? "Pick one of each to build" : "Build song →"}
+        {busy ? "Building..." : !ideaId ? "Pick an idea to build" : "Build song →"}
       </button>
     </div>
   );
