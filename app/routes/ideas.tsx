@@ -54,7 +54,7 @@ export default function Ideas() {
   if (loading) return <Spinner />;
 
   return (
-    <div style={cssText("height:100dvh;overflow:hidden;display:flex;flex-direction:column;padding:24px 22px 0;animation:mUp .3s ease both;")}>
+    <div style={cssText("height:100dvh;overflow:hidden;display:flex;flex-direction:column;padding:24px 22px 80px;animation:mUp .3s ease both;")}>
       <div style={cssText("display:flex;align-items:center;justify-content:space-between;")}>
         <div style={cssText("display:flex;align-items:center;gap:9px;")}>
           <div style={cssText("width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#17161B,#39373f);display:flex;align-items:center;justify-content:center;")}>
@@ -100,8 +100,11 @@ export default function Ideas() {
           ones, which is what happened before). Rows beyond what fits scroll
           internally via className="m-scroll" — the page itself never scrolls.
           4 rows = ~187px (4*38px rows + 3*5px gaps + 2*10px padding); on most
-          phone-height viewports that's comfortably within what's left here. */}
-      <div className="m-scroll" style={cssText("margin-top:10px;flex:1;min-height:0;background:linear-gradient(180deg,#2E2318,#1B140D);border-radius:12px;padding:10px 9px 90px;box-shadow:inset 0 2px 12px rgba(0,0,0,.55),0 8px 18px rgba(60,44,32,.16);display:flex;flex-direction:column;gap:5px;")}>
+          phone-height viewports that's comfortably within what's left here.
+          The root's own padding-bottom:80px (not this box's padding) reserves
+          the fixed tab bar's height, so this box's available space stops
+          right above it instead of extending underneath it. */}
+      <div className="m-scroll" style={cssText("margin-top:10px;flex:1;min-height:0;background:linear-gradient(180deg,#2E2318,#1B140D);border-radius:12px;padding:10px 9px;box-shadow:inset 0 2px 12px rgba(0,0,0,.55),0 8px 18px rgba(60,44,32,.16);display:flex;flex-direction:column;gap:5px;")}>
         {shown.map(spineRow)}
         {shown.length === 0 && (
           <div style={cssText("flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:14px;")}>
