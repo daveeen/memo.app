@@ -12,7 +12,7 @@ export interface VibeBrief {
   sections: { label: "intro"|"verse"|"chorus"|"bridge"|"outro"; startSec: number; endSec: number }[];
 }
 export interface SongBuild {
-  id: string; sourceIdeaId: string; sourceVibeBriefId: string;
+  id: string; sourceIdeaId: string; sourceVibeBriefId: string | null;
   chordChart: { chord: string; section: string }[];
   structure: { label: string; order: number }[];
   instrumentation: string[]; backingMidiPath?: string;
