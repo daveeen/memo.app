@@ -30,8 +30,10 @@ export function usePreviewPlayer() {
       setPlayingUrl(null);
       return;
     }
-    if (el.src !== url) el.src = url;
-    el.currentTime = 0;
+    if (el.src !== url) {
+      el.src = url;
+      el.currentTime = 0;
+    }
     el.play();
     setPlayingUrl(url);
   }

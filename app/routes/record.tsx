@@ -128,6 +128,7 @@ export default function Record() {
   useEffect(() => {
     if (!analysis) return;
     let cancelled = false;
+    setSoundsLike([]);
     suggestSimilar({
       key: analysis.detectedKey, bpm: analysis.bpm,
       mood: analysis.moodTag, inputType: analysis.inputType,
