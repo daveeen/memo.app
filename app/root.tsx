@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
   isRouteErrorResponse,
   Links,
@@ -12,6 +13,13 @@ import "./app.css";
 import "./memo.css";
 
 export const links: Route.LinksFunction = () => [
+  // vite-plugin-pwa's automatic HTML injection (manifest link + SW register
+  // script) never runs here — it patches a static index.html template via
+  // Vite's transformIndexHtml, but React Router 7's SPA build renders the
+  // document from this Layout component instead, so nothing was ever
+  // injected (confirmed: build/client/index.html had neither tag). Added
+  // manually; SW registration is manual too, see App()'s effect below.
+  { rel: "manifest", href: "/manifest.webmanifest" },
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   {
     rel: "preconnect",
@@ -85,6 +93,15 @@ export default function App() {
   // minHeight:100vh it grew, and on a long page (Songs) the tab bar landed at the
   // bottom of the document instead of the screen. Every route root already expects
   // this: they're all flex:1 + .m-scroll.
+  // Same automatic-injection gap as the manifest <link> above — vite-plugin-pwa
+  // never got a chance to inject its registration script into this build, so
+  // the generated sw.js was sitting unused. Only makes sense against a real
+  // production build (dev has no generated service worker at this URL).
+  useEffect(() => {
+    if (!import.meta.env.PROD) return;
+    import("virtual:pwa-register").then(({ registerSW }) => registerSW({ immediate: true }));
+  }, []);
+
   return (
     <div style={{ maxWidth: 480, margin: "0 auto", height: "100dvh", overflow: "hidden", display: "flex", flexDirection: "column", position: "relative", transform: "translateZ(0)", boxShadow: "0 0 60px rgba(0,0,0,.08)" }}>
       <Outlet />
