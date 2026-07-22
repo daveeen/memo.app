@@ -12,8 +12,23 @@ import { useEffect, useRef, useState } from "react";
 // doesn't set one, so playback (unlike track-search's `fetchPreviewBlob`,
 // which already goes through the proxy for its own reasons) needs routing
 // through track-search's `?preview=` proxy too, which now sets that header.
+//
+// Only iTunes/mzstatic urls actually need this — track-search's proxy is
+// SSRF-allowlisted to those two host suffixes and 400s on anything else.
+// This hook is also used to play an idea's own Supabase Storage signed URL
+// (Chooser's idea-preview button) — that must pass through unproxied, same
+// as ideas.$id.tsx's own direct-Audio playback of the same kind of URL.
 const PREVIEW_PROXY_BASE = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/track-search`;
-const proxiedPreviewUrl = (url: string) => `${PREVIEW_PROXY_BASE}?preview=${encodeURIComponent(url)}`;
+const PROXIED_HOST_SUFFIXES = [".itunes.apple.com", ".mzstatic.com"];
+function proxiedPreviewUrl(url: string): string {
+  try {
+    const needsProxy = PROXIED_HOST_SUFFIXES.some((suffix) => new URL(url).hostname.endsWith(suffix));
+    if (!needsProxy) return url;
+  } catch {
+    return url;
+  }
+  return `${PREVIEW_PROXY_BASE}?preview=${encodeURIComponent(url)}`;
+}
 
 export function usePreviewPlayer() {
   const [playingUrl, setPlayingUrl] = useState<string | null>(null);
