@@ -32,29 +32,59 @@ function proxiedPreviewUrl(url: string): string {
 
 export function usePreviewPlayer() {
   const [playingUrl, setPlayingUrl] = useState<string | null>(null);
+  // Set from toggle() to play()-resolved/rejected or the "error" event —
+  // the window between tap and audible sound where a button should show a
+  // loading/error state instead of looking dead (same gap as playback.ts's
+  // Tone.loaded()/AudioContext resume race, just for plain <audio>).
+  const [loadingUrl, setLoadingUrl] = useState<string | null>(null);
+  const [errorUrl, setErrorUrl] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement>(undefined);
+  // The "error"/"ended" listeners are attached once, to the one shared <audio>
+  // element — they read this ref (not a closed-over `url` param) so they
+  // always report the url that's actually pending, not whichever url was
+  // playing when the listener was first attached.
+  const pendingUrlRef = useRef<string | null>(null);
 
   useEffect(() => () => { audioRef.current?.pause(); }, []);
 
   function toggle(url: string) {
+    console.log("[preview] toggle", url);
     if (!audioRef.current) {
       const el = new Audio();
       el.addEventListener("ended", () => setPlayingUrl(null));
+      el.addEventListener("error", () => {
+        console.error("[preview] <audio> error", el.error, pendingUrlRef.current);
+        setLoadingUrl(null);
+        setPlayingUrl(null);
+        setErrorUrl(pendingUrlRef.current);
+      });
       audioRef.current = el;
     }
     const el = audioRef.current;
     if (playingUrl === url) {
+      console.log("[preview] pause", url);
       el.pause();
       setPlayingUrl(null);
       return;
     }
+    pendingUrlRef.current = url;
+    setErrorUrl(null);
     const proxied = proxiedPreviewUrl(url);
+    console.log("[preview] loading", { url, proxied });
     if (el.src !== proxied) {
       el.src = proxied;
       el.currentTime = 0;
     }
-    el.play();
+    setLoadingUrl(url);
     setPlayingUrl(url);
+    el.play()
+      .then(() => console.log("[preview] play() resolved", url))
+      .catch((err) => {
+        console.error("[preview] play() rejected", err, url);
+        setLoadingUrl(null);
+        setPlayingUrl(null);
+        setErrorUrl(url);
+      });
   }
 
   // Exposed so a page can stop preview playback when it starts a DIFFERENT
@@ -63,7 +93,8 @@ export function usePreviewPlayer() {
   function stop() {
     audioRef.current?.pause();
     setPlayingUrl(null);
+    setLoadingUrl(null);
   }
 
-  return { playingUrl, toggle, stop };
+  return { playingUrl, loadingUrl, errorUrl, toggle, stop };
 }

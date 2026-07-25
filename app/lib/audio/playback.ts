@@ -26,6 +26,11 @@ export interface SongPlayback {
   seek(sec: number): void;
   getPosition(): number;
   getDuration(): number;
+  // True if the AudioContext was still not "running" after playSong tried to
+  // resume it — the Transport advances fine either way (see comment below),
+  // so this doesn't block playback, it just tells the caller "this may be
+  // the runs-but-silent case" instead of leaving it silently undetectable.
+  audioBlocked: boolean;
 }
 
 // Tone.Transport is a global singleton — only one playSong() can genuinely be
@@ -54,7 +59,9 @@ export async function playSong(
   analyser?: AnalyserNode,
 ): Promise<SongPlayback> {
   activeStop?.();
+  console.log("[playback] playSong start", { chords: chordChart.length, bpm });
   await Tone.start();
+  console.log("[playback] Tone.start() resolved");
   // Tone.start() calls context.resume() and waits, but some mobile browsers
   // (notably iOS Safari) have been seen leaving the raw AudioContext in
   // "suspended" even after that promise resolves, especially the first time
@@ -64,10 +71,14 @@ export async function playSong(
   // suspended context is otherwise very hard to tell apart from "no audio
   // graph issue at all" from a bug report alone.
   const rawContext = Tone.getContext().rawContext as AudioContext;
+  console.log("[playback] AudioContext state:", rawContext.state);
+  let audioBlocked = false;
   if (rawContext.state !== "running") {
-    await rawContext.resume().catch(() => {});
+    await rawContext.resume().catch((err) => console.warn("[playback] context.resume() rejected", err));
     const stateAfter = rawContext.state as string;
+    console.log("[playback] AudioContext state after resume():", stateAfter);
     if (stateAfter !== "running") {
+      audioBlocked = true;
       console.warn("[playback] AudioContext still", stateAfter, "after resume — audio will likely be silent");
     }
   }
@@ -85,7 +96,9 @@ export async function playSong(
   // buffers finish loading can silently drop early notes. Tone.loaded()
   // resolves once every scheduled buffer load (including this Sampler's)
   // has finished (confirmed via node_modules/tone/build/esm/index.d.ts).
+  console.log("[playback] loading sampler buffers...");
   await Tone.loaded();
+  console.log("[playback] sampler buffers loaded");
 
   const beat = (60 / bpm) * 2;
   const duration = chordChart.length * beat;
@@ -117,6 +130,7 @@ export async function playSong(
   Tone.Transport.stop();
   Tone.Transport.seconds = 0;
   Tone.Transport.start();
+  console.log("[playback] Transport started", { duration, audioBlocked });
 
   let disposed = false;
   const controller: SongPlayback = {
@@ -124,6 +138,7 @@ export async function playSong(
       if (disposed) return;
       disposed = true;
       if (activeStop === controller.stop) activeStop = null;
+      console.log("[playback] stop()");
       Tone.Transport.stop();
       part.dispose();
       synth.dispose();
@@ -139,6 +154,7 @@ export async function playSong(
     getDuration() {
       return duration;
     },
+    audioBlocked,
   };
   activeStop = controller.stop;
   return controller;

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { useParams } from "react-router";
 import { getSong, updateSongNote, updateSongLyrics } from "~/lib/api/bank";
 import { playSong, type SongPlayback } from "~/lib/audio/playback";
 import { supabase } from "~/lib/supabase";
@@ -10,9 +10,10 @@ import { cssText } from "~/lib/cssText";
 
 export default function Builder() {
   const { id } = useParams();
-  const nav = useNavigate();
   const { data: song, loading } = useCachedFetch(`song:${id}`, () => getSong(id!));
   const [playing, setPlaying] = useState(false);
+  const [starting, setStarting] = useState(false);
+  const [audioError, setAudioError] = useState<string | null>(null);
   const [exported, setExported] = useState(false);
   const [position, setPosition] = useState(0);
   const controllerRef = useRef<SongPlayback | null>(null);
@@ -63,14 +64,26 @@ export default function Builder() {
   async function startPlayback(): Promise<SongPlayback | null> {
     if (startingRef.current) return null;
     startingRef.current = true;
+    setStarting(true);
+    setAudioError(null);
+    console.log("[Builder] startPlayback", { chords: chart.length, bpm: idea.bpm });
     try {
       const controller = await playSong(chart, idea.bpm);
       controllerRef.current = controller;
       setPlaying(true);
       rafRef.current = requestAnimationFrame(trackPosition);
+      if (controller.audioBlocked) {
+        console.warn("[Builder] playback started but AudioContext is blocked — sound likely silent");
+        setAudioError("tap ▶ again — audio was blocked");
+      }
       return controller;
+    } catch (err) {
+      console.error("[Builder] playback failed to start", err);
+      setAudioError(err instanceof Error ? err.message : "playback failed");
+      return null;
     } finally {
       startingRef.current = false;
+      setStarting(false);
     }
   }
 
@@ -173,7 +186,6 @@ export default function Builder() {
 
       <div style={cssText("margin-top:20px;display:flex;flex-direction:column;gap:10px;")}>
         <button onClick={exportMidi} style={cssText("width:100%;padding:15px;border-radius:15px;border:none;background:linear-gradient(135deg,#C97B3C,#A8432F);color:#fff;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 10px 24px rgba(160,86,58,.35);")}>Export .mid</button>
-        <button onClick={() => nav(`/produce/${id}`)} style={cssText("width:100%;padding:15px;border-radius:15px;border:1px solid rgba(0,0,0,.1);background:#fff;color:#17161B;font-size:14px;font-weight:700;cursor:pointer;")}>Open in openDAW</button>
         {exported && (
           <div style={cssText("text-align:center;font-size:13px;font-weight:600;color:#0b8a3d;")}>✓ song.mid saved to Downloads — ready to open anywhere.</div>
         )}
@@ -182,9 +194,13 @@ export default function Builder() {
     </div>
 
     <div style={cssText("position:fixed;bottom:80px;left:0;right:0;z-index:40;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-top:1px solid rgba(0,0,0,.07);padding:14px 20px;display:flex;align-items:center;gap:14px;")}>
-      <button onClick={togglePlay} style={cssText("width:46px;height:46px;border-radius:50%;border:none;background:#17161B;color:#fff;cursor:pointer;font-size:16px;flex:none;")}>{playing ? "❚❚" : "▶"}</button>
+      <button onClick={togglePlay} disabled={starting} style={cssText(`width:46px;height:46px;border-radius:50%;border:none;background:#17161B;color:#fff;cursor:pointer;font-size:16px;flex:none;display:flex;align-items:center;justify-content:center;${starting ? "opacity:.7;cursor:wait;" : ""}`)}>
+        {starting ? (
+          <span style={cssText("width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;animation:mSpin .8s linear infinite;display:inline-block;")}></span>
+        ) : audioError ? "⚠" : playing ? "❚❚" : "▶"}
+      </button>
       <div style={cssText("flex:1;")}>
-        <div style={cssText("font-size:12px;font-weight:700;color:#17161B;text-transform:capitalize;")}>{transportSec?.label ?? ""}</div>
+        <div style={cssText("font-size:12px;font-weight:700;color:#17161B;text-transform:capitalize;")}>{audioError ?? transportSec?.label ?? ""}</div>
         <div
           onPointerDown={(e) => {
             const rect = e.currentTarget.getBoundingClientRect();

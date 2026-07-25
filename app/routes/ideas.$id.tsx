@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, Fragment } from "react";
 import { usePreviewPlayer } from "~/lib/usePreviewPlayer";
 import { useNavigate, useParams } from "react-router";
-import { getIdea, ideaAudioUrl, renameIdea, updateIdeaNote, updateIdeaLyrics, listSongsForIdea, deleteIdea } from "~/lib/api/bank";
+import { getIdea, renameIdea, updateIdeaNote, updateIdeaLyrics, listSongsForIdea, deleteIdea } from "~/lib/api/bank";
+import { getIdeaAudioBlobUrl, prefetchIdeaAudio } from "~/lib/audio/audioCache";
 import { decoIdea } from "~/lib/memoVisuals";
 import { Cassette } from "~/components/memo/Cassette";
 import { useCachedFetch } from "~/lib/useCachedFetch";
@@ -14,14 +15,28 @@ export default function IdeaDetail() {
   const { data: row, loading } = useCachedFetch(`idea:${id}`, () => getIdea(id!));
   const [songs, setSongs] = useState<any[]>([]);
   const [playing, setPlaying] = useState(false);
+  const [starting, setStarting] = useState(false);
+  const [audioError, setAudioError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(undefined);
-  const { playingUrl: previewPlayingUrl, toggle: togglePreview, stop: stopPreview } = usePreviewPlayer();
+  const {
+    playingUrl: previewPlayingUrl,
+    loadingUrl: previewLoadingUrl,
+    errorUrl: previewErrorUrl,
+    toggle: togglePreview,
+    stop: stopPreview,
+  } = usePreviewPlayer();
   useEffect(() => {
     if (!id) return;
     listSongsForIdea(id).then(setSongs);
   }, [id]);
+  // Warm the audio cache as soon as we know the raw_path, instead of waiting
+  // for the tap — hides the sign+download latency in the time the user
+  // spends reading the page before pressing play.
+  useEffect(() => {
+    if (row?.raw_path) prefetchIdeaAudio(row.raw_path);
+  }, [row?.raw_path]);
   // Force-stop on unmount/navigation — this, plus reusing one <audio>
   // element below instead of a fresh one per click, is the actual fix for
   // "keeps playing after leaving the page."
@@ -30,17 +45,40 @@ export default function IdeaDetail() {
   if (!row || !id) return null;
   const d = decoIdea(row);
   async function togglePlay() {
-    if (!audioRef.current) {
-      const u = await ideaAudioUrl(row.raw_path);
-      if (!u) return;
-      const el = new Audio(u);
-      el.addEventListener("loadedmetadata", () => setDuration(el.duration));
-      el.addEventListener("timeupdate", () => setCurrentTime(el.currentTime));
-      el.addEventListener("ended", () => setPlaying(false));
-      audioRef.current = el;
+    console.log("[IdeaDetail] togglePlay", { playing, hasElement: !!audioRef.current });
+    if (playing) {
+      audioRef.current?.pause();
+      setPlaying(false);
+      return;
     }
-    if (playing) { audioRef.current.pause(); setPlaying(false); }
-    else { stopPreview(); audioRef.current.play(); setPlaying(true); }
+    setStarting(true);
+    setAudioError(null);
+    try {
+      if (!audioRef.current) {
+        console.log("[IdeaDetail] resolving audio for", row.raw_path);
+        const u = await getIdeaAudioBlobUrl(row.raw_path);
+        console.log("[IdeaDetail] audio blob url ready");
+        const el = new Audio(u);
+        el.addEventListener("loadedmetadata", () => setDuration(el.duration));
+        el.addEventListener("timeupdate", () => setCurrentTime(el.currentTime));
+        el.addEventListener("ended", () => setPlaying(false));
+        el.addEventListener("error", () => {
+          console.error("[IdeaDetail] <audio> error", el.error);
+          setAudioError("playback error");
+          setPlaying(false);
+        });
+        audioRef.current = el;
+      }
+      stopPreview();
+      await audioRef.current.play();
+      console.log("[IdeaDetail] play() resolved");
+      setPlaying(true);
+    } catch (err) {
+      console.error("[IdeaDetail] playback failed to start", err);
+      setAudioError(err instanceof Error ? err.message : "playback failed");
+    } finally {
+      setStarting(false);
+    }
   }
   function seek(fraction: number) {
     if (!audioRef.current || !duration) return;
@@ -58,7 +96,12 @@ export default function IdeaDetail() {
         <div style={cssText("width:150px;flex:none;")}><Cassette idea={d} showMeta={false} /></div>
         <div style={cssText("flex:1;padding-top:4px;")}>
           <input key={id} defaultValue={d.name} onBlur={e => renameIdea(id, e.target.value)} style={cssText("width:100%;border:none;background:none;outline:none;font-size:22px;font-weight:800;letter-spacing:-.03em;color:#17161B;padding:0;")} />
-          <button onClick={togglePlay} style={cssText("margin-top:12px;display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:22px;border:none;background:#17161B;color:#fff;font-weight:600;font-size:13px;cursor:pointer;")}>{playing ? '❚❚' : '▶'} {playing ? 'Playing' : 'Play take'}</button>
+          <button onClick={togglePlay} disabled={starting} style={cssText(`margin-top:12px;display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:22px;border:none;background:#17161B;color:#fff;font-weight:600;font-size:13px;cursor:pointer;${starting ? "opacity:.7;cursor:wait;" : ""}`)}>
+            {starting ? (
+              <span style={cssText("width:13px;height:13px;border-radius:50%;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;animation:mSpin .8s linear infinite;display:inline-block;")}></span>
+            ) : (playing ? '❚❚' : '▶')}
+            {starting ? 'Loading…' : audioError ?? (playing ? 'Playing' : 'Play take')}
+          </button>
         </div>
       </div>
 
@@ -119,7 +162,11 @@ export default function IdeaDetail() {
                   <div style={cssText("font-size:14px;font-weight:700;color:#17161B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;")}>{t.title}</div>
                   <div style={cssText("font-size:11.5px;color:#8a8791;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;")}>{t.artist}</div>
                 </div>
-                <span style={cssText("flex:none;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;color:#B5503C;background:#F7F1E3;box-shadow:0 3px 8px rgba(0,0,0,.1),inset 0 1px 1px rgba(255,255,255,.6);")}>{previewPlayingUrl === t.previewUrl ? "❚❚" : "▶"}</span>
+                <span style={cssText("flex:none;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;color:#B5503C;background:#F7F1E3;box-shadow:0 3px 8px rgba(0,0,0,.1),inset 0 1px 1px rgba(255,255,255,.6);")}>
+                  {previewLoadingUrl === t.previewUrl ? (
+                    <span style={cssText("width:12px;height:12px;border-radius:50%;border:2px solid rgba(181,80,60,.3);border-top-color:#B5503C;animation:mSpin .8s linear infinite;display:inline-block;")}></span>
+                  ) : previewErrorUrl === t.previewUrl ? "⚠" : previewPlayingUrl === t.previewUrl ? "❚❚" : "▶"}
+                </span>
               </button>
             ))}
           </div>

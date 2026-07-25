@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
-import { listIdeas, listBriefs, saveBrief, saveSong, ideaAudioUrl } from "~/lib/api/bank";
+import { listIdeas, listBriefs, saveBrief, saveSong } from "~/lib/api/bank";
+import { getIdeaAudioBlobUrl } from "~/lib/audio/audioCache";
 import { buildSong } from "~/lib/api/arrange";
 import { buildMidi } from "~/lib/audio/midi";
 import { analyzeReference } from "~/lib/audio/analyze";
@@ -21,27 +22,39 @@ export default function Chooser() {
   const [ideaId, setIdeaId] = useState<string | null>(sp.get("idea"));
   const [briefId, setBriefId] = useState<string | null>(sp.get("brief"));
   const [busy, setBusy] = useState(false);
+  // Synchronous guard against a rapid double-click/double-tap firing build()
+  // twice before React re-renders the disabled button — same pattern as
+  // playback.ts's activeStop / Builder's startingRef.
+  const buildingRef = useRef(false);
   const [briefQuery, setBriefQuery] = useState("");
   const [briefResults, setBriefResults] = useState<SearchTrack[]>([]);
   const [analyzingUrl, setAnalyzingUrl] = useState<string | null>(null);
   const { playingUrl, toggle: togglePreview } = usePreviewPlayer();
   const [ideaAudioUrls, setIdeaAudioUrls] = useState<Record<string, string>>({});
   useEffect(() => { listIdeas().then(setIdeas); listBriefs().then(setBriefs); }, []);
+  // Warm every idea's audio blob as soon as the strip has ideas to show —
+  // hides sign+download latency behind the time the user spends picking.
+  // audioCache dedupes/caches by raw_path across the whole app, so this is
+  // free if Idea Detail already warmed the same idea this session.
+  // ideaAudioUrls just mirrors the shared cache into per-idea-id state so
+  // the play/pause icon below can compare against it synchronously.
+  useEffect(() => {
+    ideas.forEach((i) => {
+      getIdeaAudioBlobUrl(i.raw_path).then((url) => {
+        setIdeaAudioUrls((prev) => (prev[i.id] === url ? prev : { ...prev, [i.id]: url }));
+      });
+    });
+  }, [ideas]);
   const ready = !!ideaId && !busy;
 
   // Idea audio is a private storage object, not a plain public URL like an
-  // iTunes preview — resolve to a signed URL once per idea and cache it, so
-  // a second tap toggles pause/resume against the SAME url (a fresh signed
-  // URL every tap would have a different token each time, breaking
-  // usePreviewPlayer's url-equality-based toggle).
+  // iTunes preview — usePreviewPlayer's toggle is url-equality-based, so
+  // this needs the SAME stable blob url every tap, not a fresh signed url
+  // each time. getIdeaAudioBlobUrl already guarantees that (cached by
+  // raw_path); ideaAudioUrls is normally already warm from the effect above,
+  // the cache lookup below is just the fallback for a tap that beats it.
   async function toggleIdeaPreview(i: any) {
-    let url = ideaAudioUrls[i.id];
-    if (!url) {
-      const resolved = await ideaAudioUrl(i.raw_path);
-      if (!resolved) return;
-      url = resolved;
-      setIdeaAudioUrls((prev) => ({ ...prev, [i.id]: url }));
-    }
+    const url = ideaAudioUrls[i.id] ?? await getIdeaAudioBlobUrl(i.raw_path);
     togglePreview(url);
   }
 
@@ -77,16 +90,22 @@ export default function Chooser() {
   }
 
   async function build() {
+    if (buildingRef.current) return;
     const idea = ideas.find((i) => i.id === ideaId);
     if (!idea) return;
     const brief = briefId ? briefs.find((b) => b.id === briefId) ?? null : null;
+    buildingRef.current = true;
     setBusy(true);
     try {
       const s = await buildSong(idea, brief);
       const midi = buildMidi(idea.notes_json ?? idea.notes, s.chordChart, idea.bpm, idea.key);
       const { song } = await saveSong(s, midi);
       nav(`/songs/${song.id}`);
-    } catch (e) { console.error("[chooser] build failed:", e); setBusy(false); }
+    } catch (e) {
+      console.error("[chooser] build failed:", e);
+      buildingRef.current = false;
+      setBusy(false);
+    }
   }
 
   return (
