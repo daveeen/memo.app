@@ -53,6 +53,19 @@ function extractOutputText(data: any): string {
   return text;
 }
 
+// Renderer contract: midi.ts/playback.ts only understand major/minor triads (root + optional
+// trailing "m"). The prompt asks Gemini for exactly that, but a stray "Dm7"/"G7sus4"/"F/A" would
+// otherwise render as silent-wrong audio, so collapse any chord to its triad here. Keep in sync
+// with scripts/check-arrange-chord.mjs, which tests these exact cases.
+function normTriad(raw: unknown): string {
+  if (typeof raw !== "string") return "C";
+  const m = raw.trim().match(/^([A-Ga-g])([#b]?)(.*)$/);
+  if (!m) return "C";
+  // Minor only for a leading lowercase "m" (not "maj"), "min", or "-". Capital "M" stays major.
+  const isMinor = /^(m(?!aj)|min|-)/.test(m[3]);
+  return m[1].toUpperCase() + m[2] + (isMinor ? "m" : "");
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
 
@@ -65,7 +78,7 @@ Deno.serve(async (req) => {
       headers: { ...cors, "content-type": "application/json" },
     });
   }
-  const { key, tempo, chords, melody_contour, ref_progression, structure } = body ?? {};
+  const { key, tempo, mood, melody, ref_progression, structure } = body ?? {};
 
   const apiKey = Deno.env.get("GEMINI_API_KEY");
   if (!apiKey) {
@@ -75,15 +88,38 @@ Deno.serve(async (req) => {
     });
   }
 
-  const sys = "You are a music arranger. Stay strictly in the given key and tempo. " +
-    "Use only diatonic chords of that key unless a chord is already in the provided reference progression. " +
-    "Always return a structure array in your output, listing the song's sections in order (e.g. Intro, Verse, " +
-    "Chorus, Verse, Chorus, Outro). If a reference structure was given below, echo it back exactly. If none " +
-    "was given (it's null), invent a natural one that fits the key, tempo, and melody contour, then generate " +
-    "a chord progression to match it.";
-  const user = `Key: ${key}\nTempo: ${tempo}\nReference progression: ${JSON.stringify(ref_progression)}\n` +
-    `Melody contour: ${JSON.stringify(melody_contour)}\nStructure: ${JSON.stringify(structure)}\n` +
-    `Generate a chord chart ordered to follow the structure (inventing one first if none was given above).`;
+  const sys =
+    "You are an expert songwriter and arranger. You harmonize a hummed melody into a chord chart " +
+    "that sounds intentional and emotionally specific — never a generic template.\n\n" +
+    "HARMONY:\n" +
+    "- Stay in the given key and tempo. The key sets 'home', but you are NOT limited to its 6 diatonic triads.\n" +
+    "- Harmonize the MELODY: in each section the chosen chords' notes should contain the melody's emphasized " +
+    "notes (longer notes and notes on strong beats — infer beats from the start times and tempo). Short notes " +
+    "may be non-chord passing tones.\n" +
+    "- Use color DELIBERATELY to fit the mood, drawn from: secondary dominants (the major triad a fifth above a " +
+    "diatonic chord, e.g. E->Am), borrowed chords from the parallel key (iv, bVII, bVI, bIII, minor v), and " +
+    "mode-appropriate substitutions. One well-placed non-diatonic chord is the difference between memorable and " +
+    "generic.\n" +
+    "- Give each section its OWN harmonic identity. Verse and chorus must NOT share the same progression. Never " +
+    "reflexively output I-V-vi-IV or I-IV-V-I.\n\n" +
+    "MOOD -> COLOR (guidance, not rules): bright/happy -> major, IV, V/V, sus feel; sad/melancholy -> minor, " +
+    "borrowed iv, bVI, bVII; dreamy/nostalgic -> bVII, iii, minor v, modal; tense/dark -> minor, bII, bVI.\n\n" +
+    "CHORD FORMAT (STRICT, hard constraint): every chord is a plain major or minor triad written as a note " +
+    "letter A-G, an optional # or b, and a trailing lowercase 'm' for minor ONLY. Valid: \"C\", \"Am\", \"F#\", " +
+    "\"Bbm\", \"E\", \"Db\". Do NOT emit sevenths, sus, add, slash, maj, or numbers.\n\n" +
+    "STRUCTURE: if a reference structure is given, echo its labels in order; if it is null, invent a natural song " +
+    "structure that fits the key, tempo, and melody, then harmonize to it. Aim for ~2-4 chords per section with a " +
+    "clear harmonic rhythm, and make distinct sections actually feel distinct.\n\n" +
+    "EXAMPLE (format + variety only, do not copy): key C, mood \"nostalgic\" -> " +
+    "Verse: Am, F, C, G | Chorus: F, G, Em, Am | Bridge: Bb, Gm, Eb, F  (bVII/minor-v/bIII borrowed for lift). " +
+    "The bridge leaves the diatonic set on purpose — that is the point.";
+  const user =
+    `Key: ${key}\nTempo: ${tempo} BPM\nMood: ${mood ?? "unspecified"}\n` +
+    `Reference progression (from a similar song, may be null): ${JSON.stringify(ref_progression)}\n` +
+    `Melody (pitch, start sec, duration sec): ${JSON.stringify(melody)}\n` +
+    `Structure (echo its labels if given, else null -> invent one): ${JSON.stringify(structure)}\n` +
+    `Produce chordChart (chords ordered to follow the structure, each tagged with its section label), the ` +
+    `structure array, and instrumentation that fits the mood and tempo.`;
 
   let parsed: any;
   try {
@@ -122,6 +158,11 @@ Deno.serve(async (req) => {
       status: 502,
       headers: { ...cors, "content-type": "application/json" },
     });
+  }
+
+  // Enforce the renderer's triad-only chord contract regardless of what the model returned.
+  if (Array.isArray(parsed?.chordChart)) {
+    for (const c of parsed.chordChart) if (c) c.chord = normTriad(c.chord);
   }
 
   return new Response(JSON.stringify(parsed), { headers: { ...cors, "content-type": "application/json" } });
